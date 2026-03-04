@@ -620,7 +620,7 @@ MonoBehaviour:
   planetPrefab: {fileID: 4984548254132639815, guid: 8642ac3a7ea6a9340b8a0081a01ab70a, type: 3}
   sun: {fileID: 689001566}
   numberOfPlanets: 3
-  seed: 420
+  seed: 42
   planetsMinMax:
     x: 1
     y: 5
