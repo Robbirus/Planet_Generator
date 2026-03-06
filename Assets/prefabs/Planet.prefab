@@ -153,7 +153,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: dd433d3fd0b40b148bd4e7103c3094c1, type: 3}
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::OrbitPredictionVerlet
-  G: 0.01
+  G: 1
   simulationSteps: 1000
   timeStep: 0.02
   orbitColor: {r: 0.015686274, g: 1, b: 0.9746545, a: 1}
