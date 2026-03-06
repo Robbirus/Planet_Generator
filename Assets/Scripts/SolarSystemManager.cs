@@ -9,7 +9,7 @@ public class SolarSystemManager : MonoBehaviour
 
     private void Start()
     {
-        Invoke(nameof(Initialize), 0.001f);
+        Initialize();
     }
 
     private void Initialize()
@@ -25,6 +25,8 @@ public class SolarSystemManager : MonoBehaviour
 
     private void ApplyGravity()
     {
+        if (planets == null || sun == null) return;
+
         foreach (GameObject planet in planets)
         {
             Rigidbody rb = planet.GetComponent<Rigidbody>();
