@@ -4,23 +4,21 @@ using UnityEngine;
 [ExecuteAlways]
 public class OrbitPredictionVerlet : MonoBehaviour
 {
-    public float G = 0.01f;
-    public int simulationSteps = 800;
-    public float timeStep = 0.02f;
-    public Color orbitColor = Color.yellow;
+    [SerializeField] private float G = 0.1f;
+    [SerializeField] private int simulationSteps = 800;
+    [SerializeField] private float timeStep = 0.02f;
+    [SerializeField] private Color orbitColor = Color.yellow;
 
-    private Rigidbody[] bodies;
+    private CelestialBody[] bodies;
 
     void OnDrawGizmos()
     {
-        if (!Application.isPlaying)
-            return;
+        if (!Application.isPlaying) return;
 
-        bodies = FindObjectsOfType<Rigidbody>();
+            bodies = FindObjectsByType<CelestialBody>(FindObjectsSortMode.InstanceID);
 
-        Rigidbody current = GetComponent<Rigidbody>();
-        if (current == null)
-            return;
+        CelestialBody current = GetComponent<CelestialBody>();
+        if (current == null) return;
 
         List<Vector3> positions = PredictOrbit(current);
 
@@ -32,14 +30,14 @@ public class OrbitPredictionVerlet : MonoBehaviour
         }
     }
 
-    List<Vector3> PredictOrbit(Rigidbody body)
+    private List<Vector3> PredictOrbit(CelestialBody body)
     {
         List<Vector3> result = new List<Vector3>();
 
-        Vector3 currentPos = body.position;
-        Vector3 velocity = body.linearVelocity;
+        Vector3 currentPos = body.GetRigidbody().position;
+        Vector3 velocity = body.GetRigidbody().linearVelocity;
 
-        // Calcul position précédente pour Verlet
+        // Calcul position presente pour Verlet
         Vector3 previousPos = currentPos - velocity * timeStep;
 
         for (int step = 0; step < simulationSteps; step++)
@@ -59,25 +57,25 @@ public class OrbitPredictionVerlet : MonoBehaviour
         return result;
     }
 
-    Vector3 ComputeAcceleration(Rigidbody body, Vector3 simulatedPos)
+    Vector3 ComputeAcceleration(CelestialBody body, Vector3 simulatedPos)
     {
         Vector3 totalForce = Vector3.zero;
 
-        foreach (Rigidbody other in bodies)
+        foreach (CelestialBody other in bodies)
         {
             if (other == body)
                 continue;
 
-            Vector3 direction = other.position - simulatedPos;
+            Vector3 direction = other.GetRigidbody().position - simulatedPos;
             float distance = direction.magnitude;
 
             if (distance < 0.1f)
                 continue;
 
-            float forceMagnitude = G * (body.mass * other.mass) / (distance * distance);
-            totalForce += direction.normalized * forceMagnitude;
+            double forceMagnitude = G * (body.GetMass() * other.GetMass()) / (distance * distance);
+            totalForce += direction.normalized * (float)forceMagnitude;
         }
 
-        return totalForce / body.mass;
+        return totalForce / 1f;
     }
 }
