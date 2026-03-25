@@ -1,20 +1,18 @@
+﻿using System;
 using UnityEngine;
 
 public class SolarSystemManager : MonoBehaviour
 {
+    [Tooltip("The Sun's rigidbody.")]
     [SerializeField] private Rigidbody sun;
-    [SerializeField] private float G = 25f;
 
-    private GameObject[] planets;
+    [SerializeField] private float G = 0.1f;
+
+    private CelestialBody[] bodies;
 
     private void Start()
     {
-        Initialize();
-    }
-
-    private void Initialize()
-    {
-        planets = GameObject.FindGameObjectsWithTag("Celestials");
+        bodies = FindObjectsByType<CelestialBody>(FindObjectsSortMode.None);
         SetInitialVelocities();
     }
 
@@ -25,46 +23,91 @@ public class SolarSystemManager : MonoBehaviour
 
     private void ApplyGravity()
     {
-        if (planets == null || sun == null) return;
-
-        foreach (GameObject planet in planets)
+        foreach (CelestialBody a in bodies)
         {
-            Rigidbody rb = planet.GetComponent<Rigidbody>();
+            Vector3 totalAcceleration = Vector3.zero;
 
-            Vector3 direction = sun.position - rb.position;
-            float distance = direction.magnitude;
-            float forceMagnitude = 0;
-
-            if(distance > 0.1f)
+            foreach (CelestialBody b in bodies)
             {
-                forceMagnitude = G * (sun.mass * rb.mass) / (distance * distance);
+                if (a == b) continue;
+
+                Vector3 dir = b.transform.position - a.transform.position;
+                float dist = dir.magnitude + 0.1f;
+
+                float mB = (float)b.GetMass();
+
+                float accel = G * mB / (dist * dist);
+
+                totalAcceleration += dir.normalized * accel;
             }
 
-
-            rb.AddForce(direction.normalized * forceMagnitude);
+            a.GetRigidbody().linearVelocity += totalAcceleration * Time.fixedDeltaTime;
         }
     }
 
+    /*
+    private void ApplyGravity()
+    {
+        for (int i = 0; i < bodies.Length; i++)
+        {
+            for (int j = i + 1; j < bodies.Length; j++)
+            {
+                CelestialBody a = bodies[i];
+                CelestialBody b = bodies[j];
+
+                Rigidbody rbA = a.GetRigidbody();
+                Rigidbody rbB = b.GetRigidbody();
+
+                Vector3 dir = b.transform.position - a.transform.position;
+                float dist = dir.magnitude + 0.1f;
+
+                float mA = (float)a.GetMass();
+                float mB = (float)b.GetMass();
+
+                float force = G * (mA * mB) / (dist * dist);
+
+                Vector3 forceVec = dir.normalized * force;
+
+                // action / reaction
+                rbA.AddForce(forceVec);
+                rbB.AddForce(-forceVec);
+            }
+        }
+    }
+    */
+
     private void SetInitialVelocities()
     {
-        foreach (GameObject planet in planets)
+        CelestialBody sunBody = GetHeaviestBody();
+
+        foreach(CelestialBody body in bodies)
         {
-            Rigidbody rb = planet.GetComponent<Rigidbody>();
+            if(body == sunBody) continue;
 
-            Vector3 direction = planet.transform.position - sun.position;
-            float distance = direction.magnitude;
-            float orbitalSpeed = 0f;
+            Vector3 dir = body.GetRigidbody().position - sun.position;
+            float r = dir.magnitude;
 
-            if (distance > 0.1f)
-            {
-                orbitalSpeed = Mathf.Sqrt(G * sun.mass / distance);
-            }
 
-            Vector3 tangent = Vector3.Cross(direction.normalized, Vector3.up);
+            float speed = Mathf.Sqrt((float)(G * sunBody.GetMass() / r));
 
-            Debug.Log($"Setting initial velocity for {planet.name}: {tangent * orbitalSpeed}");
+            Vector3 tangent = Vector3.Cross(dir.normalized, Vector3.up);
 
-            rb.linearVelocity = tangent * orbitalSpeed;
+            body.GetRigidbody().linearVelocity = tangent * speed;
         }
+    }
+
+    private CelestialBody GetHeaviestBody()
+    {
+        CelestialBody heaviest = bodies[0];
+
+        foreach (CelestialBody body in bodies)
+        {
+            if (body.GetMass() > heaviest.GetMass())
+            {
+                heaviest = body;
+            }
+        }
+
+        return heaviest;
     }
 }
