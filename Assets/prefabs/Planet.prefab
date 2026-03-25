@@ -14,6 +14,7 @@ GameObject:
   - component: {fileID: 6433275821934095146}
   - component: {fileID: 1506379952590868778}
   - component: {fileID: 2279649020616029923}
+  - component: {fileID: -6737950574561051602}
   m_Layer: 0
   m_Name: Planet
   m_TagString: Celestials
@@ -153,7 +154,21 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: dd433d3fd0b40b148bd4e7103c3094c1, type: 3}
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::OrbitPredictionVerlet
-  G: 1
-  simulationSteps: 1000
+  G: 100
+  simulationSteps: 800
   timeStep: 0.02
   orbitColor: {r: 0.015686274, g: 1, b: 0.9746545, a: 1}
+--- !u!114 &-6737950574561051602
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 4984548254132639815}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: a20222fd6639e6f41964850473e5d6ae, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Assembly-CSharp::CelestialBody
+  density: 1
+  massUnity: 1
