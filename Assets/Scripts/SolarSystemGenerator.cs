@@ -1,60 +1,65 @@
 ﻿using System.Collections.Generic;
-using Unity.Mathematics;
 using UnityEngine;
 
 public class SolarSystemGenerator : MonoBehaviour
 {
+    [Header("Prefabs")]
     [SerializeField] private GameObject planetPrefab;
+    [SerializeField] private GameObject moonPrefab;
     [SerializeField] private Transform sun;
 
-    [Header("Seed parameters")]
+    [Header("Seed")]
     [SerializeField] private int seed = 0;
 
-    [Header("Planet count")]
-    [SerializeField] private float2 planetsMinMax;
-    [SerializeField] private int numberOfPlanets = 5;
+    [Header("Planets")]
+    [SerializeField] private int minPlanets = 3;
+    [SerializeField] private int maxPlanets = 8;
 
-    [Header("Mass & Density")]
-    [SerializeField] private float2 massUnityScale;
-    [SerializeField] private float2 densityScale;
+    [SerializeField] private float minDistance = 20f;
+    [SerializeField] private float maxDistance = 120f;
 
-    [Header("Orbital placement")]
-    [SerializeField] private float2 distanceFromSun;
-    [SerializeField] private float2 inclineMinMax;
+    [SerializeField] private float minOrbitalSpeed = 10f; 
+    [SerializeField] private float maxOrbitalSpeed = 100f;
 
-    [SerializeField] private float safeSpacing = 4f;
+    [SerializeField] private float minRotationSpeed = 10f;
+    [SerializeField] private float maxRotationSpeed = 100f;
 
-    private List<(float distance, float radius)> usedDistances = new List<(float, float)>();
+    [Header("Planet Properties")]
+    [SerializeField] private Vector2 massRange = new Vector2(5f, 50f);
+    [SerializeField] private Vector2 densityRange = new Vector2(0.5f, 2f);
+    [SerializeField] private Color planetOrbitColor = Color.blue;
+
+    [Header("Moons")]
+    [SerializeField] private int minMoons = 0;
+    [SerializeField] private int maxMoons = 3;
+
+    [SerializeField] private float moonDistanceMin = 3f;
+    [SerializeField] private float moonDistanceMax = 12f;
+
+    [SerializeField] private Color moonOrbitColor = Color.cyan;
+
+    private List<float> usedDistances = new();
 
     private void Start()
     {
+        Random.InitState(seed);
         GeneratePlanets();
     }
 
     private void GeneratePlanets()
     {
-        UnityEngine.Random.InitState(seed);
+        int count = Random.Range(minPlanets, maxPlanets);
 
-        int numPlanets = (int)UnityEngine.Random.Range(
-            planetsMinMax.x,
-            planetsMinMax.y
-        );
-
-        for (int i = 0; i < numberOfPlanets; i++)
+        for (int i = 0; i < count; i++)
         {
-            float mass = UnityEngine.Random.Range(massUnityScale.x, massUnityScale.y);
-            float density = UnityEngine.Random.Range(densityScale.x, densityScale.y);
+            float distance = FindSafeDistance();
 
-            float radius = Mathf.Pow((3 * mass) / (4 * Mathf.PI * density), 1f / 3f);
-
-            float distance = FindSafeDistance(radius);
-
-            float angle = UnityEngine.Random.Range(0f, Mathf.PI *2f);
-            float incline = UnityEngine.Random.Range(inclineMinMax.x, inclineMinMax.y);
+            float angle = Random.Range(0f, Mathf.PI * 2f);
+            float incline = UnityEngine.Random.Range(-3f, 3f); 
 
             Vector3 pos = sun.position + new Vector3(
-                Mathf.Cos(angle) * distance, 
-                incline, 
+                Mathf.Cos(angle) * distance,
+                incline,
                 Mathf.Sin(angle) * distance
             );
 
@@ -62,42 +67,85 @@ public class SolarSystemGenerator : MonoBehaviour
 
             CelestialBody body = planet.GetComponent<CelestialBody>();
 
-            body.SetMass(mass);
-            body.SetDensity(density);
+            // Body
+            body.SetMass(Random.Range(massRange.x, massRange.y));
+            body.SetDensity(Random.Range(densityRange.x, densityRange.y));
+            body.SetRotationSpeed(Random.Range(minRotationSpeed, maxRotationSpeed));
             body.ApplyScale();
 
-            usedDistances.Add((distance, radius));
+            float orbitSpeed = Random.Range(minOrbitalSpeed, maxOrbitalSpeed) / distance;
+            float inclination = Random.Range(-10f, 10f);
+
+            // Orbit
+            OrbitBody orbit = planet.AddComponent<OrbitBody>();
+            orbit.SetCenter(sun);
+            orbit.SetSeed(seed);
+            orbit.SetOrbitColor(planetOrbitColor);
+            orbit.SetOrbitRadius(distance);
+            orbit.SetOrbitSpeed(orbitSpeed);
+            orbit.SetOrbitInclination(inclination);
+
+            usedDistances.Add(distance);
+
+            GenerateMoons(planet);
         }
     }
 
-    private float FindSafeDistance(float newRadius)
+    private void GenerateMoons(GameObject planet)
+    {
+        int moonCount = Random.Range(minMoons, maxMoons);
+
+        for (int i = 0; i < moonCount; i++)
+        {
+            float distance = Random.Range(moonDistanceMin, moonDistanceMax);
+
+            float angle = Random.Range(0f, Mathf.PI * 2f);
+
+            Vector3 pos = planet.transform.position + new Vector3(
+                Mathf.Cos(angle) * distance,
+                Random.Range(-1f, 1f),
+                Mathf.Sin(angle) * distance
+            );
+
+            GameObject moon = Instantiate(moonPrefab, pos, Quaternion.identity);
+
+            CelestialBody body = moon.GetComponent<CelestialBody>();
+
+            body.SetMass(Random.Range(0.5f, 5f));
+            body.SetDensity(Random.Range(0.5f, 2f));
+            body.ApplyScale();
+
+            float orbitSpeed = Random.Range(minOrbitalSpeed, maxOrbitalSpeed) / distance;
+            float inclination = Random.Range(-20f, 20f);
+
+            OrbitBody orbit = moon.AddComponent<OrbitBody>();
+            orbit.SetCenter(planet.transform);
+            orbit.SetSeed(seed);
+            orbit.SetOrbitColor(moonOrbitColor);
+            orbit.SetOrbitRadius(distance);
+            orbit.SetOrbitSpeed(orbitSpeed);
+            orbit.SetOrbitInclination(inclination);
+        }
+    }
+
+    private float FindSafeDistance()
     {
         float distance;
         bool valid;
 
-        int safety = 0;
-
         do
         {
-            distance = UnityEngine.Random.Range(distanceFromSun.x, distanceFromSun.y);
+            distance = Random.Range(minDistance, maxDistance);
             valid = true;
 
-            foreach (var orbit in usedDistances)
+            foreach (float d in usedDistances)
             {
-                float existingDistance = orbit.distance;
-                float existingRadius = orbit.radius;
-
-                float safeDistance = existingRadius + newRadius + 2f; // marge
-
-                if (Mathf.Abs(distance - existingDistance) < safeDistance)
+                if (Mathf.Abs(distance - d) < 10f)
                 {
                     valid = false;
                     break;
                 }
             }
-
-            safety++;
-            if (safety > 100) break;
 
         } while (!valid);
 

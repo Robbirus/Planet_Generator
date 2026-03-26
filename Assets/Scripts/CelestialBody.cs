@@ -1,90 +1,38 @@
-﻿using System;
-using UnityEngine;
+﻿using UnityEngine;
 
 public class CelestialBody : MonoBehaviour
 {
-    [Header("Celestial Body Properties")]
-
-    [Tooltip("Density")]
+    [Header("Physical properties")]
+    [SerializeField] private float mass = 1f;
     [SerializeField] private float density = 1f;
 
-    [Tooltip("Mass in game units")]
-    [SerializeField] private float massUnity = 1f;
+    [Header("Rotation")]
+    [SerializeField] private float rotationSpeed = 10f;
 
-    [HideInInspector]
-    private Rigidbody rb;
-
-    // Safety clamps
-    private const float MIN_DENSITY = 0.1f;
-    private const float MIN_MASS = 0.1f;
-
-    private double cachedRadius = -1;
-
-    public double GetRadius()
+    public float GetRadius()
     {
-            if (cachedRadius < 0)
-            {
-                double m = GetMass();
-                double rho = GetDensity();
-
-                double r = Math.Pow((3 * m) / (4 * Math.PI * rho), 1.0 / 3.0);
-
-                if (double.IsNaN(r) || double.IsInfinity(r))
-                    r = 0.1;
-
-                cachedRadius = r;
-            }
-            return cachedRadius;
-        
+        return Mathf.Pow((3f * mass) / (4f * Mathf.PI * density), 1f / 3f);
     }
 
-    public double GetMass()
-    {
-        return Math.Max(massUnity, MIN_MASS);
-    }
+    public void SetMass(float m) => mass = m;
+    public void SetDensity(float d) => density = d;
 
-    public double GetDensity()
-    {
-        return Math.Max(density, MIN_DENSITY);
-    }
+    public float GetMass() => mass;
 
-    public Rigidbody GetRigidbody()
+    public void SetRotationSpeed(float rotationSpeed)
     {
-        return rb;
-    }
-
-    public void SetMass(float mass)
-    {
-        massUnity = mass;
-        cachedRadius = -1; // Invalidate radius cache
-    }
-
-    public void SetDensity(float density)
-    {
-        this.density = density;
-        cachedRadius = -1; // Invalidate radius cache
-    }
-
-    private void Awake()
-    {
-        rb = GetComponent<Rigidbody>();
-
-        if (rb != null)
-        {
-            rb.useGravity = false;
-            rb.mass = 1f; // we ignore Unity physics mass
-        }
+        this.rotationSpeed = rotationSpeed;
     }
 
     public void ApplyScale()
     {
-        float diameter = (float)(GetRadius() * 2f);
-
-        if (float.IsNaN(diameter) || float.IsInfinity(diameter) || diameter < 0.01f)
-        {
-            diameter = 0.01f;
-        }
-        
+        float diameter = GetRadius() * 2f;
         transform.localScale = Vector3.one * diameter;
+    }
+
+    private void Update()
+    {
+        // Rotation on itself
+        transform.Rotate(Vector3.up * rotationSpeed * Time.deltaTime);
     }
 }

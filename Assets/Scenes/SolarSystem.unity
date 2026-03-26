@@ -397,7 +397,6 @@ GameObject:
   - component: {fileID: 689001563}
   - component: {fileID: 689001562}
   - component: {fileID: 689001567}
-  - component: {fileID: 689001568}
   m_Layer: 0
   m_Name: Sun
   m_TagString: Untagged
@@ -537,24 +536,9 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: a20222fd6639e6f41964850473e5d6ae, type: 3}
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::CelestialBody
-  density: 200
-  massUnity: 20000
---- !u!114 &689001568
-MonoBehaviour:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 689001561}
-  m_Enabled: 1
-  m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: dd433d3fd0b40b148bd4e7103c3094c1, type: 3}
-  m_Name: 
-  m_EditorClassIdentifier: Assembly-CSharp::OrbitPredictionVerlet
-  G: 100
-  simulationSteps: 800
-  timeStep: 0.02
-  orbitColor: {r: 1, g: 0.92156863, b: 0.015686275, a: 1}
+  mass: 10000
+  density: 1498
+  rotationSpeed: 10
 --- !u!1 &832575517
 GameObject:
   m_ObjectHideFlags: 0
@@ -614,7 +598,6 @@ GameObject:
   m_Component:
   - component: {fileID: 1142259387}
   - component: {fileID: 1142259388}
-  - component: {fileID: 1142259389}
   m_Layer: 0
   m_Name: SolarSystemManager
   m_TagString: Untagged
@@ -650,39 +633,25 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::SolarSystemGenerator
   planetPrefab: {fileID: 4984548254132639815, guid: 8642ac3a7ea6a9340b8a0081a01ab70a, type: 3}
+  moonPrefab: {fileID: 4984548254132639815, guid: dc71e47867b54d74f89bddb06c005f41, type: 3}
   sun: {fileID: 689001566}
   seed: 42
-  planetsMinMax:
-    x: 1
-    y: 5
-  numberOfPlanets: 3
-  massUnityScale:
-    x: 1
-    y: 10
-  densityScale:
-    x: 0.00033
-    y: 2
-  distanceFromSun:
-    x: 50
-    y: 200
-  inclineMinMax:
-    x: -30
-    y: 30
-  safeSpacing: 50
---- !u!114 &1142259389
-MonoBehaviour:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 1142259385}
-  m_Enabled: 1
-  m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: 8baf261c333acdd44987fe78be415dc9, type: 3}
-  m_Name: 
-  m_EditorClassIdentifier: Assembly-CSharp::SolarSystemManager
-  sun: {fileID: 689001562}
-  G: 100
+  minPlanets: 0
+  maxPlanets: 10
+  minDistance: 20
+  maxDistance: 200
+  minOrbitalSpeed: 10
+  maxOrbitalSpeed: 100
+  minRotationSpeed: 10
+  maxRotationSpeed: 100
+  massRange: {x: 5, y: 50}
+  densityRange: {x: 0.5, y: 2}
+  planetOrbitColor: {r: 0, g: 0, b: 1, a: 1}
+  minMoons: 0
+  maxMoons: 10
+  moonDistanceMin: 3
+  moonDistanceMax: 12
+  moonOrbitColor: {r: 0, g: 1, b: 1, a: 1}
 --- !u!1660057539 &9223372036854775807
 SceneRoots:
   m_ObjectHideFlags: 0
