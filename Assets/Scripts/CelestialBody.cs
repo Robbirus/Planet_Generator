@@ -6,6 +6,9 @@ public class CelestialBody : MonoBehaviour
     [SerializeField] private float mass = 1f;
     [SerializeField] private float density = 1f;
 
+    [Header("visual")]
+    [SerializeField] private Renderer planetRenderer;
+
     [Header("Rotation")]
     [SerializeField] private float rotationSpeed = 10f;
 
@@ -28,6 +31,28 @@ public class CelestialBody : MonoBehaviour
     {
         float diameter = GetRadius() * 2f;
         transform.localScale = Vector3.one * diameter;
+    }
+    
+    public void ApplyColor(float maxDensity)
+    {
+        if (planetRenderer == null)
+        {
+            planetRenderer = GetComponent<Renderer>();
+        }
+
+        if (planetRenderer == null) return;
+
+        // Base color in HSV
+        Color baseColor = UnityEngine.Random.ColorHSV(0f, 1f, 0.6f, 1f, 0.6f, 1f);
+
+        // Darken based on density
+        float darknessFactor = Mathf.Clamp01(1f - (density / maxDensity));
+
+        Color finalColor = baseColor * darknessFactor;
+
+        // Apply to material
+        planetRenderer.material = new Material(planetRenderer.sharedMaterial);
+        planetRenderer.material.color = finalColor;
     }
 
     private void Update()

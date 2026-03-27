@@ -80,6 +80,7 @@ public class SolarSystemGenerator : MonoBehaviour
             body.SetDensity(Random.Range(minPlanetDensity, maxPlanetDensity));
             body.SetRotationSpeed(Random.Range(minRotationSpeed, maxRotationSpeed));
             body.ApplyScale();
+            body.ApplyColor(maxPlanetDensity);
 
             float orbitSpeed = Random.Range(minOrbitalSpeed, maxOrbitalSpeed) / distance;
             float inclination = Random.Range(-10f, 10f);
@@ -135,6 +136,7 @@ public class SolarSystemGenerator : MonoBehaviour
             body.SetMass(mass);
             body.SetDensity(density);
             body.ApplyScale();
+            body.ApplyColor(maxMoonDensity);
 
             float orbitSpeed = Random.Range(minOrbitalSpeed, maxOrbitalSpeed) / distance;
             float inclination = Random.Range(-20f, 20f);

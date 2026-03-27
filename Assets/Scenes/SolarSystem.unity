@@ -538,6 +538,7 @@ MonoBehaviour:
   m_EditorClassIdentifier: Assembly-CSharp::CelestialBody
   mass: 10000
   density: 1498
+  planetRenderer: {fileID: 0}
   rotationSpeed: 10
 --- !u!1 &832575517
 GameObject:
@@ -644,13 +645,19 @@ MonoBehaviour:
   maxOrbitalSpeed: 100
   minRotationSpeed: 10
   maxRotationSpeed: 100
-  massRange: {x: 5, y: 50}
-  densityRange: {x: 0.5, y: 2}
+  minPlanetMass: 5
+  maxPlanetMass: 50
+  minPlanetDensity: 0.5
+  maxPlanetDensity: 2
   planetOrbitColor: {r: 0, g: 0, b: 1, a: 1}
   minMoons: 0
   maxMoons: 10
   moonDistanceMin: 3
   moonDistanceMax: 12
+  minMoonMass: 0.05
+  maxMoonMass: 1
+  minMoonDensity: 0.5
+  maxMoonDensity: 2
   moonOrbitColor: {r: 0, g: 1, b: 1, a: 1}
 --- !u!1660057539 &9223372036854775807
 SceneRoots:
