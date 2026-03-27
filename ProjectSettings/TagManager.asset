@@ -5,6 +5,7 @@ TagManager:
   serializedVersion: 3
   tags:
   - Celestials
+  - Ship
   layers:
   - Default
   - TransparentFX
