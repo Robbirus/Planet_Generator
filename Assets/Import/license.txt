@@ -1,0 +1,11 @@
+Model Information:
+* title:	Super Destroyer [Helldivers] ZEO
+* source:	https://sketchfab.com/3d-models/super-destroyer-helldivers-zeo-1312d2cbbc4f4fdea56713084ca04192
+* author:	ZEO CMF (https://sketchfab.com/ZEOCMF)
+
+Model License:
+* license type:	CC-BY-NC-ND-4.0 (http://creativecommons.org/licenses/by-nc-nd/4.0/)
+* requirements:	Author must be credited. No commercial use. Modified versions can not be distributed.
+
+If you use this 3D model in your project be sure to copy paste this credit wherever you share it:
+This work is based on "Super Destroyer [Helldivers] ZEO" (https://sketchfab.com/3d-models/super-destroyer-helldivers-zeo-1312d2cbbc4f4fdea56713084ca04192) by ZEO CMF (https://sketchfab.com/ZEOCMF) licensed under CC-BY-NC-ND-4.0 (http://creativecommons.org/licenses/by-nc-nd/4.0/)
