@@ -1,64 +1,179 @@
-using UnityEngine;
+﻿using UnityEngine;
+using System.Collections.Generic;
 
 [ExecuteAlways]
 public class DistantStars : MonoBehaviour
 {
     [Header("Star Settings")]
     [SerializeField] private int starAmount = 1000;
-    [SerializeField] private Vector2 starDistance = new Vector2(1500, 3000f);
-    [SerializeField] private GameObject starPrefab;
+    [SerializeField] private Vector2 starDistance = new Vector2(1500f, 3000f);
+    [SerializeField] private Material starMaterial; // Remplace le prefab : assigner le material de l'étoile
 
     [Header("Seed")]
     [SerializeField] private int seed = 0;
 
-    [SerializeField] private Vector3 localPos;
+    private MeshFilter meshFilter;
+    private MeshRenderer meshRenderer;
 
-    private Transform starsParent;
+    // ─── Lifecycle ────────────────────────────────────────────────────────────
 
-    private void LateUpdate()
+    private void OnEnable()
     {
-        if (Camera.main != null)
-            transform.position = Camera.main.transform.position;
+        // Built-in pipeline
+        Camera.onPreCull += OnCameraPreCull;
+
+        // URP / HDRP
+        UnityEngine.Rendering.RenderPipelineManager.beginCameraRendering += OnBeginCameraRendering;
     }
+
+    private void OnDisable()
+    {
+        Camera.onPreCull -= OnCameraPreCull;
+        UnityEngine.Rendering.RenderPipelineManager.beginCameraRendering -= OnBeginCameraRendering;
+    }
+
+    // Built-in pipeline
+    private void OnCameraPreCull(Camera cam)
+    {
+        FollowCamera(cam);
+    }
+
+    // URP / HDRP
+    private void OnBeginCameraRendering(UnityEngine.Rendering.ScriptableRenderContext ctx, Camera cam)
+    {
+        FollowCamera(cam);
+    }
+
+    private void FollowCamera(Camera cam)
+    {
+        // Ignorer les caméras de réflexion, preview, etc.
+        if (cam.cameraType != CameraType.Game && cam.cameraType != CameraType.SceneView)
+            return;
+
+        transform.position = cam.transform.position;
+    }
+
+    // ─── Generation ───────────────────────────────────────────────────────────
 
     public void GenerateStars()
     {
         UnityEngine.Random.InitState(seed);
-        ClearStars();
         Debug.Log("Generating stars with seed: " + seed);
 
-        starsParent = new GameObject("Distant Stars").transform;
-        starsParent.parent = transform;        
+        EnsureComponents();
+
+        Mesh mesh = BuildStarMesh();
+
+        // Bounds très larges : le mesh ne sera JAMAIS culled par le moteur
+        mesh.bounds = new Bounds(Vector3.zero, Vector3.one * 100000f);
+
+        meshFilter.sharedMesh = mesh;
+
+        if (starMaterial != null)
+            meshRenderer.sharedMaterial = starMaterial;
+    }
+
+    // ─── Mesh building ────────────────────────────────────────────────────────
+
+    /// <summary>
+    /// Construit un unique mesh composé de quads billboard pour chaque étoile.
+    /// Un seul draw call, zéro problème de culling individuel.
+    /// </summary>
+    private Mesh BuildStarMesh()
+    {
+        // Pré-allocation des tableaux
+        int vertCount = starAmount * 4;
+        int triCount = starAmount * 6;
+
+        Vector3[] vertices = new Vector3[vertCount];
+        Vector2[] uvs = new Vector2[vertCount];
+        int[] triangles = new int[triCount];
+        Color[] colors = new Color[vertCount];
+
+        // Coins locaux d'un quad centré en (0,0)
+        Vector3[] corners = new Vector3[]
+        {
+            new Vector3(-0.5f, -0.5f, 0f),
+            new Vector3( 0.5f, -0.5f, 0f),
+            new Vector3( 0.5f,  0.5f, 0f),
+            new Vector3(-0.5f,  0.5f, 0f),
+        };
+
+        Vector2[] quadUVs = new Vector2[]
+        {
+            new Vector2(0, 0),
+            new Vector2(1, 0),
+            new Vector2(1, 1),
+            new Vector2(0, 1),
+        };
 
         for (int i = 0; i < starAmount; i++)
         {
             Vector3 dir = UnityEngine.Random.onUnitSphere;
             float distance = UnityEngine.Random.Range(starDistance.x, starDistance.y);
+            float scale = UnityEngine.Random.Range(0.03f, 0.3f) * distance * 0.01f;
+            float bright = UnityEngine.Random.Range(0.6f, 1.0f);
 
-            localPos = dir * distance;
+            Vector3 center = dir * distance;
 
-            GameObject star = Instantiate(starPrefab, starsParent);
+            // Calcul d'une base orthogonale pour orienter le quad face à l'origine
+            // (billboard sphérique statique, économique en GPU)
+            Vector3 forward = -dir;                                        // face vers le centre
+            Vector3 right = Vector3.Cross(Vector3.up, forward).normalized;
+            if (right.sqrMagnitude < 0.001f)
+                right = Vector3.Cross(Vector3.forward, forward).normalized;
+            Vector3 up = Vector3.Cross(forward, right);
 
-            star.transform.localPosition = localPos;
+            int vBase = i * 4;
+            for (int c = 0; c < 4; c++)
+            {
+                Vector3 corner = corners[c];
+                vertices[vBase + c] = center
+                    + right * (corner.x * scale)
+                    + up * (corner.y * scale);
+                uvs[vBase + c] = quadUVs[c];
+                colors[vBase + c] = new Color(bright, bright, bright, 1f);
+            }
 
-            float scale = UnityEngine.Random.Range(0.03f, 0.3f);
-            star.transform.localScale = Vector3.one * scale;
+            int tBase = i * 6;
+            triangles[tBase + 0] = vBase + 0;
+            triangles[tBase + 1] = vBase + 2;
+            triangles[tBase + 2] = vBase + 1;
+            triangles[tBase + 3] = vBase + 0;
+            triangles[tBase + 4] = vBase + 3;
+            triangles[tBase + 5] = vBase + 2;
         }
+
+        Mesh mesh = new Mesh();
+        mesh.name = "DistantStarsMesh";
+
+        // Nécessaire si starAmount > ~16 000
+        mesh.indexFormat = UnityEngine.Rendering.IndexFormat.UInt32;
+
+        mesh.SetVertices(vertices);
+        mesh.SetUVs(0, uvs);
+        mesh.SetColors(colors);
+        mesh.SetTriangles(triangles, 0);
+        mesh.RecalculateNormals();
+
+        return mesh;
     }
 
+    // ─── Helpers ──────────────────────────────────────────────────────────────
 
-    private void ClearStars()
+    private void EnsureComponents()
     {
-        Transform existing = transform.Find("Distant Stars");
+        // ?? ne fonctionne pas avec les objets Unity : utiliser == null explicitement
+        meshFilter = GetComponent<MeshFilter>();
+        if (meshFilter == null)
+            meshFilter = gameObject.AddComponent<MeshFilter>();
 
-        if (existing != null)
+        meshRenderer = GetComponent<MeshRenderer>();
+        if (meshRenderer == null)
         {
-            if (Application.isPlaying)
-                Destroy(existing.gameObject);
-            else
-                DestroyImmediate(existing.gameObject);
+            meshRenderer = gameObject.AddComponent<MeshRenderer>();
+            meshRenderer.shadowCastingMode = UnityEngine.Rendering.ShadowCastingMode.Off;
+            meshRenderer.receiveShadows = false;
         }
-
-        Debug.Log("Cleared existing stars.");
     }
 }
