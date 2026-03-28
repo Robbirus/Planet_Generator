@@ -1,5 +1,4 @@
 ﻿using UnityEngine;
-using System.Collections.Generic;
 
 [ExecuteAlways]
 public class DistantStars : MonoBehaviour
@@ -7,7 +6,7 @@ public class DistantStars : MonoBehaviour
     [Header("Star Settings")]
     [SerializeField] private int starAmount = 1000;
     [SerializeField] private Vector2 starDistance = new Vector2(1500f, 3000f);
-    [SerializeField] private Material starMaterial; // Remplace le prefab : assigner le material de l'étoile
+    [SerializeField] private Material starMaterial;
 
     [Header("Seed")]
     [SerializeField] private int seed = 0;
