@@ -1,4 +1,5 @@
-﻿using System.Collections.Generic;
+﻿using System;
+using System.Collections.Generic;
 using UnityEngine;
 
 public class SolarSystemGenerator : MonoBehaviour
@@ -7,9 +8,11 @@ public class SolarSystemGenerator : MonoBehaviour
     [SerializeField] private GameObject planetPrefab;
     [SerializeField] private GameObject moonPrefab;
     [SerializeField] private Transform sun;
+    [Space(10)]
 
     [Header("Seed")]
     [SerializeField] private int seed = 0;
+    [Space(10)]
 
     [Header("Planets")]
     [SerializeField] private int minPlanets = 3;
@@ -23,6 +26,7 @@ public class SolarSystemGenerator : MonoBehaviour
 
     [SerializeField] private float minRotationSpeed = 10f;
     [SerializeField] private float maxRotationSpeed = 100f;
+    [Space(5)]
 
     [Header("Planet Properties")]
     [SerializeField] private float minPlanetMass = 5f;
@@ -30,14 +34,21 @@ public class SolarSystemGenerator : MonoBehaviour
     [SerializeField] private float minPlanetDensity = 0.5f;
     [SerializeField] private float maxPlanetDensity = 2f;
     [SerializeField] private Color planetOrbitColor = Color.blue;
+    [Space(5)]
+
+    [Header("Planet Spacing")]
+    [Tooltip("Additional safety margin between two planetary paths")]
+    [SerializeField] private float planetSafetyMargin = 100f;
     [Space(10)]
 
     [Header("Moons")]
     [SerializeField] private int minMoons = 0;
     [SerializeField] private int maxMoons = 3;
+    [Space(5)]
 
     [SerializeField] private float moonDistanceMin = 3f;
     [SerializeField] private float moonDistanceMax = 12f;
+    [Space(5)]
 
     [SerializeField] private float minMoonMass = 0.05f;
     [SerializeField] private float maxMoonMass = 1f;
@@ -45,24 +56,49 @@ public class SolarSystemGenerator : MonoBehaviour
     [SerializeField] private float maxMoonDensity = 2f;
 
     [SerializeField] private Color moonOrbitColor = Color.cyan;
+    [Space(10)]
 
-    private List<float> usedPlanetDistances = new();
+    [Header("Moon Spacing")]
+    [Tooltip("Minimum margin between two moon orbits")]
+    [SerializeField] private float moonOrbitGap = 15f;
+    [Space(10)]
+
+    // For each planet: orbital distance + total influence (body radius + moonDistanceMax)
+    private readonly List<(float distance, float footprint)> usedPlanetOrbits = new();
 
     private void Start()
     {
-        Random.InitState(seed);
+        UnityEngine.Random.InitState(seed);
         GeneratePlanets();
     }
 
+    /// <summary>
+    /// Generates a random number of planets with randomized physical and orbital properties, positions them around the
+    /// sun, and initializes their orbits and moons.
+    /// </summary>
+    /// <remarks>Ensures planets are spaced to avoid overlap and logs a warning if placement is not possible
+    /// due to insufficient space.</remarks>
     private void GeneratePlanets()
     {
-        int count = Random.Range(minPlanets, maxPlanets);
+        int count = UnityEngine.Random.Range(minPlanets, maxPlanets);
 
         for (int i = 0; i < count; i++)
         {
-            float distance = FindSafeDistance();
+            // Set physical properties first to compute radius for spacing
+            float mass          = UnityEngine.Random.Range(minPlanetMass, maxPlanetMass) * 1000;
+            float density       = UnityEngine.Random.Range(minPlanetDensity, maxPlanetDensity);
+            float radius        = ComputeRadius(mass, density);
+            float footprint     = radius + moonDistanceMax; // worst case moon orbit
+            float rotationSpeed = UnityEngine.Random.Range(minRotationSpeed, maxRotationSpeed);
 
-            float angle = Random.Range(0f, Mathf.PI * 2f);
+            float distance = FindSafePlanetDistance(footprint);
+            if(distance < 0)
+            {
+                Debug.LogWarning($"Cannot place planet {i} : Not enough space");
+                continue;
+            }
+
+            float angle = UnityEngine.Random.Range(0f, Mathf.PI * 2f);
             float incline = UnityEngine.Random.Range(-3f, 3f); 
 
             Vector3 pos = sun.position + new Vector3(
@@ -72,18 +108,17 @@ public class SolarSystemGenerator : MonoBehaviour
             );
 
             GameObject planet = Instantiate(planetPrefab, pos, Quaternion.identity);
-
             CelestialBody body = planet.GetComponent<CelestialBody>();
 
             // Body
-            body.SetMass(Random.Range(minPlanetMass, maxPlanetMass));
-            body.SetDensity(Random.Range(minPlanetDensity, maxPlanetDensity));
-            body.SetRotationSpeed(Random.Range(minRotationSpeed, maxRotationSpeed));
+            body.SetMass(mass);
+            body.SetDensity(density);
+            body.SetRotationSpeed(rotationSpeed);
             body.ApplyScale();
             body.ApplyColor(maxPlanetDensity);
 
-            float orbitSpeed = Random.Range(minOrbitalSpeed, maxOrbitalSpeed) / distance;
-            float inclination = Random.Range(-10f, 10f);
+            float orbitSpeed = UnityEngine.Random.Range(minOrbitalSpeed, maxOrbitalSpeed) / distance;
+            float inclination = UnityEngine.Random.Range(-10f, 10f);
 
             // Orbit
             OrbitBody orbit = planet.AddComponent<OrbitBody>();
@@ -94,39 +129,47 @@ public class SolarSystemGenerator : MonoBehaviour
             orbit.SetOrbitSpeed(orbitSpeed);
             orbit.SetOrbitInclination(inclination);
 
-            usedPlanetDistances.Add(distance);
+            // Save influence footprint before generating moons
+            usedPlanetOrbits.Add((distance, footprint));
 
             GenerateMoons(planet);
         }
     }
 
+    /// <summary>
+    /// Generates and places a random number of moons in orbit around the specified planet, assigning physical and
+    /// orbital properties to each moon.
+    /// </summary>
+    /// <param name="planet">The planet GameObject around which moons are generated.</param>
     private void GenerateMoons(GameObject planet)
     {
-        List<(float distance, float radius)> usedMoonDistances = new();
-        int moonCount = Random.Range(minMoons, maxMoons);
+        // Store the orbital radius of each moon already placed around this planet
+        List<float> usedMoonOrbits = new();
+
+        int moonCount = UnityEngine.Random.Range(minMoons, maxMoons);
 
         for (int i = 0; i < moonCount; i++)
         {
-            float mass = Random.Range(minMoonMass, maxMoonMass);
-            float density = Random.Range(minMoonDensity, maxMoonDensity);
-            float radius = ComputeRadius(mass, density);
+            float mass      = UnityEngine.Random.Range(minMoonMass, maxMoonMass) * 1000;
+            float density   = UnityEngine.Random.Range(minMoonDensity, maxMoonDensity);
+            float radius    = ComputeRadius(mass, density);
 
-            float distance = FindSafeMoonOrbit(radius, usedMoonDistances, moonDistanceMin, moonDistanceMax);
-            distance += Random.Range(-0.2f, 0.2f);
+            CelestialBody planetBody = planet.GetComponent<CelestialBody>();
+            float planetRadius = planetBody.GetRadius();
 
-            float angle = Random.Range(0f, Mathf.PI * 2f);
-
-            foreach (var usedOrbit in usedMoonDistances)
+            // Minimum gap between two orbits : sum of the radii + margin
+            float distance = FindSafeMoonOrbit(planetRadius, radius, usedMoonOrbits);
+            if(distance < 0f)
             {
-                if (Mathf.Abs(distance - usedOrbit.distance) < 0.1f)
-                {
-                    angle += Mathf.PI / 4f;
-                }
+                Debug.LogWarning($"Cannot place the moon{i} around {planet.name}.");
+                continue;
             }
+
+            float angle = UnityEngine.Random.Range(0f, Mathf.PI * 2f);
 
             Vector3 pos = planet.transform.position + new Vector3(
                 Mathf.Cos(angle) * distance,
-                Random.Range(-1f, 1f),
+                UnityEngine.Random.Range(-1f, 1f),
                 Mathf.Sin(angle) * distance
             );
 
@@ -138,8 +181,8 @@ public class SolarSystemGenerator : MonoBehaviour
             body.ApplyScale();
             body.ApplyColor(maxMoonDensity);
 
-            float orbitSpeed = Random.Range(minOrbitalSpeed, maxOrbitalSpeed) / distance;
-            float inclination = Random.Range(-20f, 20f);
+            float orbitSpeed = UnityEngine.Random.Range(minOrbitalSpeed, maxOrbitalSpeed) / distance;
+            float inclination = UnityEngine.Random.Range(-20f, 20f);
 
             OrbitBody orbit = moon.AddComponent<OrbitBody>();
             orbit.SetCenter(planet.transform);
@@ -149,75 +192,90 @@ public class SolarSystemGenerator : MonoBehaviour
             orbit.SetOrbitSpeed(orbitSpeed);
             orbit.SetOrbitInclination(inclination);
 
-            usedMoonDistances.Add((distance, radius));
+            usedMoonOrbits.Add(distance);
         }
     }
 
+    /// <summary>
+    /// Calculates the radius of a sphere given its mass and density.
+    /// </summary>
+    /// <param name="mass">The mass of the sphere.</param>
+    /// <param name="density">The density of the sphere.</param>
+    /// <returns>The computed radius of the sphere.</returns>
     private float ComputeRadius(float mass, float density)
     {
         return Mathf.Pow((3f * mass) / (4f * Mathf.PI * density), 1f / 3f);
     }
 
-    private float FindSafeDistance()
+    /// <summary>
+    /// Finds a valid orbital distance for a new planet that does not overlap with existing planet orbits.
+    /// </summary>
+    /// <param name="newFootprint">The footprint radius of the new planet.</param>
+    /// <param name="maxAttempts">The maximum number of attempts to find a valid distance.</param>
+    /// <returns>A valid orbital distance if found; otherwise, -1.</returns>
+    private float FindSafePlanetDistance(float newFootprint, int maxAttempts = 100)
     {
-        float distance;
-        bool valid;
-
-        do
+        for(int attempt = 0; attempt < maxAttempts; attempt++)
         {
-            distance = Random.Range(minDistance, maxDistance);
-            valid = true;
+            float candidate = UnityEngine.Random.Range(minDistance, maxDistance);
+            bool valid = true;
 
-            foreach (float d in usedPlanetDistances)
+            foreach(var (existingDist, existingFootprint) in usedPlanetOrbits)
             {
-                if (Mathf.Abs(distance - d) < 10f)
+                // Both zones must not overlap another
+                // |d1 - d2| > footprint2 + margin
+                float requiredGap = existingFootprint + newFootprint + planetSafetyMargin;
+
+                if(Mathf.Abs(candidate - existingDist) < requiredGap)
                 {
                     valid = false;
                     break;
                 }
             }
 
-        } while (!valid);
-
-        return distance;
-    }
-
-    private float FindSafeMoonOrbit(float newRadius, List<(float distance, float radius)> used, float min, float max)
-    {
-        float distance;
-        bool valid;
-
-        int safety = 0;
-
-        do
-        {
-            distance = Random.Range(min, max);
-            valid = true;
-
-            foreach (var orbit in used)
+            if (valid)
             {
-                float existingDist = orbit.distance;
-                float existingRadius = orbit.radius;
-
-                float minGap = (existingRadius + newRadius) * 2.5f;
-
-                if (Mathf.Abs(distance - existingDist) < minGap)
-                {
-                    valid = false;
-                    break;
-                }
+                return candidate;
             }
-
-            safety++;
-            if (safety > 50) break;
-
-        } while (!valid);
-
-        if (!valid)
-        {
-            distance = min * 2f;
         }
 
-        return distance;
+        return -1f;
     }
+
+    /// <summary>
+    /// Finds a valid moon orbit radius that does not overlap with existing orbits.
+    /// </summary>
+    /// <param name="radius">The radius of the moon to consider when determining orbit spacing.</param>
+    /// <param name="usedOrbits">A list of existing orbit radii to avoid overlapping.</param>
+    /// <param name="maxAttempts">The maximum number of attempts to find a valid orbit radius. Defaults to 100.</param>
+    /// <returns>A valid orbit radius if found; otherwise, -1.</returns>
+    private float FindSafeMoonOrbit(float planetRadius, float radius, List<float> usedOrbits, int maxAttempts = 100)
+    {
+        for(int attempts = 0; attempts < maxAttempts; attempts++)
+        {
+            float candidate = planetRadius + UnityEngine.Random.Range(moonDistanceMin, moonDistanceMax);
+            bool valid = true;
+
+            foreach(float existingOrbit in usedOrbits)
+            {
+                // Both orbits must not cross if the difference of radius
+                // is greater than the body size + margin
+                float requiredGap = radius + moonOrbitGap;
+
+                if(Mathf.Abs(candidate - existingOrbit) < requiredGap)
+                {
+                    valid = false;
+                    break;
+                }
+            }
+
+            if (valid)
+            {
+                return candidate;
+            }
+        }
+
+        return -1f;
+    }
+
 }
