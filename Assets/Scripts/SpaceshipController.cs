@@ -10,13 +10,21 @@ public class SpaceshipController : MonoBehaviour
     [SerializeField] private float hoverSpeed = 5f;
     [Space(5)]
 
+    [Header("Boost")]
+    [SerializeField] private float boostMultiplier = 3f;
+    [SerializeField] private float boostAcceleration = 4f;
+    [SerializeField] private float boostDuration = 10f;
+    [Space(5)]
+
+    private float activeBoostMultiplier = 1f;
+
     [Header("Acceleration")]
     [SerializeField] private float forwardAcceleration = 2.5f;
     [SerializeField] private float strafAcceleration = 2f;
     [SerializeField] private float hoverAcceleration = 2f;
     [Space(5)]
 
-    [Header("Current Speeds")]
+    [Header("Current Speeds (debug)")]
     [SerializeField] private float activeForwardSpeed;
     [SerializeField] private float activeStrafSpeed;
     [SerializeField] private float activeHoverSpeed;
@@ -26,11 +34,10 @@ public class SpaceshipController : MonoBehaviour
     [SerializeField] private float lookRateSpeed = 90f;
     [Space(5)]
 
-    private Vector2 lookInput;
-    private Vector2 screenCenter;
-    private Vector2 mouseDistance;
-
-    private float rollInput;
+    [Header("Dead zone")]
+    [Tooltip("Radius in px around the center where mouse input is ignored.")]
+    [SerializeField] private float deadZoneRadius = 50f;
+    [Space(5)]
 
     [Header("Roll")]
     [SerializeField] private float rollSpeed = 90f;
@@ -40,8 +47,13 @@ public class SpaceshipController : MonoBehaviour
     [Header("Input")]
     [SerializeField] private InputActionReference movementActionReference;
     [SerializeField] private InputActionReference rollActionReference;
-    [SerializeField] private InputActionReference boostActionReference;
+    [SerializeField] private InputActionReference boostActionReference; 
+    
+    private Vector2 screenCenter;
+    private Vector2 mouseDistance;
+    private Vector2 virtualMousePos;
 
+    private float rollInput;
     private float forwardInput;
     private float strafeInput;
     private float hoverInput;
@@ -51,20 +63,28 @@ public class SpaceshipController : MonoBehaviour
         screenCenter.x = Screen.width / 2f;
         screenCenter.y = Screen.height / 2f;
 
-        /*
+        virtualMousePos = screenCenter;
+
         Cursor.lockState = CursorLockMode.Locked;
         Cursor.visible = false;
-        */
+
     }
 
     private void OnEnable()
     {
         movementActionReference.action.Enable();
+        rollActionReference.action.Enable();
+        boostActionReference.action.Enable();
     }
 
     private void OnDisable()
     {
         movementActionReference.action.Disable();
+        rollActionReference.action.Disable();
+        boostActionReference.action.Disable();
+
+        Cursor.lockState = CursorLockMode.None;
+        Cursor.visible = true;
     }
 
     private void Update()
@@ -76,20 +96,34 @@ public class SpaceshipController : MonoBehaviour
 
     private void HandleMovement()
     {
-        activeForwardSpeed = Mathf.Lerp(activeForwardSpeed, forwardInput * forwardSpeed, forwardAcceleration * Time.deltaTime);
+        // Boost handling
+        bool isBoosting = boostActionReference.action.IsPressed();
+        float targetBoost = isBoosting ? boostMultiplier : 1f;
+        activeBoostMultiplier = Mathf.Lerp(activeBoostMultiplier, targetBoost, boostAcceleration * Time.deltaTime);
+
+        float boostedForwardSpeed = forwardSpeed * activeBoostMultiplier;
+
+        activeForwardSpeed = Mathf.Lerp(activeForwardSpeed, forwardInput * boostedForwardSpeed, forwardAcceleration * Time.deltaTime);
         activeStrafSpeed = Mathf.Lerp(activeStrafSpeed, strafeInput * strafSpeed, strafAcceleration * Time.deltaTime);
         activeHoverSpeed = Mathf.Lerp(activeHoverSpeed, hoverInput * hoverSpeed, hoverAcceleration * Time.deltaTime);
 
-        if(activeForwardSpeed < 0.01f) activeForwardSpeed = 0f;
-        if(activeStrafSpeed < 0.01f) activeStrafSpeed = 0f;
+        if(Mathf.Abs(activeBoostMultiplier) < 0.01f) activeForwardSpeed = 0f;
+        if(Mathf.Abs(strafeInput) < 0.01f) activeStrafSpeed = 0f;
+        if(Mathf.Abs(hoverInput) < 0.01f) activeHoverSpeed = 0f;
 
-        transform.position += transform.forward * activeForwardSpeed * Time.deltaTime;
-        transform.position += (transform.right * activeStrafSpeed * Time.deltaTime) + (transform.up * activeHoverSpeed * Time.deltaTime);
+        transform.position += transform.forward * activeForwardSpeed    * Time.deltaTime
+                            + transform.right   * activeStrafSpeed      * Time.deltaTime
+                            + transform.up      * activeHoverSpeed      * Time.deltaTime;
     }
 
     private void HandleRoll()
     {
-        transform.Rotate(-mouseDistance.y * lookRateSpeed * Time.deltaTime, mouseDistance.x * lookRateSpeed * Time.deltaTime, rollInput * rollSpeed * Time.deltaTime, Space.Self);
+        transform.Rotate(
+            -mouseDistance.y * lookRateSpeed * Time.deltaTime, 
+             mouseDistance.x * lookRateSpeed * Time.deltaTime,
+             rollInput       * rollSpeed     * Time.deltaTime,
+            Space.Self
+        );
     }
 
     /// <summary>
@@ -104,22 +138,42 @@ public class SpaceshipController : MonoBehaviour
             return;
         }
 
-        Vector2 mousePos = Mouse.current.position.ReadValue();
+        // --- Accumulated virtual position via delta ---
+        // The mouse never physically exits the screen (Confined),
+        // but we accumulate the delta to simulate a free cursor in the window.
+        Vector2 mouseDelta = Mouse.current.delta.ReadValue();
+        virtualMousePos += mouseDelta;
+        virtualMousePos.x = Mathf.Clamp(virtualMousePos.x, 0f, Screen.width);
+        virtualMousePos.y = Mathf.Clamp(virtualMousePos.y, 0f, Screen.height);
 
-        lookInput = mousePos;
+        // --- Distance from center in pixels ---
+        Vector2 offset = virtualMousePos - screenCenter;
+        float dist = offset.magnitude;
 
-        mouseDistance.x = (lookInput.x - screenCenter.x) / screenCenter.x;
-        mouseDistance.y = (lookInput.y - screenCenter.y) / screenCenter.y;
-
-        mouseDistance = Vector2.ClampMagnitude(mouseDistance, 1f);
+        // --- Dead zone handling ---
+        if(dist < deadZoneRadius)
+        {
+            mouseDistance = Vector2.zero;
+        }
+        else
+        {
+            // We substract the radius for the rotation goes from 0 when existing the dead zone
+            float activeRange = Mathf.Min(screenCenter.x, screenCenter.y) - deadZoneRadius;
+            float t = Mathf.Clamp01((dist - deadZoneRadius) / activeRange);
+            mouseDistance = offset.normalized * t;
+        }
 
         // Rool Input
-        rollInput = Mathf.Lerp(rollInput, rollActionReference.action.ReadValue<Vector2>().y, Time.deltaTime * rollAcceleration);
+        rollInput = Mathf.Lerp(
+            rollInput, 
+            rollActionReference.action.ReadValue<Vector2>().x, 
+            Time.deltaTime * rollAcceleration
+        );
 
         // Movement Input
         Vector3 movement = movementActionReference.action.ReadValue<Vector3>();
-        hoverInput = movement.x;
-        strafeInput = movement.y;
+        strafeInput = movement.x;
+        hoverInput = movement.y;
         forwardInput = movement.z;
     }
 }
