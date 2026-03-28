@@ -17,10 +17,20 @@ public class CelestialBody : MonoBehaviour
         return Mathf.Pow((3f * mass) / (4f * Mathf.PI * density), 1f / 3f);
     }
 
-    public void SetMass(float m) => mass = m;
-    public void SetDensity(float d) => density = d;
+    public void SetMass(float m)
+    {
+        this.mass = m;
+    }
 
-    public float GetMass() => mass;
+    public void SetDensity(float d)
+    {
+        this.density = d;
+    }
+
+    public float GetMass()
+    {
+        return mass;
+    }
 
     public void SetRotationSpeed(float rotationSpeed)
     {
