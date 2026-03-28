@@ -1,4 +1,3 @@
-using System.Collections.Generic;
 using UnityEngine;
 
 public class OrbitBody : MonoBehaviour
@@ -11,12 +10,13 @@ public class OrbitBody : MonoBehaviour
 
     [SerializeField] private Color orbitColor = Color.yellow;
 
-    [SerializeField] private int seed = 0;
+    [SerializeField] private int seed = 42;
 
     private float angle;
 
     private void Start()
     {
+        UnityEngine.Random.InitState(seed);
         angle = UnityEngine.Random.Range(0f, Mathf.PI * 2f);
     }
 
