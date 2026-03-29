@@ -58,6 +58,8 @@ public class SpaceshipController : MonoBehaviour
     private float strafeInput;
     private float hoverInput;
 
+    private bool lockedMode = false;
+
     private void Start()
     {
         screenCenter.x = Screen.width / 2f;
@@ -65,9 +67,8 @@ public class SpaceshipController : MonoBehaviour
 
         virtualMousePos = screenCenter;
 
-        Cursor.lockState = CursorLockMode.Locked;
+        Cursor.lockState = CursorLockMode.Confined;
         Cursor.visible = false;
-
     }
 
     private void OnEnable()
@@ -89,7 +90,11 @@ public class SpaceshipController : MonoBehaviour
 
     private void Update()
     {
+        // Mouse Input is still detected in locked mode to update the mouseDistance for the planet lock system
         DetectInput();
+
+        if(lockedMode) return;
+
         HandleRoll();
         HandleMovement();
     }
@@ -107,6 +112,7 @@ public class SpaceshipController : MonoBehaviour
         activeStrafSpeed = Mathf.Lerp(activeStrafSpeed, strafeInput * strafSpeed, strafAcceleration * Time.deltaTime);
         activeHoverSpeed = Mathf.Lerp(activeHoverSpeed, hoverInput * hoverSpeed, hoverAcceleration * Time.deltaTime);
 
+        // Delete the micro speed when at rest
         if(Mathf.Abs(activeBoostMultiplier) < 0.01f) activeForwardSpeed = 0f;
         if(Mathf.Abs(strafeInput) < 0.01f) activeStrafSpeed = 0f;
         if(Mathf.Abs(hoverInput) < 0.01f) activeHoverSpeed = 0f;
@@ -175,5 +181,44 @@ public class SpaceshipController : MonoBehaviour
         strafeInput = movement.x;
         hoverInput = movement.y;
         forwardInput = movement.z;
+    }
+
+    /// <summary>
+    /// Obtains the current forward speed as a ratio of the maximum forward speed (0 to 1).
+    /// </summary>
+    /// <returns>A value between 0 and 1</returns>
+    public float GetForwardSpeedRatio()
+    {
+        return Mathf.Clamp01(Mathf.Abs(activeForwardSpeed) / forwardSpeed);
+    }
+
+    /// <summary>
+    /// Determines whether the boost action is currently being performed.
+    /// </summary>
+    /// <returns>true if the boost action is pressed; otherwise, false.</returns>
+    public bool IsBoosting()
+    {
+        return boostActionReference != null && boostActionReference.action.IsPressed();
+    }
+
+    public void SetPlayerControlEnabled(bool enabled)
+    {
+        SetLockedMode(!enabled);
+    }
+
+    public Vector2 GetMouseDistance()
+    {
+        return mouseDistance;
+    }
+
+    public void SetLockedMode(bool locked)
+    {
+        this.lockedMode = locked;
+        if (locked)
+        {
+            activeForwardSpeed = 0f;
+            activeStrafSpeed = 0f;
+            activeHoverSpeed = 0f;
+        }
     }
 }
