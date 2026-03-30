@@ -1,4 +1,3 @@
-using System;
 using UnityEngine;
 using UnityEngine.InputSystem;
 
@@ -220,5 +219,7 @@ public class SpaceshipController : MonoBehaviour
             activeStrafSpeed = 0f;
             activeHoverSpeed = 0f;
         }
+
+        
     }
 }

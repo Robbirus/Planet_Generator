@@ -5,7 +5,7 @@ using UnityEngine.InputSystem;
 public class PlanetLockSystem : MonoBehaviour
 {
     public enum LockState { None, Selectable, Locked }
-    [SerializeField] private LockState State = LockState.None;
+    [SerializeField] private LockState state = LockState.None;
 
     [Header("Detection")]
     [SerializeField] private float detectionRadius = 80f;
@@ -24,8 +24,10 @@ public class PlanetLockSystem : MonoBehaviour
     [SerializeField] private InputActionReference lockActionReference;
     [SerializeField] private InputActionReference movementActionReference;
 
-    private SpaceshipController shipController;
-    private Camera mainCam;
+    [Header("References (debug)")]
+    [SerializeField] private SpaceshipController shipController;
+    [SerializeField] private ShipCamera shipCamera;
+    [SerializeField] private Camera mainCam;
 
     private Transform selectablePlanet;
     private Transform lockedPlanet;
@@ -37,7 +39,6 @@ public class PlanetLockSystem : MonoBehaviour
 
     private void Awake()
     {
-        shipController = GetComponent<SpaceshipController>();
         mainCam = Camera.main;
     }
 
@@ -59,7 +60,7 @@ public class PlanetLockSystem : MonoBehaviour
     {
         if (mainCam == null) mainCam = Camera.main;
 
-        switch (State)
+        switch (state)
         {
             case LockState.None:
             case LockState.Selectable:
@@ -67,7 +68,11 @@ public class PlanetLockSystem : MonoBehaviour
                 break;
 
             case LockState.Locked:
-                if (lockedPlanet == null) { Unlock(); break; }
+                if (lockedPlanet == null) 
+                { 
+                    Unlock(); 
+                    break; 
+                }
                 HandleOrbitalInput();
                 ApplyOrbitalFollow();
                 CheckAutoUnlock();
@@ -103,14 +108,14 @@ public class PlanetLockSystem : MonoBehaviour
         }
 
         selectablePlanet = bestCandidate;
-        State = bestCandidate != null ? LockState.Selectable : LockState.None;
+        state = bestCandidate != null ? LockState.Selectable : LockState.None;
     }
 
     private void OnLockPressed(InputAction.CallbackContext ctx)
     {
-        if (State == LockState.Locked)
+        if (state == LockState.Locked)
             Unlock();
-        else if (State == LockState.Selectable && selectablePlanet != null)
+        else if (state == LockState.Selectable && selectablePlanet != null)
             Lock(selectablePlanet);
     }
 
@@ -134,15 +139,17 @@ public class PlanetLockSystem : MonoBehaviour
         flatOffset.y = 0f;
         orbitAngle = Mathf.Atan2(flatOffset.x, flatOffset.z) * Mathf.Rad2Deg;
 
-        State = LockState.Locked;
+        state = LockState.Locked;
         shipController.SetLockedMode(true);
+        shipCamera.SetCameraOrbitalMode();
     }
 
     private void Unlock()
     {
         lockedPlanet = null;
-        State = LockState.None;
+        state = LockState.None;
         shipController.SetLockedMode(false);
+        shipCamera.SetCameraFreeMode();
     }
 
     private void CheckAutoUnlock()
@@ -206,6 +213,6 @@ public class PlanetLockSystem : MonoBehaviour
 
     public LockState GetLockState()
     {
-        return State;
+        return state;
     }
 }
