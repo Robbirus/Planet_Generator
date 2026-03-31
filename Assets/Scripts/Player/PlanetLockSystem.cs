@@ -1,4 +1,5 @@
-﻿using UnityEngine;
+﻿using System;
+using UnityEngine;
 using UnityEngine.InputSystem;
 
 [RequireComponent(typeof(SpaceshipController))]
@@ -13,7 +14,7 @@ public class PlanetLockSystem : MonoBehaviour
     [SerializeField] private LayerMask planetLayer;
 
     [Header("Orbital tracking")]
-    [SerializeField] private float surfaceMargin = 5f;
+    [SerializeField] private float surfaceMargin = 50f;
     [SerializeField] private float followSmoothSpeed = 6f;
     [SerializeField] private float lookSmoothSpeed = 4f;
 
@@ -29,10 +30,11 @@ public class PlanetLockSystem : MonoBehaviour
     [SerializeField] private ShipCamera shipCamera;
     [SerializeField] private Camera mainCam;
 
+    // Normalize direction from planet to ship (The local up gravity)
+    private Vector3 orbitDir;
     private Transform selectablePlanet;
     private Transform lockedPlanet;
     private float lockedPlanetRadius;
-    private float orbitAngle;
     private float orbitDistance;
 
     private readonly Collider[] overlapBuffer = new Collider[16];
@@ -73,13 +75,15 @@ public class PlanetLockSystem : MonoBehaviour
                     Unlock(); 
                     break; 
                 }
-                HandleOrbitalInput();
-                ApplyOrbitalFollow();
+                ApplyOrbitalConstraint();
                 CheckAutoUnlock();
                 break;
         }
     }
 
+    /// <summary>
+    /// Detect the best candidate planet to lock on, based on distance and angle from the center of the screen.
+    /// </summary>
     private void DetectBestPlanet()
     {
         int count = Physics.OverlapSphereNonAlloc(transform.position, detectionRadius, overlapBuffer, planetLayer);
@@ -111,6 +115,10 @@ public class PlanetLockSystem : MonoBehaviour
         state = bestCandidate != null ? LockState.Selectable : LockState.None;
     }
 
+    /// <summary>
+    /// On lock input, either lock on the selectable planet or unlock if already locked.
+    /// </summary>
+    /// <param name="ctx"></param>
     private void OnLockPressed(InputAction.CallbackContext ctx)
     {
         if (state == LockState.Locked)
@@ -119,6 +127,10 @@ public class PlanetLockSystem : MonoBehaviour
             Lock(selectablePlanet);
     }
 
+    /// <summary>
+    /// Lock the ship to the given planet, initializing the orbital parameters and switching camera mode.
+    /// </summary>
+    /// <param name="planet"></param>
     private void Lock(Transform planet)
     {
         lockedPlanet = planet;
@@ -134,16 +146,17 @@ public class PlanetLockSystem : MonoBehaviour
         lockedPlanetRadius = radius;
         orbitDistance = radius + surfaceMargin;
 
-        // Initial angle from the current position (no jump)
-        Vector3 flatOffset = transform.position - planet.position;
-        flatOffset.y = 0f;
-        orbitAngle = Mathf.Atan2(flatOffset.x, flatOffset.z) * Mathf.Rad2Deg;
+        // Initial direction from the current position
+        orbitDir = (transform.position - planet.position).normalized;
 
         state = LockState.Locked;
         shipController.SetLockedMode(true);
         shipCamera.SetCameraOrbitalMode();
     }
 
+    /// <summary>
+    /// Unlock the ship from the planet, clearing parameters and switching camera mode back to free.
+    /// </summary>
     private void Unlock()
     {
         lockedPlanet = null;
@@ -152,36 +165,41 @@ public class PlanetLockSystem : MonoBehaviour
         shipCamera.SetCameraFreeMode();
     }
 
+    /// <summary>
+    /// Checks the distance to the locked planet and unlocks if beyond the specified detection radius.
+    /// </summary>
     private void CheckAutoUnlock()
     {
         if (Vector3.Distance(transform.position, lockedPlanet.position) > detectionRadius * 2.5f)
             Unlock();
     }
-    
-    private void HandleOrbitalInput()
+
+    /// <summary>
+    /// Applies the orbital constraint by snapping the ship's position to the defined orbit distance from the planet and 
+    /// smoothly aligning its rotation to face along the tangent of the orbit while keeping "up" towards the planet. 
+    /// This creates a stable orbital movement around the locked planet.
+    /// </summary>
+    private void ApplyOrbitalConstraint()
     {
-        float strafe = movementActionReference.action.ReadValue<Vector3>().x;
-        orbitAngle += strafe * strafeOrbitSpeed * Time.deltaTime;
-    }
+        // 1 Recompute orbitDir from real position of the ship
+        // SpaceshipController was able to freely move
+        Vector3 toShip = transform.position - lockedPlanet.position;
+        orbitDir = toShip.normalized;
 
-    private void ApplyOrbitalFollow()
-    {
-        float rad = orbitAngle * Mathf.Deg2Rad;
-        Vector3 radialDir = new Vector3(Mathf.Sin(rad), 0f, Mathf.Cos(rad));
+        // 2 Snap the position exactly on the orbital sphere
+        transform.position = lockedPlanet.position + orbitDir * orbitDistance;
 
-        // Position: horizontal circle at planet Y level
-        Vector3 targetPos = lockedPlanet.position + radialDir * orbitDistance;
-        targetPos.y = lockedPlanet.position.y;
+        // 3 Align the ship : up = orbitDir (gravity towards the planet)
+        // We conserve the current forward projection on the tangent plane
+        Vector3 currentForward = transform.forward;
+        Vector3 tangentForward = Vector3.ProjectOnPlane(currentForward, orbitDir).normalized;
 
-        transform.position = Vector3.Lerp(transform.position, targetPos, followSmoothSpeed * Time.deltaTime);
+        if(tangentForward.sqrMagnitude < 0.001f)
+        {
+            tangentForward = Vector3.ProjectOnPlane(Vector3.forward, orbitDir).normalized;
+        }
 
-        // Tangent = direction of movement on the circle
-        Vector3 tangent = new Vector3(Mathf.Cos(rad), 0f, -Mathf.Sin(rad));
-
-        // +90° on local Z: the ship lies down on its side (wing towards the planet)
-        Quaternion baseRot = Quaternion.LookRotation(tangent, Vector3.up);
-        Quaternion targetRot = baseRot * Quaternion.Euler(0f, 0f, 90f);
-
+        Quaternion targetRot = Quaternion.LookRotation(tangentForward, orbitDir);
         transform.rotation = Quaternion.Slerp(transform.rotation, targetRot, lookSmoothSpeed * Time.deltaTime);
     }
 
@@ -214,5 +232,10 @@ public class PlanetLockSystem : MonoBehaviour
     public LockState GetLockState()
     {
         return state;
+    }
+
+    public Vector3 GetOrbitDir()
+    {
+        return orbitDir;
     }
 }

@@ -1,12 +1,18 @@
+using System;
 using UnityEngine;
 using UnityEngine.InputSystem;
 
 public class SpaceshipController : MonoBehaviour
 {
-    [Header("Movement")]
+    [Header("Free Movement")]
     [SerializeField] private float forwardSpeed = 25f;
     [SerializeField] private float strafSpeed = 7.5f;
     [SerializeField] private float hoverSpeed = 5f;
+    [Space(5)]
+
+    [Header("Orbital Movement")]
+    [SerializeField] private float rotationSpeed = 25f;
+    [SerializeField] private Vector2 heightRange = new Vector2(50, 100); 
     [Space(5)]
 
     [Header("Boost")]
@@ -46,8 +52,12 @@ public class SpaceshipController : MonoBehaviour
     [Header("Input")]
     [SerializeField] private InputActionReference movementActionReference;
     [SerializeField] private InputActionReference rollActionReference;
-    [SerializeField] private InputActionReference boostActionReference; 
-    
+    [SerializeField] private InputActionReference boostActionReference;
+    [Space(5)]
+
+    [Header("Reference")]
+    [SerializeField] private PlanetLockSystem planetLockSystem;
+
     private Vector2 screenCenter;
     private Vector2 mouseDistance;
     private Vector2 virtualMousePos;
@@ -92,12 +102,69 @@ public class SpaceshipController : MonoBehaviour
         // Mouse Input is still detected in locked mode to update the mouseDistance for the planet lock system
         DetectInput();
 
-        if(lockedMode) return;
+        if (lockedMode)
+        {
+            UpdateOrbitalMovement();
+        }
+        else
+        {
+            UpdateFreeMovement();
+        }
+    }
 
+    /// <summary>
+    /// Updates the spaceship's position and rotation based on player input when in orbital movement mode (planet-locked).
+    /// </summary>
+    private void UpdateOrbitalMovement()
+    {
+        if(planetLockSystem == null)
+        {
+            Debug.LogError("PlanetLockSystem reference is missing. Please assign it in the inspector.");
+            return;
+        }
+
+        Vector3 orbitDir = planetLockSystem.GetOrbitDir();
+
+        // Boost handling
+        bool isBoosting = boostActionReference.action.IsPressed();
+        float targetBoost = isBoosting ? boostMultiplier : 1f;
+        activeBoostMultiplier = Mathf.Lerp(activeBoostMultiplier, targetBoost, boostAcceleration * Time.deltaTime);
+        if (Mathf.Abs(activeBoostMultiplier) < 0.01f) activeForwardSpeed = 0f;
+
+        // Z/S - advance on the surface: we move along transform.forward
+        // PlanetlockSystem re-snaps the position on the frame at each frame
+        float boostedForwardSpeed = forwardSpeed * activeBoostMultiplier;
+        activeForwardSpeed = Mathf.Lerp(activeForwardSpeed, forwardInput * boostedForwardSpeed, forwardAcceleration * Time.deltaTime);
+
+        transform.position += transform.forward * activeForwardSpeed * Time.deltaTime;
+
+        // Q/D - Rotation around orbitDir (The local Up of the planet)
+        // It turns the ship on itself, like a gravitanonal yaw
+        if(Mathf.Abs(strafeInput) > 0.01f)
+        {
+            float yaw = strafeInput * rotationSpeed * Time.deltaTime;
+            transform.rotation = Quaternion.AngleAxis(yaw, orbitDir) * transform.rotation;
+        }
+
+
+            float turnInput = strafeInput * rotationSpeed * Time.deltaTime;
+        Quaternion rotate = Quaternion.Euler(0f, turnInput, 0f);
+        transform.rotation = rotate * transform.rotation;
+    }
+
+    /// <summary>
+    /// Updates the spaceship's position and rotation based on player input when in free movement mode.
+    /// </summary>
+    private void UpdateFreeMovement()
+    {
         HandleRoll();
         HandleMovement();
     }
 
+    /// <summary>
+    /// Handles the spaceship's movement in free movement mode, applying acceleration and boost effects based on player input.
+    /// It updates the position of the spaceship accordingly.
+    /// </summary>
     private void HandleMovement()
     {
         // Boost handling
@@ -121,6 +188,9 @@ public class SpaceshipController : MonoBehaviour
                             + transform.up      * activeHoverSpeed      * Time.deltaTime;
     }
 
+    /// <summary>
+    /// Handles the spaceship's rotation based on the mouse distance from the screen center and the roll input.
+    /// </summary>
     private void HandleRoll()
     {
         transform.Rotate(
@@ -132,7 +202,8 @@ public class SpaceshipController : MonoBehaviour
     }
 
     /// <summary>
-    /// 
+    /// Detects player input from the mouse and gamepad, updating the virtual mouse position and calculating the distance from the screen center for rotation purposes. 
+    /// It also reads the roll and movement inputs from the assigned Input Actions.
     /// </summary>
     private void DetectInput()
     {
@@ -168,7 +239,7 @@ public class SpaceshipController : MonoBehaviour
             mouseDistance = offset.normalized * t;
         }
 
-        // Rool Input
+        // Roll Input
         rollInput = Mathf.Lerp(
             rollInput, 
             rollActionReference.action.ReadValue<Vector2>().x, 
@@ -200,16 +271,30 @@ public class SpaceshipController : MonoBehaviour
         return boostActionReference != null && boostActionReference.action.IsPressed();
     }
 
+    /// <summary>
+    /// Sets whether the player has control over the spaceship. 
+    /// When disabled, the spaceship will not respond to player input and will be in a locked mode, 
+    /// typically used for orbital movement around planets.
+    /// </summary>
+    /// <param name="enabled"></param>
     public void SetPlayerControlEnabled(bool enabled)
     {
         SetLockedMode(!enabled);
     }
 
+    /// <summary>
+    /// Gets the current mouse distance from the screen center, which is used for determining the spaceship's rotation based on player input.
+    /// </summary>
+    /// <returns>Mouse distance form the center</returns>
     public Vector2 GetMouseDistance()
     {
         return mouseDistance;
     }
 
+    /// <summary>
+    /// Sets the locked mode of the spaceship. When locked, the spaceship will not respond to player input and will have its speeds set to zero.
+    /// </summary>
+    /// <param name="locked">Boolean</param>
     public void SetLockedMode(bool locked)
     {
         this.lockedMode = locked;
@@ -218,8 +303,6 @@ public class SpaceshipController : MonoBehaviour
             activeForwardSpeed = 0f;
             activeStrafSpeed = 0f;
             activeHoverSpeed = 0f;
-        }
-
-        
+        }        
     }
 }
