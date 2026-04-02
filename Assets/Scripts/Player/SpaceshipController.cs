@@ -1,4 +1,3 @@
-using System;
 using UnityEngine;
 using UnityEngine.InputSystem;
 
@@ -21,7 +20,17 @@ public class SpaceshipController : MonoBehaviour
     [SerializeField] private float boostDuration = 10f;
     [Space(5)]
 
-    private float activeBoostMultiplier = 1f;
+    [Header("Boost Regeneration")]
+    [Tooltip("Delay before passive regeneration start")]
+    [SerializeField] private float boostRegenDelay = 2f;
+    [Tooltip("Passive regeneration speed (time per second)")]
+    [SerializeField] private float boostRegenRate = 1f;
+    [Space(5)]
+
+    [Header("Boost Time Management (debug)")]
+    [SerializeField] private float boostTimeRemaining;
+    [SerializeField] private float boostTimeToAdd;
+    [SerializeField] private float activeBoostMultiplier = 1f;
 
     [Header("Acceleration")]
     [SerializeField] private float forwardAcceleration = 2.5f;
@@ -67,10 +76,14 @@ public class SpaceshipController : MonoBehaviour
     private float strafeInput;
     private float hoverInput;
 
+    private float timeSinceLastBoost = 0f;
+
     private bool lockedMode = false;
 
     private void Start()
     {
+        boostTimeRemaining = boostDuration;
+
         screenCenter.x = Screen.width / 2f;
         screenCenter.y = Screen.height / 2f;
 
@@ -146,10 +159,11 @@ public class SpaceshipController : MonoBehaviour
             transform.rotation = Quaternion.AngleAxis(yaw, orbitDir) * transform.rotation;
         }
 
-
-            float turnInput = strafeInput * rotationSpeed * Time.deltaTime;
+        float turnInput = strafeInput * rotationSpeed * Time.deltaTime;
         Quaternion rotate = Quaternion.Euler(0f, turnInput, 0f);
         transform.rotation = rotate * transform.rotation;
+
+        UpdateBoostTimer();
     }
 
     /// <summary>
@@ -159,6 +173,7 @@ public class SpaceshipController : MonoBehaviour
     {
         HandleRoll();
         HandleMovement();
+        UpdateBoostTimer();
     }
 
     /// <summary>
@@ -168,7 +183,7 @@ public class SpaceshipController : MonoBehaviour
     private void HandleMovement()
     {
         // Boost handling
-        bool isBoosting = boostActionReference.action.IsPressed();
+        bool isBoosting = IsBoosting();
         float targetBoost = isBoosting ? boostMultiplier : 1f;
         activeBoostMultiplier = Mathf.Lerp(activeBoostMultiplier, targetBoost, boostAcceleration * Time.deltaTime);
 
@@ -254,6 +269,47 @@ public class SpaceshipController : MonoBehaviour
     }
 
     /// <summary>
+    /// Updates the boost timer by consuming boost when active, regenerating boost after a delay, and applying any
+    /// externally added boost time.
+    /// </summary>
+    private void UpdateBoostTimer()
+    {
+        if (boostActionReference.action.IsPressed() && boostTimeRemaining > 0)
+        {
+            // Consumes the boost
+            boostTimeRemaining = Mathf.Max(0f, boostTimeRemaining - Time.deltaTime);
+            timeSinceLastBoost = 0f;
+        }
+        else
+        {
+            // Passive regeneration after the delay
+            timeSinceLastBoost += Time.deltaTime;
+            if (timeSinceLastBoost >= boostRegenDelay)
+            {
+                boostTimeRemaining = Mathf.Min(boostDuration, boostTimeRemaining + boostRegenRate * Time.deltaTime);
+            }
+        }
+
+        // Add external boost
+        if (boostTimeToAdd > 0)
+        {
+            const float boostAddSpeed = 4f;
+            float boostTimeToAddThisFrame = Mathf.Min(Time.deltaTime * boostAddSpeed, boostTimeToAdd);
+            boostTimeRemaining = Mathf.Min(boostDuration, boostTimeRemaining + boostTimeToAddThisFrame);
+            boostTimeToAdd -= boostTimeToAddThisFrame;
+        }
+    }
+
+    /// <summary>
+    /// Increases the remaining boost duration by the specified amount of time.
+    /// </summary>
+    /// <param name="time">The amount of time to add to the remaining boost duration, in seconds.</param>
+    private void AddBoost(float time)
+    {
+        boostTimeRemaining += time;
+    }
+
+    /// <summary>
     /// Obtains the current forward speed as a ratio of the maximum forward speed (0 to 1).
     /// </summary>
     /// <returns>A value between 0 and 1</returns>
@@ -268,18 +324,7 @@ public class SpaceshipController : MonoBehaviour
     /// <returns>true if the boost action is pressed; otherwise, false.</returns>
     public bool IsBoosting()
     {
-        return boostActionReference != null && boostActionReference.action.IsPressed();
-    }
-
-    /// <summary>
-    /// Sets whether the player has control over the spaceship. 
-    /// When disabled, the spaceship will not respond to player input and will be in a locked mode, 
-    /// typically used for orbital movement around planets.
-    /// </summary>
-    /// <param name="enabled"></param>
-    public void SetPlayerControlEnabled(bool enabled)
-    {
-        SetLockedMode(!enabled);
+        return boostActionReference != null && boostActionReference.action.IsPressed() && boostTimeRemaining > 0;
     }
 
     /// <summary>
@@ -304,5 +349,63 @@ public class SpaceshipController : MonoBehaviour
             activeStrafSpeed = 0f;
             activeHoverSpeed = 0f;
         }        
+    }
+
+    public float GetActiveForwardSpeed()
+    {
+        return activeForwardSpeed;
+    }
+
+    /// <summary>
+    /// Gets the name of the currently selected planet.
+    /// </summary>
+    /// <returns>The name of the selected planet, or "None" if no planet is selected.</returns>
+    public string GetCurrentPlanetName()
+    {
+        if(planetLockSystem != null && planetLockSystem.GetSelectablePlanet() != null)
+        {
+            return planetLockSystem.GetSelectablePlanet().name;
+        }
+        return "None";
+    }
+
+    /// <summary>
+    /// Calculates the distance from the current object to the selectable planet.
+    /// </summary>
+    /// <returns>The distance to the selectable planet if available; otherwise, 0.</returns>
+    public float GetPlanetDistance()
+    {
+        if(planetLockSystem != null && planetLockSystem.GetSelectablePlanet() != null)
+        {
+            return Vector3.Distance(transform.position, planetLockSystem.GetSelectablePlanet().position);
+        }
+        return 0f;
+    }
+
+    /// <summary>
+    /// Retrieves the current state of the planet as a string.
+    /// </summary>
+    /// <returns>A string representing the planet's state, or "None" if the state is unavailable.</returns>
+    public string GetPlanetState()
+    {
+        if(planetLockSystem != null)
+        {
+            return planetLockSystem.GetState().ToString();
+        }
+        return "None";
+    }
+
+    public Vector2 GetVirtualCursor()
+    {
+        return virtualMousePos;
+    }
+
+    /// <summary>
+    /// Calculates the ratio of remaining boost time to the total boost duration.
+    /// </summary>
+    /// <returns>A value between 0 and 1 representing the proportion of boost time remaining.</returns>
+    public float GetBoostTimeRatio()
+    {
+        return boostTimeRemaining / boostDuration;
     }
 }

@@ -18,9 +18,6 @@ public class PlanetLockSystem : MonoBehaviour
     [SerializeField] private float followSmoothSpeed = 6f;
     [SerializeField] private float lookSmoothSpeed = 4f;
 
-    [Header("Orbital control")]
-    [SerializeField] private float strafeOrbitSpeed = 60f;
-
     [Header("Input")]
     [SerializeField] private InputActionReference lockActionReference;
     [SerializeField] private InputActionReference movementActionReference;
@@ -237,5 +234,10 @@ public class PlanetLockSystem : MonoBehaviour
     public Vector3 GetOrbitDir()
     {
         return orbitDir;
+    }
+
+    public LockState GetState()
+    {
+        return state;
     }
 }
