@@ -34,6 +34,7 @@ public class MusicManager : MonoBehaviour
     {
         musicSource.Stop();
         musicSource.clip = clip;
+        musicSource.volume = 0.7f;
         musicSource.loop = false;
         musicSource.Play();
     }
