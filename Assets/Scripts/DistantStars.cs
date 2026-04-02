@@ -8,9 +8,7 @@ public class DistantStars : MonoBehaviour
     [SerializeField] private Vector2 starDistance = new Vector2(1500f, 3000f);
     [SerializeField] private Material starMaterial;
 
-    [Header("Seed")]
-    [SerializeField] private int seed = 0;
-
+    private System.Random stellarRNG;
     private MeshFilter meshFilter;
     private MeshRenderer meshRenderer;
 
@@ -56,9 +54,6 @@ public class DistantStars : MonoBehaviour
 
     public void GenerateStars()
     {
-        UnityEngine.Random.InitState(seed);
-        Debug.Log("Generating stars with seed: " + seed);
-
         EnsureComponents();
 
         Mesh mesh = BuildStarMesh();
@@ -108,10 +103,10 @@ public class DistantStars : MonoBehaviour
 
         for (int i = 0; i < starAmount; i++)
         {
-            Vector3 dir = UnityEngine.Random.onUnitSphere;
-            float distance = UnityEngine.Random.Range(starDistance.x, starDistance.y);
-            float scale = UnityEngine.Random.Range(0.03f, 0.3f) * distance * 0.01f;
-            float bright = UnityEngine.Random.Range(0.6f, 1.0f);
+            Vector3 dir = RandomOnUnitSphere();
+            float distance = Range(starDistance.x, starDistance.y);
+            float scale = Range(0.03f, 0.3f) * distance * 0.01f;
+            float bright = Range(0.6f, 1.0f);
 
             Vector3 center = dir * distance;
 
@@ -162,7 +157,6 @@ public class DistantStars : MonoBehaviour
 
     private void EnsureComponents()
     {
-        // ?? ne fonctionne pas avec les objets Unity : utiliser == null explicitement
         meshFilter = GetComponent<MeshFilter>();
         if (meshFilter == null)
             meshFilter = gameObject.AddComponent<MeshFilter>();
@@ -174,5 +168,30 @@ public class DistantStars : MonoBehaviour
             meshRenderer.shadowCastingMode = UnityEngine.Rendering.ShadowCastingMode.Off;
             meshRenderer.receiveShadows = false;
         }
+    }
+
+    private float Range(float min, float max)
+    {
+        return (float)(stellarRNG.NextDouble() * (max - min) + min);
+    }
+
+    private Vector3 RandomOnUnitSphere()
+    {
+        float u = (float)stellarRNG.NextDouble();
+        float v = (float)stellarRNG.NextDouble();
+
+        float theta = u * 2f * Mathf.PI;
+        float phi = Mathf.Acos(2f * v - 1f);
+
+        float x = Mathf.Sin(phi) * Mathf.Cos(theta);
+        float y = Mathf.Sin(phi) * Mathf.Sin(theta);
+        float z = Mathf.Cos(phi);
+
+        return new Vector3(x, y, z);
+    }
+
+    public void SetSeed(System.Random newSeed)
+    {
+        stellarRNG = newSeed;
     }
 }
