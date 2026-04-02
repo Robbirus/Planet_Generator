@@ -1,0 +1,45 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 3cc0284678e6b5d49b48d87f323f7ddc, type: 3}
+  m_Name: PlanetData
+  m_EditorClassIdentifier: Assembly-CSharp::CelestialObjectDataSO
+  names:
+  - Oshaune
+  - Marfark
+  - Hydrobius
+  - Saint Pierre Des Corps
+  - Dignes les Bains
+  - Mintoria
+  - Draupnir
+  - Karlia
+  - Valmox
+  - Gatria
+  - Trandor
+  - Gar Haren
+  - Calypso
+  - Inari
+  - Slif
+  - Veld
+  - Crimsica
+  - Merida
+  - Omicron
+  - Wasat
+  - Lesath
+  - Martale
+  - Gacrux
+  - Hellmire
+  numberRange: {x: 0, y: 10}
+  distanceRange: {x: 300, y: 7000}
+  orbitalSpeedRange: {x: 1, y: 100}
+  rotationSpeedRange: {x: 5, y: 50}
+  massRange: {x: 1000, y: 5000}
+  densityRange: {x: 0.5, y: 2}
