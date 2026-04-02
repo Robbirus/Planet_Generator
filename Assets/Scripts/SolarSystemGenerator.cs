@@ -1,5 +1,4 @@
-﻿using System;
-using System.Collections.Generic;
+﻿using System.Collections.Generic;
 using UnityEngine;
 
 public class SolarSystemGenerator : MonoBehaviour
@@ -12,27 +11,30 @@ public class SolarSystemGenerator : MonoBehaviour
 
     [Header("Seed")]
     [SerializeField] private int seed = 0;
+    [SerializeField] private DistantStars distantStars;
+    private System.Random stellarRNG;
+    private System.Random planetaryRNG;
+    private System.Random lunarRNG;
     [Space(10)]
 
     [Header("Planets")]
-    [SerializeField] private int minPlanets = 3;
-    [SerializeField] private int maxPlanets = 8;
+    private int minPlanets = 3;
+    private int maxPlanets = 8;
 
-    [SerializeField] private float minDistance = 20f;
-    [SerializeField] private float maxDistance = 120f;
+    private float minDistance = 20f;
+    private float maxDistance = 120f;
 
-    [SerializeField] private float minOrbitalSpeed = 10f; 
-    [SerializeField] private float maxOrbitalSpeed = 100f;
+    private float minOrbitalSpeed = 10f; 
+    private float maxOrbitalSpeed = 100f;
 
-    [SerializeField] private float minRotationSpeed = 10f;
-    [SerializeField] private float maxRotationSpeed = 100f;
-    [Space(5)]
+    private float minRotationSpeed = 10f;
+    private float maxRotationSpeed = 100f;    
 
     [Header("Planet Properties")]
-    [SerializeField] private float minPlanetMass = 5f;
-    [SerializeField] private float maxPlanetMass = 50f;
-    [SerializeField] private float minPlanetDensity = 0.5f;
-    [SerializeField] private float maxPlanetDensity = 2f;
+    private float minPlanetMass = 5f;
+    private float maxPlanetMass = 50f;
+    private float minPlanetDensity = 0.5f;
+    private float maxPlanetDensity = 2f;
     [SerializeField] private Color planetOrbitColor = Color.blue;
     [Space(5)]
 
@@ -41,35 +43,115 @@ public class SolarSystemGenerator : MonoBehaviour
     [SerializeField] private float planetSafetyMargin = 100f;
     [Space(10)]
 
-    [Header("Moons")]
-    [SerializeField] private int minMoons = 0;
-    [SerializeField] private int maxMoons = 3;
-    [Space(5)]
+    [Header("Moons Properties")]
+    private int minMoons = 3;
+    private int maxMoons = 8;
 
-    [SerializeField] private float moonDistanceMin = 3f;
-    [SerializeField] private float moonDistanceMax = 12f;
-    [Space(5)]
+    private float minMoonDistance = 3f;
+    private float maxMoonDistance = 12f;
 
-    [SerializeField] private float minMoonMass = 0.05f;
-    [SerializeField] private float maxMoonMass = 1f;
-    [SerializeField] private float minMoonDensity = 0.5f;
-    [SerializeField] private float maxMoonDensity = 2f;
+    private float minMoonOrbitalSpeed = 10f;
+    private float maxMoonOrbitalSpeed = 100f;
+
+    private float minMoonRotationSpeed = 10f;
+    private float maxMoonRotationSpeed = 100f;
+
+    private float minMoonMass = 0.05f;
+    private float maxMoonMass = 1f;
+    private float minMoonDensity = 0.5f;
+    private float maxMoonDensity = 2f;
 
     [SerializeField] private Color moonOrbitColor = Color.cyan;
     [Space(10)]
 
     [Header("Moon Spacing")]
     [Tooltip("Minimum margin between two moon orbits")]
-    [SerializeField] private float moonOrbitGap = 15f;
+    [SerializeField] private float moonOrbitGap = 1.5f;
     [Space(10)]
+
+    [Header("Data")]
+    [SerializeField] private CelestialObjectDataSO planetData;
+    [SerializeField] private CelestialObjectDataSO moonData;
+
 
     // For each planet: orbital distance + total influence (body radius + moonDistanceMax)
     private readonly List<(float distance, float footprint)> usedPlanetOrbits = new();
 
     private void Start()
     {
-        UnityEngine.Random.InitState(seed);
+        GenerateSeeds(seed);
+        SetPlanetData(planetData);
+        SetMoonData(moonData);
         GeneratePlanets();
+    }
+
+    private void GenerateSeeds(int seed)
+    {
+        UnityEngine.Random.InitState(seed);
+        stellarRNG = new(UnityEngine.Random.Range(int.MinValue, int.MaxValue));
+        planetaryRNG = new(UnityEngine.Random.Range(int.MinValue, int.MaxValue));
+        lunarRNG = new(UnityEngine.Random.Range(int.MinValue, int.MaxValue));
+
+        if(distantStars != null)
+        {
+            distantStars.SetSeed(stellarRNG);
+        }
+    }
+
+    private void SetPlanetData(CelestialObjectDataSO planetData)
+    {
+        if(planetData != null)
+        {
+            minPlanets = (int)planetData.numberRange.x;
+            maxPlanets = (int)planetData.numberRange.y;
+
+            minDistance = planetData.distanceRange.x;
+            maxDistance = planetData.distanceRange.y;
+
+            minOrbitalSpeed = planetData.orbitalSpeedRange.x;
+            maxOrbitalSpeed = planetData.orbitalSpeedRange.y;
+
+            minRotationSpeed = planetData.rotationSpeedRange.x;
+            maxRotationSpeed = planetData.rotationSpeedRange.y;
+
+            minPlanetMass = planetData.massRange.x;
+            maxPlanetMass = planetData.massRange.y;
+
+            minPlanetDensity = planetData.densityRange.x;
+            maxPlanetDensity = planetData.densityRange.y;
+        }
+        else
+        {
+            Debug.LogWarning("Planet data is not set. Using default values.");
+        }
+    }
+
+    private void SetMoonData(CelestialObjectDataSO moonData)
+    {
+        if(moonData != null)
+        {
+            minMoons = (int)moonData.numberRange.x;
+            maxMoons = (int)moonData.numberRange.y;
+
+            minMoonDistance = moonData.distanceRange.x;
+            maxMoonDistance = moonData.distanceRange.y;
+
+            minMoonOrbitalSpeed = moonData.orbitalSpeedRange.x;
+            maxMoonOrbitalSpeed = moonData.orbitalSpeedRange.y;
+
+            minMoonRotationSpeed = moonData.rotationSpeedRange.x;
+            maxMoonRotationSpeed = moonData.rotationSpeedRange.y;
+
+            minMoonMass = moonData.massRange.x;
+            maxMoonMass = moonData.massRange.y;
+
+            minMoonDensity = moonData.densityRange.x;
+            maxMoonDensity = moonData.densityRange.y;
+        }
+        else
+        {
+            Debug.LogWarning("Moon data is not set. Using default values.");
+        }
     }
 
     /// <summary>
@@ -80,26 +162,26 @@ public class SolarSystemGenerator : MonoBehaviour
     /// due to insufficient space.</remarks>
     private void GeneratePlanets()
     {
-        int count = UnityEngine.Random.Range(minPlanets, maxPlanets);
+        int count = stellarRNG.Next(minPlanets, maxPlanets);
 
         for (int i = 0; i < count; i++)
         {
             // Set physical properties first to compute radius for spacing
-            float mass          = UnityEngine.Random.Range(minPlanetMass, maxPlanetMass) * 1000;
-            float density       = UnityEngine.Random.Range(minPlanetDensity, maxPlanetDensity);
+            float mass          = Range(minPlanetMass, maxPlanetMass, planetaryRNG) * 10000;
+            float density       = Range(minPlanetDensity, maxPlanetDensity, planetaryRNG);
             float radius        = ComputeRadius(mass, density);
-            float footprint     = radius + moonDistanceMax; // worst case moon orbit
-            float rotationSpeed = UnityEngine.Random.Range(minRotationSpeed, maxRotationSpeed);
+            float footprint     = radius + maxMoonDistance; // worst case moon orbit
+            float rotationSpeed = Range(minRotationSpeed, maxRotationSpeed, planetaryRNG); 
 
             float distance = FindSafePlanetDistance(footprint);
-            if(distance < 0)
+            if (distance < 0)
             {
                 Debug.LogWarning($"Cannot place planet {i} : Not enough space");
                 continue;
             }
 
-            float angle = UnityEngine.Random.Range(0f, Mathf.PI * 2f);
-            float incline = UnityEngine.Random.Range(-3f, 3f); 
+            float angle     = Range(0f, Mathf.PI * 2f, planetaryRNG);
+            float incline   = Range(-3f, 3f, planetaryRNG);
 
             Vector3 pos = sun.position + new Vector3(
                 Mathf.Cos(angle) * distance,
@@ -109,21 +191,28 @@ public class SolarSystemGenerator : MonoBehaviour
 
             GameObject planet = Instantiate(planetPrefab, pos, Quaternion.identity);
             CelestialBody body = planet.GetComponent<CelestialBody>();
+            string name = $"Planet_{i}";
+
+            if(planetData != null && planetData.GetRandomName() != "")
+            {
+                name = planetData.GetRandomName();
+            }
 
             // Body
             body.SetMass(mass);
             body.SetDensity(density);
             body.SetRotationSpeed(rotationSpeed);
+            body.SetName(name);
             body.ApplyScale();
             body.ApplyColor(maxPlanetDensity);
 
-            float orbitSpeed = UnityEngine.Random.Range(minOrbitalSpeed, maxOrbitalSpeed) / distance;
-            float inclination = UnityEngine.Random.Range(-10f, 10f);
+            float orbitSpeed    = (float)(planetaryRNG.NextDouble() * (maxOrbitalSpeed - minOrbitalSpeed) + minOrbitalSpeed) / distance; 
+            float inclination   = (float)(planetaryRNG.NextDouble() * 20f - 10f);
 
             // Orbit
             OrbitBody orbit = planet.AddComponent<OrbitBody>();
             orbit.SetCenter(sun);
-            orbit.SetSeed(seed);
+            orbit.SetSeed(stellarRNG);
             orbit.SetOrbitColor(planetOrbitColor);
             orbit.SetOrbitRadius(distance);
             orbit.SetOrbitSpeed(orbitSpeed);
@@ -146,13 +235,15 @@ public class SolarSystemGenerator : MonoBehaviour
         // Store the orbital radius of each moon already placed around this planet
         List<float> usedMoonOrbits = new();
 
-        int moonCount = UnityEngine.Random.Range(minMoons, maxMoons);
+        int moonCount = stellarRNG.Next(minMoons, maxMoons);
+        Debug.Log($"Generating {moonCount} moons for {planet.name}");
 
         for (int i = 0; i < moonCount; i++)
         {
-            float mass      = UnityEngine.Random.Range(minMoonMass, maxMoonMass) * 1000;
-            float density   = UnityEngine.Random.Range(minMoonDensity, maxMoonDensity);
+            float mass      = Range(minMoonMass, maxMoonMass, lunarRNG) * 10000;
+            float density   = Range(minMoonDensity, maxMoonDensity, lunarRNG);
             float radius    = ComputeRadius(mass, density);
+            float rotationSpeed = Range(minMoonRotationSpeed, maxMoonRotationSpeed, lunarRNG);
 
             CelestialBody planetBody = planet.GetComponent<CelestialBody>();
             float planetRadius = planetBody.GetRadius();
@@ -165,28 +256,38 @@ public class SolarSystemGenerator : MonoBehaviour
                 continue;
             }
 
-            float angle = UnityEngine.Random.Range(0f, Mathf.PI * 2f);
+            float angle = Range(0f, Mathf.PI * 2f, lunarRNG);
+            float incline = Range(-10f, 10f, lunarRNG);
 
             Vector3 pos = planet.transform.position + new Vector3(
                 Mathf.Cos(angle) * distance,
-                UnityEngine.Random.Range(-1f, 1f),
+                incline,
                 Mathf.Sin(angle) * distance
             );
 
             GameObject moon = Instantiate(moonPrefab, pos, Quaternion.identity);
             CelestialBody body = moon.GetComponent<CelestialBody>();
+            string name = $"Moon_{i}";
 
+            if(moonData != null && moonData.GetRandomName() != "")
+            {
+                name = moonData.GetRandomName();
+            }
+
+            // Body
             body.SetMass(mass);
             body.SetDensity(density);
+            body.SetRotationSpeed(rotationSpeed);
+            body.SetName(name);
             body.ApplyScale();
             body.ApplyColor(maxMoonDensity);
 
-            float orbitSpeed = UnityEngine.Random.Range(minOrbitalSpeed, maxOrbitalSpeed) / distance;
-            float inclination = UnityEngine.Random.Range(-20f, 20f);
+            float orbitSpeed = Range(minMoonOrbitalSpeed, maxMoonOrbitalSpeed, lunarRNG) / distance;
+            float inclination = Range(-20f, 20f, lunarRNG);
 
             OrbitBody orbit = moon.AddComponent<OrbitBody>();
             orbit.SetCenter(planet.transform);
-            orbit.SetSeed(seed + i + planet.GetInstanceID());
+            orbit.SetSeed(stellarRNG);
             orbit.SetOrbitColor(moonOrbitColor);
             orbit.SetOrbitRadius(distance);
             orbit.SetOrbitSpeed(orbitSpeed);
@@ -217,7 +318,7 @@ public class SolarSystemGenerator : MonoBehaviour
     {
         for(int attempt = 0; attempt < maxAttempts; attempt++)
         {
-            float candidate = UnityEngine.Random.Range(minDistance, maxDistance);
+            float candidate = Range(minDistance, maxDistance, planetaryRNG);
             bool valid = true;
 
             foreach(var (existingDist, existingFootprint) in usedPlanetOrbits)
@@ -253,7 +354,7 @@ public class SolarSystemGenerator : MonoBehaviour
     {
         for(int attempts = 0; attempts < maxAttempts; attempts++)
         {
-            float candidate = planetRadius + UnityEngine.Random.Range(moonDistanceMin, moonDistanceMax);
+            float candidate = planetRadius + Range(minMoonDistance, maxMoonDistance, lunarRNG);
             bool valid = true;
 
             foreach(float existingOrbit in usedOrbits)
@@ -276,6 +377,18 @@ public class SolarSystemGenerator : MonoBehaviour
         }
 
         return -1f;
+    }
+
+    /// <summary>
+    /// Generates a random float value within the specified range using the provided random number generator.
+    /// </summary>
+    /// <param name="min">The minimum value</param>
+    /// <param name="max">The maximum value</param>
+    /// <param name="rng">The random number generator</param>
+    /// <returns></returns>
+    private float Range(float min, float max, System.Random rng)
+    {
+        return (float)(rng.NextDouble() * (max - min) + min);
     }
 
 }
