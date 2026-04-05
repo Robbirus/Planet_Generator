@@ -159,10 +159,6 @@ public class SpaceshipController : MonoBehaviour
             transform.rotation = Quaternion.AngleAxis(yaw, orbitDir) * transform.rotation;
         }
 
-        float turnInput = strafeInput * rotationSpeed * Time.deltaTime;
-        Quaternion rotate = Quaternion.Euler(0f, turnInput, 0f);
-        transform.rotation = rotate * transform.rotation;
-
         UpdateBoostTimer();
     }
 
