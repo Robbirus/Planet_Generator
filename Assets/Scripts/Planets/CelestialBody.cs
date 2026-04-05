@@ -12,9 +12,20 @@ public class CelestialBody : MonoBehaviour
     [Header("Rotation")]
     [SerializeField] private float rotationSpeed = 10f;
 
-    public float GetRadius()
+    /// <summary>
+    /// Calculates the radius of a sphere given its mass and density.
+    /// </summary>
+    /// <param name="mass">The mass of the sphere. Must be a non-negative value.</param>
+    /// <param name="density">The density of the sphere. Must be a positive value.</param>
+    /// <returns>The radius of the sphere, calculated based on the provided mass and density.</returns>
+    public static float ComputeRadius(float mass, float density)
     {
         return Mathf.Pow((3f * mass) / (4f * Mathf.PI * density), 1f / 3f);
+    }
+
+    public float GetRadius()
+    {
+        return ComputeRadius(mass, density);
     }
 
     public void SetMass(float m)

@@ -169,7 +169,7 @@ public class SolarSystemGenerator : MonoBehaviour
             // Set physical properties first to compute radius for spacing
             float mass          = Range(minPlanetMass, maxPlanetMass, planetaryRNG) * 10000;
             float density       = Range(minPlanetDensity, maxPlanetDensity, planetaryRNG);
-            float radius        = ComputeRadius(mass, density);
+            float radius        = CelestialBody.ComputeRadius(mass, density);
             float footprint     = radius + maxMoonDistance; // worst case moon orbit
             float rotationSpeed = Range(minRotationSpeed, maxRotationSpeed, planetaryRNG); 
 
@@ -242,7 +242,7 @@ public class SolarSystemGenerator : MonoBehaviour
         {
             float mass      = Range(minMoonMass, maxMoonMass, lunarRNG) * 10000;
             float density   = Range(minMoonDensity, maxMoonDensity, lunarRNG);
-            float radius    = ComputeRadius(mass, density);
+            float radius    = CelestialBody.ComputeRadius(mass, density);
             float rotationSpeed = Range(minMoonRotationSpeed, maxMoonRotationSpeed, lunarRNG);
 
             CelestialBody planetBody = planet.GetComponent<CelestialBody>();
@@ -295,17 +295,6 @@ public class SolarSystemGenerator : MonoBehaviour
 
             usedMoonOrbits.Add(distance);
         }
-    }
-
-    /// <summary>
-    /// Calculates the radius of a sphere given its mass and density.
-    /// </summary>
-    /// <param name="mass">The mass of the sphere.</param>
-    /// <param name="density">The density of the sphere.</param>
-    /// <returns>The computed radius of the sphere.</returns>
-    private float ComputeRadius(float mass, float density)
-    {
-        return Mathf.Pow((3f * mass) / (4f * Mathf.PI * density), 1f / 3f);
     }
 
     /// <summary>
