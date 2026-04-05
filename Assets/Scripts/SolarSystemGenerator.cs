@@ -234,6 +234,13 @@ public class SolarSystemGenerator : MonoBehaviour
 
         int moonCount = stellarRNG.Next(minMoons, maxMoons);
         Debug.Log($"Generating {moonCount} moons for {planet.name}");
+        CelestialBody planetBody = planet.GetComponent<CelestialBody>();
+        if(planetBody == null)
+        {
+            Debug.LogError($"Planet {planet.name} does not have a CelestialBody component.");
+            return;
+        }
+        float planetRadius = planetBody.GetRadius();
 
         for (int i = 0; i < moonCount; i++)
         {
@@ -241,9 +248,6 @@ public class SolarSystemGenerator : MonoBehaviour
             float density   = Range(minMoonDensity, maxMoonDensity, lunarRNG);
             float radius    = CelestialBody.ComputeRadius(mass, density);
             float rotationSpeed = Range(minMoonRotationSpeed, maxMoonRotationSpeed, lunarRNG);
-
-            CelestialBody planetBody = planet.GetComponent<CelestialBody>();
-            float planetRadius = planetBody.GetRadius();
 
             // Minimum gap between two orbits : sum of the radii + margin
             float distance = FindSafeMoonOrbit(planetRadius, radius, usedMoonOrbits);
