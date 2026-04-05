@@ -36,13 +36,28 @@ public class PlanetLockSystem : MonoBehaviour
 
     private readonly Collider[] overlapBuffer = new Collider[16];
 
+    // Validity checks
+    private bool hasShipController;
+    private bool hasShipCamera;
+
+    private bool hasMovementAction;
+    private bool hasLockAction;
+
     private void Awake()
     {
+        hasShipCamera = Validate(shipCamera != null, nameof(shipCamera));
+        hasShipController = Validate(shipController != null, nameof(shipController));
+        hasLockAction = Validate(lockActionReference != null && lockActionReference.action != null, nameof(lockActionReference));
+        hasMovementAction = Validate(movementActionReference != null && movementActionReference.action != null, nameof(movementActionReference));
+
         mainCam = Camera.main;
     }
 
     private void OnEnable()
     {
+        if (!hasLockAction) return;
+        if(!movementActionReference) return;
+
         lockActionReference.action.Enable();
         movementActionReference.action.Enable();
         lockActionReference.action.performed += OnLockPressed;
@@ -50,6 +65,9 @@ public class PlanetLockSystem : MonoBehaviour
 
     private void OnDisable()
     {
+        if (!hasLockAction) return;
+        if (!movementActionReference) return;
+
         lockActionReference.action.performed -= OnLockPressed;
         lockActionReference.action.Disable();
         movementActionReference.action.Disable();
@@ -130,6 +148,8 @@ public class PlanetLockSystem : MonoBehaviour
     /// <param name="planet"></param>
     private void Lock(Transform planet)
     {
+        if(!hasShipController || !hasShipCamera) return;
+
         lockedPlanet = planet;
 
         float radius = 1f;
@@ -221,11 +241,6 @@ public class PlanetLockSystem : MonoBehaviour
         return selectablePlanet;
     }
 
-    public Transform GetLockedPlanet()
-    {
-        return lockedPlanet;
-    }
-
     public LockState GetLockState()
     {
         return state;
@@ -239,5 +254,16 @@ public class PlanetLockSystem : MonoBehaviour
     public LockState GetState()
     {
         return state;
+    }
+
+
+    // Utilities
+    private bool Validate(bool isAsigned, string fieldName)
+    {
+        if (isAsigned) return true;
+
+        Debug.LogWarning($"[UIShip] '{fieldName}' is not assigned in the inspector.", this);
+        return false;
+
     }
 }

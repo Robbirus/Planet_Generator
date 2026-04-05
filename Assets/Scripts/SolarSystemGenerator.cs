@@ -249,7 +249,7 @@ public class SolarSystemGenerator : MonoBehaviour
             float distance = FindSafeMoonOrbit(planetRadius, radius, usedMoonOrbits);
             if(distance < 0f)
             {
-                Debug.LogWarning($"Cannot place the moon{i} around {planet.name}.");
+                Debug.LogWarning($"Cannot place the moon_{i} around {planet.name}.");
                 continue;
             }
 
