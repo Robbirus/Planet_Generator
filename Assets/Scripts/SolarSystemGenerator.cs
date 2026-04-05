@@ -240,7 +240,6 @@ public class SolarSystemGenerator : MonoBehaviour
         List<float> usedMoonOrbits = new();
 
         int moonCount = stellarRNG.Next(minMoons, maxMoons);
-        Debug.Log($"Generating {moonCount} moons for {planet.name}");
         CelestialBody planetBody = planet.GetComponent<CelestialBody>();
         if(planetBody == null)
         {
