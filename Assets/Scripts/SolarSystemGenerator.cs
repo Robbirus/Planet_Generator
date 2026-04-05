@@ -79,6 +79,13 @@ public class SolarSystemGenerator : MonoBehaviour
 
     private void Start()
     {
+        if(sun == null)
+        {
+            Debug.LogError("[SolarSystemGenerator] 'sun' reference is not set.", this);
+            enabled = false;
+            return;
+        }
+
         GenerateSeeds(seed);
         SetPlanetData(planetData);
         SetMoonData(moonData);
