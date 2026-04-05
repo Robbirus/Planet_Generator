@@ -53,6 +53,8 @@ public class OrbitBody : MonoBehaviour
 
         int segments = 100;
 
+        CelestialBody centerBody = center.GetComponent<CelestialBody>();
+
         Vector3 previousPoint = Vector3.zero;
 
         for (int i = 0; i <= segments; i++)
@@ -70,7 +72,7 @@ public class OrbitBody : MonoBehaviour
 
             point += center.position;
 
-            if(center.GetComponent<CelestialBody>() != null)
+            if(centerBody != null)
             {
                 Gizmos.color = orbitColor;
             }
