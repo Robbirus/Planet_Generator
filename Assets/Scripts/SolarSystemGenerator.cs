@@ -191,12 +191,9 @@ public class SolarSystemGenerator : MonoBehaviour
 
             GameObject planet = Instantiate(planetPrefab, pos, Quaternion.identity);
             CelestialBody body = planet.GetComponent<CelestialBody>();
-            string name = $"Planet_{i}";
-
-            if(planetData != null && planetData.GetRandomName() != "")
-            {
-                name = planetData.GetRandomName();
-            }
+            
+            System.Random nameRNG = new(seed + i);
+            string name = planetData != null ? planetData.GetRandomName(nameRNG) : $"Planet_{i}";
 
             // Body
             body.SetMass(mass);
@@ -267,12 +264,9 @@ public class SolarSystemGenerator : MonoBehaviour
 
             GameObject moon = Instantiate(moonPrefab, pos, Quaternion.identity);
             CelestialBody body = moon.GetComponent<CelestialBody>();
-            string name = $"Moon_{i}";
 
-            if(moonData != null && moonData.GetRandomName() != "")
-            {
-                name = moonData.GetRandomName();
-            }
+            System.Random nameRNG = new(seed + i);
+            string name = planetData != null ? moonData.GetRandomName(nameRNG) : $"Moon_{i}";
 
             // Body
             body.SetMass(mass);

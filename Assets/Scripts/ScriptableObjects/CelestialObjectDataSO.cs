@@ -19,14 +19,14 @@ public class CelestialObjectDataSO : ScriptableObject
     /// </summary>
     /// <param name="seed">The seed value to initialize the random number generator.</param>
     /// <returns>A randomly selected name, or "" if no names are available.</returns>
-    public string GetRandomName()
+    public string GetRandomName(System.Random rng)
     {
         if (names == null || names.Count == 0)
         {
             // Debug.LogWarning("No names available in CelestialObjectDataSO.");
-            return "";
+            return string.Empty;
         }
-        int index = UnityEngine.Random.Range(0, names.Count);
+        int index = rng.Next(0, names.Count);
         return names[index];
     }
 }
