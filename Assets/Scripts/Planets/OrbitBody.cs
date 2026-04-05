@@ -13,6 +13,15 @@ public class OrbitBody : MonoBehaviour
     private float angle;
     private System.Random orbitRNG;
 
+    private void Awake()
+    {
+        // Fall back to a default RNG if none is provided
+        if (orbitRNG == null)
+        {
+            orbitRNG = new System.Random(gameObject.GetInstanceID());
+        }
+    }
+
     private void Start()
     {
         angle = Range(0f, Mathf.PI * 2f);
