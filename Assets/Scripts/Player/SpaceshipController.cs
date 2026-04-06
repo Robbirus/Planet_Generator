@@ -159,6 +159,13 @@ public class SpaceshipController : MonoBehaviour
             transform.rotation = Quaternion.AngleAxis(yaw, orbitDir) * transform.rotation;
         }
 
+        // Space / Ctrl - orbital altitude clamped by heightRange
+        if(Mathf.Abs(hoverInput) > 0.01f)
+        {
+            float altitudeDelta = hoverInput * hoverSpeed * Time.deltaTime;
+            planetLockSystem.AdjustAltitude(altitudeDelta, heightRange);
+        }
+
         UpdateBoostTimer();
     }
 

@@ -29,10 +29,12 @@ public class PlanetLockSystem : MonoBehaviour
 
     // Normalize direction from planet to ship (The local up gravity)
     private Vector3 orbitDir;
+
     private Transform selectablePlanet;
     private Transform lockedPlanet;
     private float lockedPlanetRadius;
     private float orbitDistance;
+    private float currentAltitudeOffset = 0f;
 
     private readonly Collider[] overlapBuffer = new Collider[16];
 
@@ -162,6 +164,7 @@ public class PlanetLockSystem : MonoBehaviour
 
         lockedPlanetRadius = radius;
         orbitDistance = radius + surfaceMargin;
+        currentAltitudeOffset = 0f;
 
         // Initial direction from the current position
         orbitDir = (transform.position - planet.position).normalized;
@@ -218,6 +221,17 @@ public class PlanetLockSystem : MonoBehaviour
 
         Quaternion targetRot = Quaternion.LookRotation(tangentForward, orbitDir);
         transform.rotation = Quaternion.Slerp(transform.rotation, targetRot, lookSmoothSpeed * Time.deltaTime);
+    }
+
+    public void AdjustAltitude(float delta, Vector2 heightRange)
+    {
+        currentAltitudeOffset = Mathf.Clamp(
+            currentAltitudeOffset + delta,
+            heightRange.x,
+            heightRange.y
+        );
+
+        orbitDistance = lockedPlanetRadius + surfaceMargin + currentAltitudeOffset;
     }
 
     // ── Gizmos (debug) ────────────────────────────────────────────────────────────────
