@@ -8,12 +8,16 @@ public class CelestialBody : MonoBehaviour
 
     [Header("visual")]
     [SerializeField] private Renderer planetRenderer;
+    [Tooltip("Visual multiplicator apply only on the scale (do not affect orbital spacing")]
+    [SerializeField] private float visualScale = 5f;
+    public const float DEFAULT_VISUAL_SCALE = 5f;
 
     [Header("Rotation")]
     [SerializeField] private float rotationSpeed = 10f;
 
     /// <summary>
     /// Calculates the radius of a sphere given its mass and density.
+    /// Used for safe spacing
     /// </summary>
     /// <param name="mass">The mass of the sphere. Must be a non-negative value.</param>
     /// <param name="density">The density of the sphere. Must be a positive value.</param>
@@ -26,6 +30,15 @@ public class CelestialBody : MonoBehaviour
     public float GetRadius()
     {
         return ComputeRadius(mass, density);
+    }
+
+    /// <summary>
+    /// Visual radius (show on screen)
+    /// </summary>
+    /// <returns></returns>
+    public float GetVisualRadius()
+    {
+        return GetRadius() * visualScale;
     }
 
     public void SetMass(float m)
@@ -50,7 +63,7 @@ public class CelestialBody : MonoBehaviour
 
     public void ApplyScale()
     {
-        float diameter = GetRadius() * 2f;
+        float diameter = GetVisualRadius() * 2f;
         transform.localScale = Vector3.one * diameter;
     }
 
@@ -58,7 +71,7 @@ public class CelestialBody : MonoBehaviour
     {
         gameObject.name = name;
     }
-    
+
     public void ApplyColor(float maxDensity)
     {
         if (planetRenderer == null)

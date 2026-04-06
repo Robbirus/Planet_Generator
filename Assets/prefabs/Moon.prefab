@@ -156,4 +156,5 @@ MonoBehaviour:
   mass: 1
   density: 1
   planetRenderer: {fileID: 1214707500293407379}
+  visualScale: 20
   rotationSpeed: 10

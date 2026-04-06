@@ -174,11 +174,12 @@ public class SolarSystemGenerator : MonoBehaviour
         for (int i = 0; i < count; i++)
         {
             // Set physical properties first to compute radius for spacing
-            float mass          = Range(minPlanetMass, maxPlanetMass, planetaryRNG) * 10000;
-            float density       = Range(minPlanetDensity, maxPlanetDensity, planetaryRNG);
-            float radius        = CelestialBody.ComputeRadius(mass, density);
-            float footprint     = radius + maxMoonDistance; // worst case moon orbit
-            float rotationSpeed = Range(minRotationSpeed, maxRotationSpeed, planetaryRNG); 
+            float mass              = Range(minPlanetMass, maxPlanetMass, planetaryRNG);
+            float density           = Range(minPlanetDensity, maxPlanetDensity, planetaryRNG);
+            float physicalRadius    = CelestialBody.ComputeRadius(mass, density);
+            float visualRadius      = physicalRadius * CelestialBody.DEFAULT_VISUAL_SCALE;
+            float footprint         = visualRadius + maxMoonDistance; // worst case moon orbit
+            float rotationSpeed     = Range(minRotationSpeed, maxRotationSpeed, planetaryRNG); 
 
             float distance = FindSafePlanetDistance(footprint);
             if (distance < 0)
@@ -237,7 +238,7 @@ public class SolarSystemGenerator : MonoBehaviour
     private void GenerateMoons(GameObject planet)
     {
         // Store the orbital radius of each moon already placed around this planet
-        List<float> usedMoonOrbits = new();
+        List<(float orbit, float radius)> usedMoonOrbits = new();
 
         int moonCount = stellarRNG.Next(minMoons, maxMoons);
         CelestialBody planetBody = planet.GetComponent<CelestialBody>();
@@ -246,17 +247,18 @@ public class SolarSystemGenerator : MonoBehaviour
             Debug.LogError($"Planet {planet.name} does not have a CelestialBody component.");
             return;
         }
-        float planetRadius = planetBody.GetRadius();
+        float planetVisualRadius = planetBody.GetVisualRadius();
 
         for (int i = 0; i < moonCount; i++)
         {
-            float mass      = Range(minMoonMass, maxMoonMass, lunarRNG) * 10000;
-            float density   = Range(minMoonDensity, maxMoonDensity, lunarRNG);
-            float radius    = CelestialBody.ComputeRadius(mass, density);
-            float rotationSpeed = Range(minMoonRotationSpeed, maxMoonRotationSpeed, lunarRNG);
+            float mass              = Range(minMoonMass, maxMoonMass, lunarRNG);
+            float density           = Range(minMoonDensity, maxMoonDensity, lunarRNG);
+            float physicalRadius    = CelestialBody.ComputeRadius(mass, density);
+            float visualRadius      = physicalRadius * CelestialBody.DEFAULT_VISUAL_SCALE;
+            float rotationSpeed     = Range(minMoonRotationSpeed, maxMoonRotationSpeed, lunarRNG);
 
             // Minimum gap between two orbits : sum of the radii + margin
-            float distance = FindSafeMoonOrbit(planetRadius, radius, usedMoonOrbits);
+            float distance = FindSafeMoonOrbit(planetVisualRadius, visualRadius, usedMoonOrbits);
             if(distance < 0f)
             {
                 Debug.LogWarning($"Cannot place the moon_{i} around {planet.name}.");
@@ -297,7 +299,7 @@ public class SolarSystemGenerator : MonoBehaviour
             orbit.SetOrbitSpeed(orbitSpeed);
             orbit.SetOrbitInclination(inclination);
 
-            usedMoonOrbits.Add(distance);
+            usedMoonOrbits.Add((distance, visualRadius));
         }
     }
 
@@ -339,22 +341,22 @@ public class SolarSystemGenerator : MonoBehaviour
     /// <summary>
     /// Finds a valid moon orbit radius that does not overlap with existing orbits.
     /// </summary>
-    /// <param name="radius">The radius of the moon to consider when determining orbit spacing.</param>
+    /// <param name="newMoonRadius">The radius of the moon to consider when determining orbit spacing.</param>
     /// <param name="usedOrbits">A list of existing orbit radii to avoid overlapping.</param>
     /// <param name="maxAttempts">The maximum number of attempts to find a valid orbit radius. Defaults to 100.</param>
     /// <returns>A valid orbit radius if found; otherwise, -1.</returns>
-    private float FindSafeMoonOrbit(float planetRadius, float radius, List<float> usedOrbits, int maxAttempts = 100)
+    private float FindSafeMoonOrbit(float planetRadius, float newMoonRadius, List<(float orbit, float visualRadius)> usedOrbits, int maxAttempts = 100)
     {
         for(int attempts = 0; attempts < maxAttempts; attempts++)
         {
             float candidate = planetRadius + Range(minMoonDistance, maxMoonDistance, lunarRNG);
             bool valid = true;
 
-            foreach(float existingOrbit in usedOrbits)
+            foreach(var (existingOrbit, existingRadius) in usedOrbits)
             {
                 // Both orbits must not cross if the difference of radius
                 // is greater than the body size + margin
-                float requiredGap = radius + moonOrbitGap;
+                float requiredGap = newMoonRadius + existingRadius + moonOrbitGap;
 
                 if(Mathf.Abs(candidate - existingOrbit) < requiredGap)
                 {
