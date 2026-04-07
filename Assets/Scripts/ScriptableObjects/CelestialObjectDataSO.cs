@@ -12,6 +12,7 @@ public class CelestialObjectDataSO : ScriptableObject
     public Vector2 rotationSpeedRange;
     public Vector2 massRange;
     public Vector2 densityRange;
+    public float visualScale;
 
 
     /// <summary>
