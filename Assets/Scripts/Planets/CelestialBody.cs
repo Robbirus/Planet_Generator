@@ -8,9 +8,7 @@ public class CelestialBody : MonoBehaviour
 
     [Header("visual")]
     [SerializeField] private Renderer planetRenderer;
-    [Tooltip("Visual multiplicator apply only on the scale (do not affect orbital spacing")]
-    [SerializeField] private float visualScale = 5f;
-    public const float DEFAULT_VISUAL_SCALE = 5f;
+    public const float VISUAL_SCALE = 100f;
 
     [Header("Rotation")]
     [SerializeField] private float rotationSpeed = 10f;
@@ -21,24 +19,16 @@ public class CelestialBody : MonoBehaviour
     /// </summary>
     /// <param name="mass">The mass of the sphere. Must be a non-negative value.</param>
     /// <param name="density">The density of the sphere. Must be a positive value.</param>
+    /// <param name="scale"></param>
     /// <returns>The radius of the sphere, calculated based on the provided mass and density.</returns>
-    public static float ComputeRadius(float mass, float density)
+    public static float ComputeRadius(float mass, float density, float scale)
     {
-        return Mathf.Pow((3f * mass) / (4f * Mathf.PI * density), 1f / 3f);
+        return Mathf.Pow((3f * mass) / (4f * Mathf.PI * density), 1f / 3f) * VISUAL_SCALE * scale;
     }
 
-    public float GetRadius()
+    public float GetRadius(float scale)
     {
-        return ComputeRadius(mass, density);
-    }
-
-    /// <summary>
-    /// Visual radius (show on screen)
-    /// </summary>
-    /// <returns></returns>
-    public float GetVisualRadius()
-    {
-        return GetRadius() * visualScale;
+        return ComputeRadius(mass, density, scale);
     }
 
     public void SetMass(float m)
@@ -61,9 +51,9 @@ public class CelestialBody : MonoBehaviour
         this.rotationSpeed = rotationSpeed;
     }
 
-    public void ApplyScale()
+    public void ApplyScale(float scale)
     {
-        float diameter = GetVisualRadius() * 2f;
+        float diameter = GetRadius(scale) * 2f;
         transform.localScale = Vector3.one * diameter;
     }
 

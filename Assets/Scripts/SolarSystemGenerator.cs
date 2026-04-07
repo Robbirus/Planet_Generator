@@ -35,6 +35,7 @@ public class SolarSystemGenerator : MonoBehaviour
     private float maxPlanetMass = 50f;
     private float minPlanetDensity = 0.5f;
     private float maxPlanetDensity = 2f;
+    private float planetScale = 1;
     [SerializeField] private Color planetOrbitColor = Color.blue;
     [Space(5)]
 
@@ -60,6 +61,8 @@ public class SolarSystemGenerator : MonoBehaviour
     private float maxMoonMass = 1f;
     private float minMoonDensity = 0.5f;
     private float maxMoonDensity = 2f;
+
+    private float moonScale = 1;
 
     [SerializeField] private Color moonOrbitColor = Color.cyan;
     [Space(10)]
@@ -89,6 +92,7 @@ public class SolarSystemGenerator : MonoBehaviour
         GenerateSeeds(seed);
         SetPlanetData(planetData);
         SetMoonData(moonData);
+        GenerateStars();
         GeneratePlanets();
     }
 
@@ -126,6 +130,8 @@ public class SolarSystemGenerator : MonoBehaviour
 
             minPlanetDensity = planetData.densityRange.x;
             maxPlanetDensity = planetData.densityRange.y;
+
+            planetScale = planetData.visualScale;
         }
         else
         {
@@ -154,11 +160,21 @@ public class SolarSystemGenerator : MonoBehaviour
 
             minMoonDensity = moonData.densityRange.x;
             maxMoonDensity = moonData.densityRange.y;
+
+            moonScale = moonData.visualScale;
         }
         else
         {
             Debug.LogWarning("Moon data is not set. Using default values.");
         }
+    }
+
+    /// <summary>
+    /// Generate stars
+    /// </summary>
+    private void GenerateStars()
+    {
+        distantStars.GenerateStars();
     }
 
     /// <summary>
@@ -176,8 +192,7 @@ public class SolarSystemGenerator : MonoBehaviour
             // Set physical properties first to compute radius for spacing
             float mass              = Range(minPlanetMass, maxPlanetMass, planetaryRNG);
             float density           = Range(minPlanetDensity, maxPlanetDensity, planetaryRNG);
-            float physicalRadius    = CelestialBody.ComputeRadius(mass, density);
-            float visualRadius      = physicalRadius * CelestialBody.DEFAULT_VISUAL_SCALE;
+            float visualRadius      = CelestialBody.ComputeRadius(mass, density, planetScale);
             float footprint         = visualRadius + maxMoonDistance; // worst case moon orbit
             float rotationSpeed     = Range(minRotationSpeed, maxRotationSpeed, planetaryRNG); 
 
@@ -188,16 +203,26 @@ public class SolarSystemGenerator : MonoBehaviour
                 continue;
             }
 
+            // Random angle around the sun
             float angle     = Range(0f, Mathf.PI * 2f, planetaryRNG);
+            // Inclination with respect to the ecliptic plane, to avoid all bodies being aligned
             float incline   = Range(-3f, 3f, planetaryRNG);
 
+            // Position based on the distance from the sun
             Vector3 pos = sun.position + new Vector3(
                 Mathf.Cos(angle) * distance,
                 incline,
                 Mathf.Sin(angle) * distance
             );
 
-            GameObject planet = Instantiate(planetPrefab, pos, Quaternion.identity);
+            // Slight incline on itself
+            Vector3 rot = new Vector3(
+                Range(-10f, 10f, planetaryRNG),
+                0f,
+                Range(-10, 10, planetaryRNG)
+            );
+
+            GameObject planet = Instantiate(planetPrefab, pos, Quaternion.Euler(rot));
             CelestialBody body = planet.GetComponent<CelestialBody>();
             
             System.Random nameRNG = new(seed + i);
@@ -208,9 +233,10 @@ public class SolarSystemGenerator : MonoBehaviour
             body.SetDensity(density);
             body.SetRotationSpeed(rotationSpeed);
             body.SetName(name);
-            body.ApplyScale();
+            body.ApplyScale(planetScale);
             body.ApplyColor(maxPlanetDensity);
 
+            // Orbital properties
             float orbitSpeed    = (float)(planetaryRNG.NextDouble() * (maxOrbitalSpeed - minOrbitalSpeed) + minOrbitalSpeed) / distance; 
             float inclination   = (float)(planetaryRNG.NextDouble() * 20f - 10f);
 
@@ -247,14 +273,13 @@ public class SolarSystemGenerator : MonoBehaviour
             Debug.LogError($"Planet {planet.name} does not have a CelestialBody component.");
             return;
         }
-        float planetVisualRadius = planetBody.GetVisualRadius();
+        float planetVisualRadius = planetBody.GetRadius(planetScale);
 
         for (int i = 0; i < moonCount; i++)
         {
             float mass              = Range(minMoonMass, maxMoonMass, lunarRNG);
             float density           = Range(minMoonDensity, maxMoonDensity, lunarRNG);
-            float physicalRadius    = CelestialBody.ComputeRadius(mass, density);
-            float visualRadius      = physicalRadius * CelestialBody.DEFAULT_VISUAL_SCALE;
+            float visualRadius      = CelestialBody.ComputeRadius(mass, density, moonScale);
             float rotationSpeed     = Range(minMoonRotationSpeed, maxMoonRotationSpeed, lunarRNG);
 
             // Minimum gap between two orbits : sum of the radii + margin
@@ -285,7 +310,7 @@ public class SolarSystemGenerator : MonoBehaviour
             body.SetDensity(density);
             body.SetRotationSpeed(rotationSpeed);
             body.SetName(name);
-            body.ApplyScale();
+            body.ApplyScale(moonScale);
             body.ApplyColor(maxMoonDensity);
 
             float orbitSpeed = Range(minMoonOrbitalSpeed, maxMoonOrbitalSpeed, lunarRNG) / distance;
