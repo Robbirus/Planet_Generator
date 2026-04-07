@@ -15,7 +15,6 @@ public class PlanetLockSystem : MonoBehaviour
 
     [Header("Orbital tracking")]
     [SerializeField] private float surfaceMargin = 50f;
-    [SerializeField] private float followSmoothSpeed = 6f;
     [SerializeField] private float lookSmoothSpeed = 4f;
 
     [Header("Input")]
@@ -58,7 +57,7 @@ public class PlanetLockSystem : MonoBehaviour
     private void OnEnable()
     {
         if (!hasLockAction) return;
-        if(!movementActionReference) return;
+        if (!hasMovementAction) return;
 
         lockActionReference.action.Enable();
         movementActionReference.action.Enable();
@@ -253,11 +252,6 @@ public class PlanetLockSystem : MonoBehaviour
     public Transform GetSelectablePlanet()
     {
         return selectablePlanet;
-    }
-
-    public LockState GetLockState()
-    {
-        return state;
     }
 
     public Vector3 GetOrbitDir()
