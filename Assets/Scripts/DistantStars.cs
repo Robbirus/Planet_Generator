@@ -58,7 +58,7 @@ public class DistantStars : MonoBehaviour
 
         Mesh mesh = BuildStarMesh();
 
-        // Bounds très larges : le mesh ne sera JAMAIS culled par le moteur
+        // Very wide bounds: the mesh will NEVER be culled by the engine
         mesh.bounds = new Bounds(Vector3.zero, Vector3.one * 100000f);
 
         meshFilter.sharedMesh = mesh;
