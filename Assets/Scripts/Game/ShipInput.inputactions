@@ -80,7 +80,7 @@
                 {
                     "name": "down",
                     "id": "87a45008-1c8e-4ac3-8bb0-0060ccd5e817",
-                    "path": "<Keyboard>/ctrl",
+                    "path": "<Keyboard>/c",
                     "interactions": "",
                     "processors": "",
                     "groups": "",
