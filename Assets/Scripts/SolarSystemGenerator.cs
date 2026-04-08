@@ -80,6 +80,9 @@ public class SolarSystemGenerator : MonoBehaviour
     // For each planet: orbital distance + total influence (body radius + moonDistanceMax)
     private readonly List<(float distance, float footprint)> usedPlanetOrbits = new();
 
+    // Names already used - each name is unique
+    private readonly HashSet<string> usedNames = new();
+
     private void Start()
     {
         if(sun == null)
@@ -226,8 +229,9 @@ public class SolarSystemGenerator : MonoBehaviour
             GameObject planet = Instantiate(planetPrefab, pos, Quaternion.Euler(rot));
             CelestialBody body = planet.GetComponent<CelestialBody>();
             
-            System.Random nameRNG = new(seed + i);
-            string name = planetData != null ? planetData.GetRandomName(nameRNG) : $"Planet_{i}";
+            string name = planetData != null 
+                ? GetUniqueName(planetData, planetaryRNG, $"Planet_{i}")
+                : $"Planet_{i}";
 
             // Body
             body.SetMass(mass);
@@ -267,8 +271,9 @@ public class SolarSystemGenerator : MonoBehaviour
         // Store the orbital radius of each moon already placed around this planet
         List<(float orbit, float radius)> usedMoonOrbits = new();
 
-        int moonCount = stellarRNG.Next(minMoons, maxMoons);
-        Debug.Log("nb of moons : " + moonCount);
+        int moonCount = lunarRNG.Next(minMoons, maxMoons + 1);
+        Debug.Log("nb of moons : " + moonCount + " for : " + planet.name);
+
         CelestialBody planetBody = planet.GetComponent<CelestialBody>();
         if(planetBody == null)
         {
@@ -304,8 +309,9 @@ public class SolarSystemGenerator : MonoBehaviour
             GameObject moon = Instantiate(moonPrefab, pos, Quaternion.identity);
             CelestialBody body = moon.GetComponent<CelestialBody>();
 
-            System.Random nameRNG = new(seed + i * 2);
-            string name = planetData != null ? moonData.GetRandomName(nameRNG) : $"Moon_{i}";
+            string name = moonData != null
+                ? GetUniqueName(moonData, lunarRNG, $"Moon_{i}")
+                : $"Moon_{i}";
 
             // Body
             body.SetMass(mass);
@@ -399,6 +405,53 @@ public class SolarSystemGenerator : MonoBehaviour
         }
 
         return -1f;
+    }
+
+    /// <summary>
+    /// Returns a unique name from the available list, or generates one with a numeric suffix if needed.
+    /// Falls back to a default value if no valid data is provided.
+    /// </summary>
+    /// <param name="data">Source of possible names.</param>
+    /// <param name="rng">Random generator used for selection.</param>
+    /// <param name="fallback">Default name if no data is available.</param>
+    /// <returns>A unique name.</returns>
+    private string GetUniqueName(CelestialObjectDataSO data, System.Random rng, string fallback)
+    {
+        if(data == null || data.names == null || data.names.Count == 0)
+        {
+            return fallback;
+        }
+
+        // Collects all the available names (unused names)
+        List<string> available = new List<string>();
+        foreach(string n in data.names)
+        {
+            if (!usedNames.Contains(n))
+            {
+                available.Add(n);
+            }
+        }
+
+        // If all names are used, we allow double with a numerical added to it
+        if(available.Count == 0)
+        {
+            string baseName = data.GetRandomName(rng);
+            int suffix = 2;
+            string unique = $"{baseName} {suffix}";
+            while (usedNames.Contains(unique))
+            {
+                suffix++;
+                unique = $"{baseName} {suffix}";
+            }
+
+            usedNames.Add(unique);
+            return unique;
+        }
+
+        int index = rng.Next(0, available.Count);
+        string chosen = available[index];
+        usedNames.Add(chosen);
+        return chosen;
     }
 
     /// <summary>
