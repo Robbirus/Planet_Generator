@@ -186,6 +186,7 @@ public class SolarSystemGenerator : MonoBehaviour
     private void GeneratePlanets()
     {
         int count = stellarRNG.Next(minPlanets, maxPlanets);
+        Debug.Log("nb of planet : " + count);
 
         for (int i = 0; i < count; i++)
         {
@@ -267,6 +268,7 @@ public class SolarSystemGenerator : MonoBehaviour
         List<(float orbit, float radius)> usedMoonOrbits = new();
 
         int moonCount = stellarRNG.Next(minMoons, maxMoons);
+        Debug.Log("nb of moons : " + moonCount);
         CelestialBody planetBody = planet.GetComponent<CelestialBody>();
         if(planetBody == null)
         {
@@ -302,7 +304,7 @@ public class SolarSystemGenerator : MonoBehaviour
             GameObject moon = Instantiate(moonPrefab, pos, Quaternion.identity);
             CelestialBody body = moon.GetComponent<CelestialBody>();
 
-            System.Random nameRNG = new(seed + i);
+            System.Random nameRNG = new(seed + i * 2);
             string name = planetData != null ? moonData.GetRandomName(nameRNG) : $"Moon_{i}";
 
             // Body
@@ -338,7 +340,7 @@ public class SolarSystemGenerator : MonoBehaviour
     {
         for(int attempt = 0; attempt < maxAttempts; attempt++)
         {
-            float candidate = Range(minDistance, maxDistance, planetaryRNG);
+            float candidate = Range(minDistance, maxDistance, stellarRNG);
             bool valid = true;
 
             foreach(var (existingDist, existingFootprint) in usedPlanetOrbits)
