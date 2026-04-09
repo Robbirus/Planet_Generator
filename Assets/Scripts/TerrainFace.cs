@@ -2,15 +2,18 @@ using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
 
+// Constructs 6 terrain faces, each with its own mesh
+// Here a planet = a modified cube
 public class TerrainFace
 {
 
     Mesh mesh;
-    int resolution;
-    Vector3 localUp;
-    Vector3 axisA;
-    Vector3 axisB;
+    int resolution; // determines how detailed a terrain face is
+    Vector3 localUp; // determines which way a terrain face is facing
+    Vector3 axisA; // will be perpendicular to localUp and axisB
+    Vector3 axisB; // will be perpendicular to localUp and axisA
 
+    // Terrain face constructor
     public TerrainFace(Mesh mesh, int resolution, Vector3 localUp)
     {
         this.mesh = mesh;
@@ -21,10 +24,11 @@ public class TerrainFace
         axisB = Vector3.Cross(localUp, axisA);
     }
 
+    // Constructs the mesh for a terrain face
     public void ConstructMesh()
     {
-        Vector3[] vertices = new Vector3[resolution * resolution];
-        int[] triangles = new int[(resolution - 1) * (resolution - 1) * 6];
+        Vector3[] vertices = new Vector3[resolution * resolution]; // resolution = total number of vertices along a single edge of a face
+        int[] triangles = new int[(resolution - 1) * (resolution - 1) * 6]; // calculate the number of triangles in our mesh
         int triIndex = 0;
 
         for (int y = 0; y < resolution; y++)
