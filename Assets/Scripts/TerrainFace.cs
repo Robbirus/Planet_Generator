@@ -29,18 +29,19 @@ public class TerrainFace
     {
         Vector3[] vertices = new Vector3[resolution * resolution]; // resolution = total number of vertices along a single edge of a face
         int[] triangles = new int[(resolution - 1) * (resolution - 1) * 6]; // calculate the number of triangles in our mesh
-        int triIndex = 0;
+        int triIndex = 0; // index for triangles array
 
         for (int y = 0; y < resolution; y++)
         {
             for (int x = 0; x < resolution; x++)
             {
-                int i = x + y * resolution;
-                Vector2 percent = new Vector2(x, y) / (resolution - 1);
-                Vector3 pointOnUnitCube = localUp + (percent.x - .5f) * 2 * axisA + (percent.y - .5f) * 2 * axisB;
-                Vector3 pointOnUnitSphere = pointOnUnitCube.normalized;
+                int i = x + y * resolution; // index for vertices array
+                Vector2 percent = new Vector2(x, y) / (resolution - 1); // Defines how close we are to completing the mesh
+                Vector3 pointOnUnitCube = localUp + (percent.x - .5f) * 2 * axisA + (percent.y - .5f) * 2 * axisB; // Calculate how far along each axis (A, B, localUp) we are
+                Vector3 pointOnUnitSphere = pointOnUnitCube.normalized; //Transform cube into sphere
                 vertices[i] = pointOnUnitSphere;
 
+                // Calculate the vertices for each triangle
                 if (x != resolution - 1 && y != resolution - 1)
                 {
                     triangles[triIndex] = i;
@@ -54,9 +55,9 @@ public class TerrainFace
                 }
             }
         }
-        mesh.Clear();
+        mesh.Clear(); // clear mesh data before reassigning the vertices and triangles in case the resolution changes
         mesh.vertices = vertices;
         mesh.triangles = triangles;
-        mesh.RecalculateNormals();
+        mesh.RecalculateNormals(); // Update the normals to reflect vertices changes
     }
 }
