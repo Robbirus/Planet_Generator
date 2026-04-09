@@ -17,17 +17,18 @@ public class MusicManager : MonoBehaviour
     [SerializeField] private int currentMusicIndex;
     [SerializeField] private int previousMusicIndex;
 
-    private void Start()
-    {
-        currentMusicIndex = UnityEngine.Random.Range(0, musics.musicClips.Count);
-
-        currentMusic = musics.GetMusicFrom(currentMusicIndex);
-        previousMusicIndex = currentMusicIndex;
-
-        PlayMusic(currentMusic);
-
-        // Start the coroutine to randomly play music
-        StartCoroutine(RandomlyPlaying());
+    private void Awake() 
+    { 
+        if (instance != null && instance != this)
+        {
+            Destroy(this.gameObject);
+            return;
+        }
+        else
+        {
+            instance = this;
+        }
+        DontDestroyOnLoad(gameObject);
     }
 
     private void PlayMusic(AudioClip clip)
@@ -37,6 +38,33 @@ public class MusicManager : MonoBehaviour
         musicSource.volume = 0.7f;
         musicSource.loop = false;
         musicSource.Play();
+    }
+
+    public void PlayMenuMusic()
+    {
+        currentMusicIndex = 0;
+        
+        currentMusic = musics.GetMusicFrom(currentMusicIndex);
+        previousMusicIndex = currentMusicIndex;
+
+        musicSource.Stop();
+        musicSource.clip = currentMusic;
+        musicSource.volume = 1f;
+        musicSource.loop = true;
+        musicSource.Play();
+    }
+
+    public void PlayRandom()
+    {
+        currentMusicIndex = UnityEngine.Random.Range(1, musics.musicClips.Count);
+
+        currentMusic = musics.GetMusicFrom(currentMusicIndex);
+        previousMusicIndex = currentMusicIndex;
+
+        PlayMusic(currentMusic);
+
+        // Start the coroutine to randomly play music
+        StartCoroutine(RandomlyPlaying());
     }
 
     IEnumerator RandomlyPlaying()

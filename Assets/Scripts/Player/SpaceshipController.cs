@@ -88,9 +88,6 @@ public class SpaceshipController : MonoBehaviour
         screenCenter.y = Screen.height / 2f;
 
         virtualMousePos = screenCenter;
-
-        Cursor.lockState = CursorLockMode.Confined;
-        Cursor.visible = false;
     }
 
     private void OnEnable()
@@ -105,9 +102,6 @@ public class SpaceshipController : MonoBehaviour
         movementActionReference.action.Disable();
         rollActionReference.action.Disable();
         boostActionReference.action.Disable();
-
-        Cursor.lockState = CursorLockMode.None;
-        Cursor.visible = true;
     }
 
     private void Update()
