@@ -242,8 +242,8 @@ public class SolarSystemGenerator : MonoBehaviour
             body.ApplyColor(maxPlanetDensity);
 
             // Orbital properties
-            float orbitSpeed    = (float)(planetaryRNG.NextDouble() * (maxOrbitalSpeed - minOrbitalSpeed) + minOrbitalSpeed) / distance; 
-            float inclination   = (float)(planetaryRNG.NextDouble() * 20f - 10f);
+            float orbitSpeed    = Range(minOrbitalSpeed, maxOrbitalSpeed, planetaryRNG) / distance;
+            float inclination   = Range(-10f, 10f, planetaryRNG);
 
             // Orbit
             OrbitBody orbit = planet.AddComponent<OrbitBody>();
