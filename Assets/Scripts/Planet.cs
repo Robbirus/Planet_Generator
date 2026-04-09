@@ -8,6 +8,9 @@ public class Planet : MonoBehaviour
     [Range(2, 256)]
     public int resolution = 10;
 
+    public ShapeSettings shapeSettings; // link shape editor
+    public ColourSettings colourSettings; // link color editor
+
     [SerializeField, HideInInspector]
     MeshFilter[] meshFilters; // a mesh filter holds a reference to a mesh
     TerrainFace[] terrainFaces;
@@ -45,12 +48,35 @@ public class Planet : MonoBehaviour
         }
     }
 
+    // Update shape (mesh)
+    public void onShapeSettingsUpdated()
+    {
+        Initialize();
+        GenerateMesh();
+    }
+
+    // Update colors
+    public void OnColourSettingsUpdated()
+    {
+        Initialize();
+        GenerateColours();
+    }
+
     // Generate mesh for each terrain face
     void GenerateMesh()
     {
         foreach (TerrainFace face in terrainFaces)
         {
             face.ConstructMesh();
+        }
+    }
+
+    // Generate color from colourSettings editor
+    void GenerateColours()
+    {
+        foreach (MeshFilter m in meshFilters)
+        {
+            m.GetComponent<MeshRenderer>().sharedMaterial.color = colourSettings.planetColour;
         }
     }
 }
