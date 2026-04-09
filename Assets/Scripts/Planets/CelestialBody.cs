@@ -1,10 +1,17 @@
-﻿using UnityEngine;
+﻿using System;
+using System.Collections.Generic;
+using System.Linq;
+using UnityEngine;
 
 public class CelestialBody : MonoBehaviour
 {
     [Header("Physical properties")]
     [SerializeField] private float mass = 1f;
     [SerializeField] private float density = 1f;
+    [SerializeField] private ResourceSO resourceSO;
+
+    [Header("Resource Distribution")]
+    [SerializeField, HideInInspector] private List<ResourceDistribution> resourceDistribution = new();
 
     [Header("visual")]
     [SerializeField] private Renderer planetRenderer;
@@ -12,6 +19,103 @@ public class CelestialBody : MonoBehaviour
 
     [Header("Rotation")]
     [SerializeField] private float rotationSpeed = 10f;
+
+    private readonly HashSet<ResourceType> usedResources = new HashSet<ResourceType>();
+
+    /// <summary>
+    /// Returns the full resources of the planet
+    /// </summary>
+    /// <returns></returns>
+    public IReadOnlyCollection<ResourceDistribution> GetResourceDistributions()
+    { 
+        return resourceDistribution; 
+    }
+
+    /// <summary>
+    /// Returns the percentage (0–100) of a given resource on this planet.
+    /// Returns 0 if the resource is absent.
+    /// </summary>
+    public float GetResourcePercentage(ResourceType type)
+    {
+        foreach (var entry in resourceDistribution)
+            if (entry.resourceType == type)
+                return entry.percentage;
+        return 0f;
+    }
+
+    /// <summary>
+    /// Generates a random resource distribution from the pool defined in the assigned ResourceSO.
+    /// Uses a seed for reproducibility (same seed = same planet resources every time).
+    /// Does nothing if no ResourceSO is assigned.
+    /// </summary>
+    /// <param name="seed">Seed used for the random generation.</param>
+    public void RandomizeResource(System.Random rng)
+    {
+        if (resourceSO == null || resourceSO.availableResources.Count == 0)
+            return;
+
+        // number of resources the planet will have
+        int index = rng.Next(1, resourceSO.availableResources.Count);
+
+        // Pick 'resourceCount' random resources from the pool (without duplicates)
+        List<ResourceType> chosenResources = new List<ResourceType>();
+        foreach (ResourceType type in resourceSO.availableResources)
+        {
+            if (!usedResources.Contains(type))
+            {
+                chosenResources.Add(type);
+                usedResources.Add(type);
+            }
+        }
+
+        // Give each resource a random weight, then convert to percentages summing to 100
+        List<int> percentages = BuildPercentages(chosenResources, rng);
+
+        // Store the final distribution
+        resourceDistribution = chosenResources
+            .Select((type, i) => new ResourceDistribution(type, percentages[i]))
+            .ToList();
+
+        LogDistribution();
+    }
+
+    /// <summary>
+    /// Assigns random float weights to each resource and converts them
+    /// to integer percentages that sum to exactly 100.
+    /// </summary>
+    private List<int> BuildPercentages(List<ResourceType> chosen, System.Random rng)
+    {
+        // Random weight between 1 and 10 per resource
+        List<float> weights = new List<float>();
+        for(int i = 0; i < chosen.Count; i++)
+        {
+            weights.Add((float) rng.NextDouble() * 9f + 1f);
+        }
+        float total = weights.Sum();
+
+        // Normalise to integers
+        List<int> percentages = new List<int>();
+        for(int i = 0; i < chosen.Count; i++)
+        {
+            percentages.Add(Mathf.RoundToInt(weights[i] / total * 100f));
+        }
+
+        // Absorb rounding drift into the last entry so the total stays at exactly 100
+        int drift = 100 - percentages.Sum();
+        // 1 from the end
+        percentages[^1] += drift;
+
+        return percentages;
+    }
+
+    /// <summary>
+    /// Logs the final distribution to the Unity console.
+    /// </summary>
+    private void LogDistribution()
+    {
+        foreach (var entry in resourceDistribution)
+            Debug.Log($"[{gameObject.name}] {entry.resourceType} → {entry.percentage}%");
+    }
 
     /// <summary>
     /// Calculates the radius of a sphere given its mass and density.

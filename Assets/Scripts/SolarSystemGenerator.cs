@@ -238,6 +238,7 @@ public class SolarSystemGenerator : MonoBehaviour
             body.SetDensity(density);
             body.SetRotationSpeed(rotationSpeed);
             body.SetName(name);
+            body.RandomizeResource(planetaryRNG);
             body.ApplyScale(planetScale);
             body.ApplyColor(maxPlanetDensity);
 

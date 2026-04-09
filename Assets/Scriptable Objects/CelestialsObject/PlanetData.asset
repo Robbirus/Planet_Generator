@@ -44,4 +44,4 @@ MonoBehaviour:
   rotationSpeedRange: {x: 5, y: 50}
   massRange: {x: 1000, y: 5000}
   densityRange: {x: 0.5, y: 2}
-  visualScale: 0.5
+  visualScale: 1

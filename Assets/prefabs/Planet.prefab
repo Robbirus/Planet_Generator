@@ -155,6 +155,7 @@ MonoBehaviour:
   m_EditorClassIdentifier: Assembly-CSharp::CelestialBody
   mass: 1
   density: 1
+  resourceSO: {fileID: 11400000, guid: fdf986942ac2e7e4e913d620db729dfd, type: 2}
+  resourceDistribution: []
   planetRenderer: {fileID: 1214707500293407379}
-  visualScale: 50
   rotationSpeed: 10
