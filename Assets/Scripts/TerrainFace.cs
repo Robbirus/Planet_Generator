@@ -6,7 +6,7 @@ using UnityEngine;
 // Here a planet = a modified cube
 public class TerrainFace
 {
-
+    ShapeGenerator shapeGenerator; // for modifying planet shape/size
     Mesh mesh;
     int resolution; // determines how detailed a terrain face is
     Vector3 localUp; // determines which way a terrain face is facing
@@ -14,8 +14,9 @@ public class TerrainFace
     Vector3 axisB; // will be perpendicular to localUp and axisA
 
     // Terrain face constructor
-    public TerrainFace(Mesh mesh, int resolution, Vector3 localUp)
+    public TerrainFace(ShapeGenerator shapeGenerator, Mesh mesh, int resolution, Vector3 localUp)
     {
+        this.shapeGenerator = shapeGenerator;
         this.mesh = mesh;
         this.resolution = resolution;
         this.localUp = localUp;
@@ -39,7 +40,7 @@ public class TerrainFace
                 Vector2 percent = new Vector2(x, y) / (resolution - 1); // Defines how close we are to completing the mesh
                 Vector3 pointOnUnitCube = localUp + (percent.x - .5f) * 2 * axisA + (percent.y - .5f) * 2 * axisB; // Calculate how far along each axis (A, B, localUp) we are
                 Vector3 pointOnUnitSphere = pointOnUnitCube.normalized; //Transform cube into sphere
-                vertices[i] = pointOnUnitSphere;
+                vertices[i] = shapeGenerator.CalculatePointOnPlanet(pointOnUnitSphere); // Calculate vertices using shape generator
 
                 // Calculate the vertices for each triangle
                 if (x != resolution - 1 && y != resolution - 1)
