@@ -38,9 +38,6 @@ public class ShipCamera : MonoBehaviour
     private float currentFOV;
     private float currentPullback;
 
-    private Volume      postVolume;
-    private MotionBlur  motionBlur;
-
     private void Awake()
     {
         // Initialize the target on free mode on default
@@ -54,11 +51,6 @@ public class ShipCamera : MonoBehaviour
         {
             cam.fieldOfView = baseFOV;
         }
-
-        // Find the global volume from the scene
-        postVolume = FindFirstObjectByType<Volume>();
-        postVolume?.profile.TryGet(out motionBlur);
-
     }
 
     private void LateUpdate()
@@ -92,17 +84,6 @@ public class ShipCamera : MonoBehaviour
         // in addition to the current mode position, without breaking the transition
         Vector3 basePos = transitioning ? transform.localPosition : targetLocalPosition;
         transform.localPosition = basePos + new Vector3(0f, 0f, -currentPullback);
-
-        // Motion blur : 0 in calm, 0.35 at full speed, peak during the boost
-        if(motionBlur != null)
-        {
-            float targetBlur = speedRatio * 0.35f + (boosting ? 0.15f : 0f);
-            motionBlur.intensity.value = Mathf.Lerp(
-                motionBlur.intensity.value,
-                targetBlur,
-                speedEffectSmoothing * Time.deltaTime
-            );
-        }
     }
 
     private void HandleModeTransition()

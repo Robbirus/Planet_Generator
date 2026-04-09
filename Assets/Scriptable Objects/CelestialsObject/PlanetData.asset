@@ -17,7 +17,7 @@ MonoBehaviour:
   - Marfark
   - Hydrobius
   - Saint Pierre Des Corps
-  - Dignes les Bains
+  - Dignes-les-Bains
   - Mintoria
   - Draupnir
   - Karlia
@@ -37,7 +37,7 @@ MonoBehaviour:
   - Martale
   - Saint Naz
   - Hellmire
-  - Puy en Velay
+  - Puy-en-Velay
   numberRange: {x: 0, y: 10}
   distanceRange: {x: 2000, y: 9000}
   orbitalSpeedRange: {x: 1, y: 100}
