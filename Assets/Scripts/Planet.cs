@@ -9,7 +9,7 @@ public class Planet : MonoBehaviour
     public int resolution = 10;
 
     [SerializeField, HideInInspector]
-    MeshFilter[] meshFilters;
+    MeshFilter[] meshFilters; // a mesh filter holds a reference to a mesh
     TerrainFace[] terrainFaces;
 
     private void OnValidate()
@@ -18,9 +18,10 @@ public class Planet : MonoBehaviour
         GenerateMesh();
     }
 
+    // Initialize mesh filters for each terrain face
     void Initialize()
     {
-        if (meshFilters == null || meshFilters.Length == 0)
+        if (meshFilters == null || meshFilters.Length == 0) // check if the mesh filter needs to be initialized
         {
             meshFilters = new MeshFilter[6];
         }
@@ -35,7 +36,7 @@ public class Planet : MonoBehaviour
                 GameObject meshObj = new GameObject("mesh");
                 meshObj.transform.parent = transform;
 
-                meshObj.AddComponent<MeshRenderer>().sharedMaterial = new Material(Shader.Find("Standard"));
+                meshObj.AddComponent<MeshRenderer>().sharedMaterial = new Material(Shader.Find("Standard")); // Add mesh renderer and assign default material (standard shader)
                 meshFilters[i] = meshObj.AddComponent<MeshFilter>();
                 meshFilters[i].sharedMesh = new Mesh();
             }
@@ -44,6 +45,7 @@ public class Planet : MonoBehaviour
         }
     }
 
+    // Generate mesh for each terrain face
     void GenerateMesh()
     {
         foreach (TerrainFace face in terrainFaces)
