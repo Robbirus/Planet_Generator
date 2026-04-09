@@ -11,19 +11,21 @@ public class Planet : MonoBehaviour
     public ShapeSettings shapeSettings; // link shape editor
     public ColourSettings colourSettings; // link color editor
 
+    ShapeGenerator shapeGenerator; // use shapeGenerator object to update shape
+
     [SerializeField, HideInInspector]
     MeshFilter[] meshFilters; // a mesh filter holds a reference to a mesh
     TerrainFace[] terrainFaces;
 
     private void OnValidate()
     {
-        Initialize();
-        GenerateMesh();
+        GeneratePlanet();
     }
 
     // Initialize mesh filters for each terrain face
     void Initialize()
     {
+        shapeGenerator = new ShapeGenerator(shapeSettings); // Create shape generator from current shape settings
         if (meshFilters == null || meshFilters.Length == 0) // check if the mesh filter needs to be initialized
         {
             meshFilters = new MeshFilter[6];
@@ -44,18 +46,26 @@ public class Planet : MonoBehaviour
                 meshFilters[i].sharedMesh = new Mesh();
             }
 
-            terrainFaces[i] = new TerrainFace(meshFilters[i].sharedMesh, resolution, directions[i]);
+            terrainFaces[i] = new TerrainFace(shapeGenerator, meshFilters[i].sharedMesh, resolution, directions[i]);
         }
     }
 
-    // Update shape (mesh)
+    // Generate a planet including shape and color settings
+    public void GeneratePlanet()
+    {
+        Initialize();
+        GenerateMesh();
+        GenerateColours();
+    }
+
+    // Update shape (mesh) if shape settings have changed
     public void onShapeSettingsUpdated()
     {
         Initialize();
         GenerateMesh();
     }
 
-    // Update colors
+    // Update colors if color settings have changed
     public void OnColourSettingsUpdated()
     {
         Initialize();
