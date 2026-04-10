@@ -1513,7 +1513,7 @@ RectTransform:
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
   m_AnchorMin: {x: 0.5, y: 0.5}
   m_AnchorMax: {x: 0.5, y: 0.5}
-  m_AnchoredPosition: {x: -50, y: 150}
+  m_AnchoredPosition: {x: 0, y: 100}
   m_SizeDelta: {x: 600, y: 60}
   m_Pivot: {x: 0.5, y: 0.5}
 --- !u!114 &890133935
@@ -2618,10 +2618,6 @@ MonoBehaviour:
   m_EditorClassIdentifier: Assembly-CSharp::MenuController
   loadingController: {fileID: 1309176447}
   audioMixer: {fileID: 24100000, guid: d3b1a9f5ceac00344b821c02f8f90da1, type: 2}
-  bgmTextValue: {fileID: 0}
-  defaultBGM: 5
-  sfxTextValue: {fileID: 0}
-  defaultSFX: 5
   confirmationPrompt: {fileID: 1508836206}
   newGameLevel: Game
 --- !u!4 &1461665750
