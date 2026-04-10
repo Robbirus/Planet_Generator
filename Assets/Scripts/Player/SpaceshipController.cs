@@ -1,30 +1,29 @@
+using System;
 using UnityEngine;
 using UnityEngine.InputSystem;
 
 public class SpaceshipController : MonoBehaviour
 {
     [Header("Free Movement")]
-    [SerializeField] private float forwardSpeed = 25f;
-    [SerializeField] private float strafSpeed = 7.5f;
-    [SerializeField] private float hoverSpeed = 5f;
+    private float forwardSpeed = 25f;
+    private float strafSpeed = 7.5f;
+    private float hoverSpeed = 5f;
     [Space(5)]
 
     [Header("Orbital Movement")]
-    [SerializeField] private float rotationSpeed = 25f;
-    [SerializeField] private Vector2 heightRange = new Vector2(50, 100); 
+    private float rotationSpeed = 25f;
+    private Vector2 heightRange = new Vector2(50, 100); 
     [Space(5)]
 
     [Header("Boost")]
-    [SerializeField] private float boostMultiplier = 3f;
-    [SerializeField] private float boostAcceleration = 4f;
-    [SerializeField] private float boostDuration = 10f;
+    private float boostMultiplier = 3f;
+    private float boostAcceleration = 4f;
+    private float boostDuration = 10f;
     [Space(5)]
 
     [Header("Boost Regeneration")]
-    [Tooltip("Delay before passive regeneration start")]
-    [SerializeField] private float boostRegenDelay = 2f;
-    [Tooltip("Passive regeneration speed (time per second)")]
-    [SerializeField] private float boostRegenRate = 1f;
+    private float boostRegenDelay = 2f;
+    private float boostRegenRate = 1f;
     [Space(5)]
 
     [Header("Boost Time Management (debug)")]
@@ -33,9 +32,9 @@ public class SpaceshipController : MonoBehaviour
     [SerializeField] private float activeBoostMultiplier = 1f;
 
     [Header("Acceleration")]
-    [SerializeField] private float forwardAcceleration = 2.5f;
-    [SerializeField] private float strafAcceleration = 2f;
-    [SerializeField] private float hoverAcceleration = 2f;
+    private float forwardAcceleration = 2.5f;
+    private float strafAcceleration = 2f;
+    private float hoverAcceleration = 2f;
     [Space(5)]
 
     [Header("Current Speeds (debug)")]
@@ -45,17 +44,16 @@ public class SpaceshipController : MonoBehaviour
     [Space(5)]
 
     [Header("Rotation")]
-    [SerializeField] private float lookRateSpeed = 90f;
+    private float lookRateSpeed = 90f;
     [Space(5)]
 
     [Header("Dead zone")]
-    [Tooltip("Radius in px around the center where mouse input is ignored.")]
-    [SerializeField] private float deadZoneRadius = 50f;
+    private float deadZoneRadius = 50f;
     [Space(5)]
 
     [Header("Roll")]
-    [SerializeField] private float rollSpeed = 90f;
-    [SerializeField] private float rollAcceleration = 3.5f;
+    private float rollSpeed = 90f;
+    private float rollAcceleration = 3.5f;
     [Space(5)]
 
     [Header("Input")]
@@ -66,6 +64,7 @@ public class SpaceshipController : MonoBehaviour
 
     [Header("Reference")]
     [SerializeField] private PlanetLockSystem planetLockSystem;
+    [SerializeField] private SpaceshipSO spaceshipData;
 
     private Vector2 screenCenter;
     private Vector2 mouseDistance;
@@ -79,6 +78,53 @@ public class SpaceshipController : MonoBehaviour
     private float timeSinceLastBoost = 0f;
 
     private bool lockedMode = false;
+    private void Awake()
+    {
+        GameManager.instance.RegisterShip(this);
+
+        SetMovementData(spaceshipData);
+    }
+
+    private void SetMovementData(SpaceshipSO spaceshipData)
+    {
+        if(spaceshipData != null)
+        {
+            // Acceleration
+            forwardAcceleration = spaceshipData.forwardAcceleration;
+            strafAcceleration   = spaceshipData.strafAcceleration;
+            hoverAcceleration   = spaceshipData.hoverAcceleration;
+
+            // Roll
+            rollAcceleration    = spaceshipData.rollAcceleration;
+            rollSpeed           = spaceshipData.rollSpeed;
+
+            // Orbital Movement
+            forwardSpeed        = spaceshipData.forwardSpeed;
+            strafSpeed          = spaceshipData.strafSpeed;
+            hoverSpeed          = spaceshipData.hoverSpeed;
+
+            // Free Movement
+            rotationSpeed       = spaceshipData.rotationSpeed;
+            heightRange         = spaceshipData.heightRange;
+
+            // Boost
+            boostAcceleration   = spaceshipData.boostAcceleration;
+            boostMultiplier     = spaceshipData.boostMultiplier;
+            boostDuration       = spaceshipData.boostDuration;
+
+            // Look speed
+            lookRateSpeed       = spaceshipData.lookRateSpeed;
+        }
+        else
+        {
+            Debug.LogWarning("Movement Data is not set. Using default values.");
+        }
+    }
+
+    private void OnDestroy()
+    {
+        GameManager.instance.UnregisterShip(this);
+    }
 
     private void Start()
     {
