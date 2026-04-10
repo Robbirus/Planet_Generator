@@ -275,6 +275,14 @@ public class SolarSystemGenerator : MonoBehaviour
         int moonCount = lunarRNG.Next(minMoons, maxMoons + 1);
         Debug.Log("nb of moons : " + moonCount + " for : " + planet.name);
 
+        if(moonCount == 0)
+        {
+            // TODO : Generate rings around the planet
+            // Compute if there's enough room to generate the rings
+            // Compute the probability of generating the rings
+            // Finally generates the rings
+        }
+
         CelestialBody planetBody = planet.GetComponent<CelestialBody>();
         if(planetBody == null)
         {
