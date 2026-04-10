@@ -48,7 +48,7 @@ public class CelestialBody : MonoBehaviour
     /// Uses a seed for reproducibility (same seed = same planet resources every time).
     /// Does nothing if no ResourceSO is assigned.
     /// </summary>
-    /// <param name="seed">Seed used for the random generation.</param>
+    /// <param name="rng">Rng used for the random generation.</param>
     public void RandomizeResource(System.Random rng)
     {
         if (resourceSO == null || resourceSO.availableResources.Count == 0)

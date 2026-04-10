@@ -26,9 +26,7 @@ public class LevelLoader : MonoBehaviour
     {
         AsyncOperation loadOperation = SceneManager.LoadSceneAsync(levelToLoad);
         loadingScreen.SetActive(true);
-
-        MusicManager.instance.Stop();
-        
+                
         while (!loadOperation.isDone)
         {
             float progressValue = Mathf.Clamp01(loadOperation.progress / 0.9f);
