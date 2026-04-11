@@ -9,8 +9,13 @@ public class MenuPause : MonoBehaviour
     public static bool isGamePaused = false;
     [Space(10)]
 
-    [Header("Pause menu panel")]
-    [SerializeField] private GameObject pauseMenuUI;
+    [Header("UI Containers")]
+    [SerializeField] private GameObject pauseMenuContainer;
+    [SerializeField] private GameObject hudContainer;
+    [Space(10)]
+
+    [Header("Level Loading")]
+    [SerializeField] private LevelLoader levelLoader;
     [Space(10)]
 
     [Header("Input Action Reference")]
@@ -51,7 +56,9 @@ public class MenuPause : MonoBehaviour
 
     public void ResumeGame()
     {
-        pauseMenuUI.SetActive(false);
+        pauseMenuContainer.SetActive(false);
+        hudContainer.SetActive(true);
+
         Time.timeScale = 1f;
         isGamePaused = false;
 
@@ -61,7 +68,9 @@ public class MenuPause : MonoBehaviour
 
     private void PauseGame()
     {
-        pauseMenuUI.SetActive(true);
+        pauseMenuContainer.SetActive(true);
+        hudContainer.SetActive(false);
+
         Time.timeScale = 0f;
         isGamePaused = true;
 
@@ -69,9 +78,18 @@ public class MenuPause : MonoBehaviour
         Cursor.visible = true;
     }
 
+    /// <summary>
+    /// Load the Scene Menu
+    /// </summary>
     public void LoadMenu()
     {
-        throw new NotImplementedException();
+        isGamePaused = false;
+        Time.timeScale = 1f;
+
+        Cursor.lockState = CursorLockMode.None;
+        Cursor.visible = true;
+
+        levelLoader.LoadLevel((int)SceneIndex.MENU);
     }
 
     public void QuitGame()
