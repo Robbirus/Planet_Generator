@@ -4233,6 +4233,18 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 4af30095178f2534bb03c6d82f56dd90, type: 3}
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::LoadPref
+  canUse: 1
+  menuController: {fileID: 1461665749}
+  audioMixer: {fileID: 24100000, guid: d3b1a9f5ceac00344b821c02f8f90da1, type: 2}
+  bgmVolumeTextValue: {fileID: 176053997}
+  sfxVolumeTextValue: {fileID: 651406173}
+  brightnessSlider: {fileID: 683052249}
+  brightnessTextValue: {fileID: 979907964}
+  qualityDropdrown: {fileID: 0}
+  fullScreenToggle: {fileID: 1389414132}
+  controllerSenTextValue: {fileID: 0}
+  controllerSenSlider: {fileID: 0}
+  invertYToggle: {fileID: 0}
 --- !u!4 &1202088663
 Transform:
   m_ObjectHideFlags: 0
