@@ -19,23 +19,13 @@ public class LevelLoader : MonoBehaviour
 
     public void LoadLevel(int sceneIndex)
     {
-        StartCoroutine(LoadLevelAsync(sceneIndex));
+        StartCoroutine(LoadLevelASync(sceneIndex));
     }
 
-    IEnumerator LoadLevelAsync(int levelToLoad)
+    IEnumerator LoadLevelASync(int levelToLoad)
     {
         AsyncOperation loadOperation = SceneManager.LoadSceneAsync(levelToLoad);
         loadingScreen.SetActive(true);
-                
-        while (!loadOperation.isDone)
-        {
-            float progressValue = Mathf.Clamp01(loadOperation.progress / 0.9f);
-
-            loadingSlider.value = progressValue;
-            progressTextValue.text = progressValue * 100f + "%";
-
-            yield return null;
-        }
 
         switch (levelToLoad)
         {
@@ -46,5 +36,17 @@ public class LevelLoader : MonoBehaviour
                 GameManager.instance.ChangeState(GameState.Playing);
                 break;
         }
+
+        while (!loadOperation.isDone)
+        {
+            float progressValue = Mathf.Clamp01(loadOperation.progress / 0.9f);
+
+            loadingSlider.value = progressValue;
+            progressTextValue.text = progressValue * 100f + "%";
+
+            yield return null;
+        }
+
+
     }
 }

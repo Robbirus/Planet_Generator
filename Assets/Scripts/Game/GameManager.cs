@@ -5,7 +5,9 @@ using UnityEngine.InputSystem.LowLevel;
 public class GameManager : MonoBehaviour
 {
     private SpaceshipController spaceship;
-    private GameState currentState;
+
+    [Header("State debug")]
+    [SerializeField] private GameState currentState;
 
     public static GameManager instance = null;
     public event Action<GameState> OnStateChanged;
