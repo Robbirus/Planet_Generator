@@ -1,6 +1,8 @@
 using System;
 using System.Collections;
+using TMPro;
 using UnityEngine;
+using UnityEngine.Audio;
 using UnityEngine.InputSystem;
 
 public class MenuPause : MonoBehaviour
@@ -18,6 +20,16 @@ public class MenuPause : MonoBehaviour
     [SerializeField] private LevelLoader levelLoader;
     [Space(10)]
 
+    [Header("Volume Setting")]
+    [SerializeField] private AudioMixer audioMixer;
+    [Space(5)]
+
+    [SerializeField] private TMP_Text bgmTextValue = null;
+    [Space(5)]
+
+    [SerializeField] private TMP_Text sfxTextValue = null;
+    [Space(10)]
+
     [Header("Input Action Reference")]
     [SerializeField] private InputActionReference pauseActionReference;
     [Space(10)]
@@ -25,9 +37,28 @@ public class MenuPause : MonoBehaviour
     [Header("Confirmation Image")]
     [SerializeField] private GameObject confirmationPrompt = null;
 
+    private void Start()
+    {
+        LoadSoundPreference();
+    }
+
     private void LoadSoundPreference()
     {
-        throw new NotImplementedException();
+        if (PlayerPrefs.HasKey("BGMVolume"))
+        {
+            int localVolume = PlayerPrefs.GetInt("BGMVolume");
+            MenuController.bgmVolume = localVolume;
+            bgmTextValue.text = localVolume.ToString("0");
+            audioMixer.SetFloat("BGM", Mathf.Log10(localVolume / 10f) * 20);
+        }
+
+        if (PlayerPrefs.HasKey("SFXVolume"))
+        {
+            int localVolume = PlayerPrefs.GetInt("SFXVolume");
+            MenuController.sfxVolume = localVolume;
+            sfxTextValue.text = localVolume.ToString("0");
+            audioMixer.SetFloat("SFX", Mathf.Log10(localVolume / 10f) * 20);
+        }
     }
 
     private void OnEnable()
@@ -89,6 +120,7 @@ public class MenuPause : MonoBehaviour
         Cursor.lockState = CursorLockMode.None;
         Cursor.visible = true;
 
+        GameManager.instance.ChangeState(GameState.Menu);
         levelLoader.LoadLevel((int)SceneIndex.MENU);
     }
 
@@ -100,26 +132,66 @@ public class MenuPause : MonoBehaviour
     #region Audio Volume
     public void IncreaseBGM()
     {
-        throw new NotImplementedException();
+        if (MenuController.bgmVolume < 10)
+        {
+            MenuController.bgmVolume++;
+        }
+        audioMixer.SetFloat("BGM", Mathf.Log10(MenuController.bgmVolume / 10f) * 20);
+        bgmTextValue.text = MenuController.bgmVolume.ToString("0");
     }
 
     public void DecreaseBGM()
     {
-        throw new NotImplementedException();
+        if (MenuController.bgmVolume > 0)
+        {
+            MenuController.bgmVolume--;
+        }
+
+        if (MenuController.bgmVolume == 0)
+        {
+            audioMixer.SetFloat("BGM", Mathf.Log10(-1 * 20));
+        }
+        else
+        {
+            audioMixer.SetFloat("BGM", Mathf.Log10(MenuController.bgmVolume / 10f) * 20);
+        }
+
+        bgmTextValue.text = MenuController.bgmVolume.ToString("0");
     }
 
     public void IncreaseSFX()
     {
-        throw new NotImplementedException();
+        if (MenuController.sfxVolume < 10)
+        {
+            MenuController.sfxVolume++;
+        }
+        audioMixer.SetFloat("BGM", Mathf.Log10(MenuController.sfxVolume / 10f) * 20);
+        sfxTextValue.text = MenuController.sfxVolume.ToString("0");
     }
 
     public void DecreaseSFX()
     {
-        throw new NotImplementedException();
+        if (MenuController.sfxVolume > 0)
+        {
+            MenuController.sfxVolume--;
+        }
+
+        if (MenuController.sfxVolume == 0)
+        {
+            audioMixer.SetFloat("BGM", Mathf.Log10(-1 * 20));
+        }
+        else
+        {
+            audioMixer.SetFloat("BGM", Mathf.Log10(MenuController.sfxVolume / 10f) * 20);
+        }
+
+        sfxTextValue.text = MenuController.sfxVolume.ToString("0");
     }
 
     public void ApplyVolume()
     {
+        PlayerPrefs.SetInt("BGMVolume", MenuController.bgmVolume);
+        PlayerPrefs.SetInt("SFXVolume", MenuController.sfxVolume);
         // Show Prompt
         StartCoroutine(ConfirmationBox());
     }
