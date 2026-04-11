@@ -1,0 +1,32 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 3cc0284678e6b5d49b48d87f323f7ddc, type: 3}
+  m_Name: MoonData
+  m_EditorClassIdentifier: Assembly-CSharp::CelestialObjectDataSO
+  names:
+  - Irulta
+  - Reaf
+  - Parsh
+  - Calypso
+  - Sirius
+  - Tibit
+  - Maia
+  - Castor
+  - Kuper
+  - Sigma
+  numberRange: {x: 0, y: 8}
+  distanceRange: {x: 300, y: 1500}
+  orbitalSpeedRange: {x: 100, y: 1000}
+  rotationSpeedRange: {x: 0.1, y: 2.5}
+  massRange: {x: 18, y: 28}
+  densityRange: {x: 0.5, y: 2}
+  visualScale: 1.5
