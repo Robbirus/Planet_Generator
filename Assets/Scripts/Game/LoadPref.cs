@@ -56,7 +56,7 @@ public class LoadPrefs : MonoBehaviour
             if (PlayerPrefs.HasKey("Quality"))
             {
                 int localQuality = PlayerPrefs.GetInt("Quality");
-                qualityDropdrown.value = localQuality;
+                // qualityDropdrown.value = localQuality;
                 QualitySettings.SetQualityLevel(localQuality);
             }
 
