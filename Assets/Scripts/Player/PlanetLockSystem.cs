@@ -249,9 +249,23 @@ public class PlanetLockSystem : MonoBehaviour
         }
     }
 
+    // Getters
+
     public Transform GetSelectablePlanet()
     {
         return selectablePlanet;
+    }
+
+    public Transform GetLockedPlanet()
+    {
+        return lockedPlanet;
+    }
+
+    public Transform GetActivePlanet()
+    {
+        if(lockedPlanet != null) return lockedPlanet;
+        if(selectablePlanet != null) return selectablePlanet;
+        return null;
     }
 
     public Vector3 GetOrbitDir()
