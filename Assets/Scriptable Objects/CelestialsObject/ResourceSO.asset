@@ -12,4 +12,4 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 43c2abb35e75e6a449c2bcd763ae5af3, type: 3}
   m_Name: ResourceSO
   m_EditorClassIdentifier: Assembly-CSharp::RessourceSO
-  availableResources: 0000000001000000020000000300000004000000
+  availableResources: 000000000100000002000000030000000400000005000000060000000700000008000000090000000a000000
