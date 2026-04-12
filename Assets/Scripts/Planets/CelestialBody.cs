@@ -96,7 +96,7 @@ public class CelestialBody : MonoBehaviour
             .Select((type, i) => new ResourceDistribution(type, percentages[i]))
             .ToList();
 
-        LogDistribution();
+        // LogDistribution();
     }
 
     /// <summary>
