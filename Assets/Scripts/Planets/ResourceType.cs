@@ -2,9 +2,15 @@ using UnityEngine;
 
 public enum ResourceType
 {
+   Biomass,
+   Caterium,
    Iron,
-   Uranium,
-   Aluminium,
+   Suflur,
+   Steel,
+   Quartz,
+   Titanium,
+   Neutronium,
    Oil,
-   Xenolith
+   Xenolith,
+   PowerShard
 }

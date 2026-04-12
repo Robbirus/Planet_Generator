@@ -1,5 +1,4 @@
-﻿using System;
-using System.Collections.Generic;
+﻿using System.Collections.Generic;
 using System.Linq;
 using UnityEngine;
 
@@ -11,7 +10,7 @@ public class CelestialBody : MonoBehaviour
     [SerializeField] private ResourceSO resourceSO;
 
     [Header("Resource Distribution")]
-    [SerializeField, HideInInspector] private List<ResourceDistribution> resourceDistribution = new();
+    [SerializeField] private List<ResourceDistribution> resourceDistribution = new();
 
     [Header("visual")]
     [SerializeField] private Renderer planetRenderer;
@@ -55,17 +54,38 @@ public class CelestialBody : MonoBehaviour
             return;
 
         // number of resources the planet will have
-        int index = rng.Next(1, resourceSO.availableResources.Count);
+        int numberOfRessources = rng.Next(1, resourceSO.availableResources.Count);
 
-        // Pick 'resourceCount' random resources from the pool (without duplicates)
-        List<ResourceType> chosenResources = new List<ResourceType>();
-        foreach (ResourceType type in resourceSO.availableResources)
+        // Shuffles the source list so that the selection is random,
+        // then we take the first 'numberOfRessources' without duplicates
+        List<ResourceType> shuffled = resourceSO.availableResources;
+
+        for (int i = shuffled.Count - 1; i > 0; i--)
         {
+            int j = rng.Next(0, i + 1);
+            ResourceType temp = shuffled[i];
+            shuffled[i] = shuffled[j];
+            shuffled[j] = temp;
+        }
+
+        // Takes the first 'numberOfResources' from the shuffled
+        List<ResourceType> chosenResources = new List<ResourceType>();
+        for(int i = 0; i < shuffled.Count; i++)
+        {
+            if (chosenResources.Count >= numberOfRessources)
+                break;
+
+            ResourceType type = shuffled[i];
             if (!usedResources.Contains(type))
             {
                 chosenResources.Add(type);
                 usedResources.Add(type);
             }
+        }
+
+        if(chosenResources.Count == 0)
+        {
+            return;
         }
 
         // Give each resource a random weight, then convert to percentages summing to 100
