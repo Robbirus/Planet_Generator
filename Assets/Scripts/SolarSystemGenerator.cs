@@ -189,7 +189,7 @@ public class SolarSystemGenerator : MonoBehaviour
     private void GeneratePlanets()
     {
         int count = stellarRNG.Next(minPlanets, maxPlanets);
-        Debug.Log("nb of planet : " + count);
+        // Debug.Log("nb of planet : " + count);
 
         for (int i = 0; i < count; i++)
         {
@@ -203,7 +203,7 @@ public class SolarSystemGenerator : MonoBehaviour
             float distance = FindSafePlanetDistance(footprint);
             if (distance < 0)
             {
-                Debug.LogWarning($"Cannot place planet {i} : Not enough space");
+                // Debug.LogWarning($"Cannot place planet {i} : Not enough space");
                 continue;
             }
 
@@ -273,7 +273,7 @@ public class SolarSystemGenerator : MonoBehaviour
         List<(float orbit, float radius)> usedMoonOrbits = new();
 
         int moonCount = lunarRNG.Next(minMoons, maxMoons + 1);
-        Debug.Log("nb of moons : " + moonCount + " for : " + planet.name);
+        // Debug.Log("nb of moons : " + moonCount + " for : " + planet.name);
 
         if(moonCount == 0)
         {
@@ -302,7 +302,7 @@ public class SolarSystemGenerator : MonoBehaviour
             float distance = FindSafeMoonOrbit(planetVisualRadius, visualRadius, usedMoonOrbits);
             if(distance < 0f)
             {
-                Debug.LogWarning($"Cannot place the moon_{i} around {planet.name}.");
+                // Debug.LogWarning($"Cannot place the moon_{i} around {planet.name}.");
                 continue;
             }
 
