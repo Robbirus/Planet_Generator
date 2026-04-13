@@ -18,6 +18,8 @@ public class ShipInventory : MonoBehaviour
     // Key : ResourceType, Value : current amount stored
     private Dictionary<ResourceType, float> stock = new Dictionary<ResourceType, float>();
 
+    private static readonly ResourceType[] allResourceTypes = (ResourceType[]) Enum.GetValues(typeof(ResourceType));
+
     /// <summary> Fires whenever any resource amount changes. Useful to refresh UI. </summary>
     public event Action OnInventoryChanged;
 
@@ -44,6 +46,20 @@ public class ShipInventory : MonoBehaviour
             debugStock.Add(new ResourceStock { type = pair.Key, amount = pair.Value });
         }
     }
+    
+    /// <summary>
+    /// Deducts 'amount' units of 'type' from the inventory.
+    /// Does nothing if the amount exceeds what is stored.
+    /// </summary>
+    public void Spend(ResourceType type, float amount)
+    {
+        if (!stock.ContainsKey(type)) return;
+
+        stock[type] = Mathf.Max(0f, stock[type] - amount);
+
+        SyncDebugStock();
+        OnInventoryChanged?.Invoke();
+    }
 
     /// <summary>
     /// Returns the amount stored for a given resource type
@@ -68,7 +84,7 @@ public class ShipInventory : MonoBehaviour
     /// </summary>
     public bool IsCompletlyFull()
     {
-        foreach(ResourceType type in Enum.GetValues(typeof(ResourceType)))
+        foreach(ResourceType type in allResourceTypes)
         {
             if (!IsFullFor(type)) return false;
         }
@@ -102,7 +118,8 @@ public class ShipInventory : MonoBehaviour
     /// </summary>
     public Dictionary<ResourceType, float> GetAll()
     {
-        return stock;
+        Dictionary<ResourceType, float> temp = stock;
+        return temp;
     }
 
     /// <summary>
@@ -111,6 +128,15 @@ public class ShipInventory : MonoBehaviour
     public float GetMaxCapacityPerResource()
     {
         return maxCapacityPerResource;
+    }
+    
+    /// <summary>
+    /// Updates the max capacity per slot.
+    /// Called by SkillTreeManager when an InventoryCapacity skill is unlocked.
+    /// </summary>
+    public void SetMaxCapacityPerResource(float newCapacity)
+    {
+        maxCapacityPerResource = Mathf.Max(0f, newCapacity);
     }
 }
 

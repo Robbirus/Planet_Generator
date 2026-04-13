@@ -451,4 +451,20 @@ public class SpaceshipController : MonoBehaviour
     {
         return boostTimeRemaining / boostDuration;
     }
+
+    public void SetStats(float forwardSpeed, float strafeSpeed, float hoverSpeed,
+        float rotationSpeed, float rollSpeed, float lookRateSpeed,float boostMultiplier,
+        float boostDuration, float boostRegenRate, float boostRegenDelay)
+    {
+        this.forwardSpeed       = forwardSpeed;
+        this.strafSpeed         = strafeSpeed;
+        this.hoverSpeed         = hoverSpeed;
+        this.rotationSpeed      = rotationSpeed;
+        this.rollSpeed          = rollSpeed;
+        this.lookRateSpeed      = lookRateSpeed;
+        this.boostMultiplier    = boostMultiplier;
+        this.boostDuration      = boostDuration;
+        this.boostRegenRate     = boostRegenRate;
+        this.boostRegenDelay    = boostRegenDelay;
+    }
 }

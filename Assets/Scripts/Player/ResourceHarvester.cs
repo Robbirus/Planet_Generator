@@ -37,6 +37,8 @@ public class ResourceHarvester : MonoBehaviour
     private Transform lastHarvestedPlanet;
     private List<ResourceDistribution> cacheResouces = new();
 
+    private readonly System.Text.StringBuilder logBuilder = new();
+
     private void Awake()
     {
         lockSystem = GetComponent<PlanetLockSystem>();
@@ -105,14 +107,14 @@ public class ResourceHarvester : MonoBehaviour
     {
         if(tickResults.Count == 0) return;
 
-        System.Text.StringBuilder sb = new();
-        sb.Append($"[ResourceHarvester] Tick from {name} -> ");
+        logBuilder.Clear();
+        logBuilder.Append($"[ResourceHarvester] Tick from {name} -> ");
         foreach(var (type, amount) in tickResults)
         {
-            sb.Append($"{type}: +{amount:0.00} ");
+            logBuilder.Append($"{type}: +{amount:0.00} ");
         }
 
-        Debug.Log(sb.ToString());
+        Debug.Log(logBuilder.ToString());
     }
 
     // Getters
@@ -124,5 +126,10 @@ public class ResourceHarvester : MonoBehaviour
     public float GetTickInterval()
     {
         return tickInterval;
+    }
+
+    public void SetBaseHarvestRate(float baseHarvestRate)
+    {
+        this.baseHarvestRate = baseHarvestRate;
     }
 }
