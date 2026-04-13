@@ -50,7 +50,7 @@ public class ShipInventory : MonoBehaviour
     /// </summary>
     /// <param name="type">The resource type to get</param>
     /// <returns>The amount stored</returns>
-    public  float Get(ResourceType type)
+    public float Get(ResourceType type)
     {
         return stock.TryGetValue(type, out float v) ? v : 0f;
     }
@@ -98,9 +98,9 @@ public class ShipInventory : MonoBehaviour
     }
 
     /// <summary>
-    /// Returns a read-only view of the whole stock.
+    /// Returns a view of the whole stock.
     /// </summary>
-    public IReadOnlyDictionary<ResourceType, float> GetAll()
+    public Dictionary<ResourceType, float> GetAll()
     {
         return stock;
     }
