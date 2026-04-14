@@ -14,7 +14,7 @@ MonoBehaviour:
   m_EditorClassIdentifier: Assembly-CSharp::SkillNodeSO
   id: forward_max_1
   displayName: Top Speed
-  description: Imrpove top speed by 10%
+  description: Improve top speed by 10%
   icon: {fileID: 21300000, guid: 30892b01978e2b1469e7339e8e9effb0, type: 3}
   costs:
   - resourceType: 8
