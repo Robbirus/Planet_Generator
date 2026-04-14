@@ -1,7 +1,6 @@
 ﻿// Place this file in an Editor/ folder — it will not be included in builds.
 #if UNITY_EDITOR
 using System.Collections.Generic;
-using TreeEditor;
 using UnityEditor;
 using UnityEngine;
 
@@ -16,16 +15,19 @@ using UnityEngine;
 /// </summary>
 public class SkillTreeEditorWindow : EditorWindow
 {
-    private SkillTreeSO tree;
-    private Vector2 scrollOffset;
+    [SerializeField] private SkillTreeSO tree;
+
     private Vector2 scrollPos;
     private float zoom = 1f;
+
+    // Cached per frame to avoid calling FindDuplicateIDs() once per node
+    private HashSet<string> duplicateIds = new HashSet<string>();
 
     private SerializedObject serializedObject;
     private SerializedProperty treeProp;
 
     private const float NODE_W = 160f;
-    private const float NODE_H = 60f;
+    private const float NODE_H = 70f;
 
     [MenuItem("Window/Skill Tree Editor")]
     public static void Open()
@@ -44,12 +46,12 @@ public class SkillTreeEditorWindow : EditorWindow
         }
 
         // Validate before drawing
-        List<string> duplicates = tree.FindDuplicateIDs();
+        duplicateIds = new HashSet<string>(tree.FindDuplicateIDs());
 
-        if (duplicates.Count > 0)
+        if (duplicateIds.Count > 0)
         {
             EditorGUILayout.HelpBox(
-                $"Duplicate IDs found: {string.Join(", ", duplicates)}\n" +
+                $"Duplicate IDs found: {string.Join(", ", duplicateIds)}\n" +
                 "Each node must have a unique ID.", MessageType.Error);
         }
 
@@ -70,52 +72,66 @@ public class SkillTreeEditorWindow : EditorWindow
 
         EditorGUILayout.BeginHorizontal(EditorStyles.toolbar);
 
-        EditorGUILayout.PropertyField(treeProp, new GUIContent("Skill Tree"), GUILayout.Width(300f));
+        // Width label + field manually so it fits the toolbar height
+        EditorGUILayout.LabelField("Skill Tree:", GUILayout.Width(65f));
+        EditorGUILayout.PropertyField(treeProp,GUIContent.none, GUILayout.Width(220f));
 
-        zoom = EditorGUILayout.Slider("Zoom", zoom, 0.4f, 2f, GUILayout.Width(200f));
+        zoom = EditorGUILayout.Slider("Zoom", zoom, 0.4f, 2f, GUILayout.Width(120f));
 
-        if (GUILayout.Button("Reset View", EditorStyles.toolbarButton))
+        if (GUILayout.Button("Reset View", EditorStyles.toolbarButton, GUILayout.Width(80f)))
         {
-            scrollOffset = Vector2.zero;
+            scrollPos = Vector2.zero;
             zoom = 1f;
         }
 
-        if (GUILayout.Button("Refresh", EditorStyles.toolbarButton))
+        if (GUILayout.Button("Refresh", EditorStyles.toolbarButton, GUILayout.Width(60f)))
             Repaint();
 
+        GUILayout.FlexibleSpace();
         EditorGUILayout.EndHorizontal();
 
         serializedObject.ApplyModifiedProperties();
+
+        // Sync field after ApplyModifiedProperties so 'tree' is up to date
+        tree = (SkillTreeSO)treeProp.objectReferenceValue;
     }
 
     // ── Canvas ────────────────────────────────────────────────────────────────
 
     private void DrawCanvas()
     {
-        Rect canvasRect = new Rect(0, EditorGUIUtility.singleLineHeight + 4, position.width, position.height - EditorGUIUtility.singleLineHeight - 4);
+        float toolbarH = EditorGUIUtility.singleLineHeight + 6f;
+        float warningH = duplicateIds.Count > 0 ? 42f : 0f;
+        float topOffset = toolbarH + warningH;
 
-        // Scroll / pan
-        scrollPos = GUI.BeginScrollView(canvasRect, scrollPos,
-            new Rect(0, 0, 3000f * zoom, 3000f * zoom));
+        Rect canvasRect = new Rect(0, topOffset, position.width, position.height - topOffset);
 
-        // Draw connections first (so nodes appear on top)
+        Rect contentRect = new Rect(0, 0, 4000f * zoom, 4000f * zoom);
+        scrollPos = GUI.BeginScrollView(canvasRect, scrollPos, contentRect);
+
+        // Draw connections FIRST (behind nodes)
         DrawConnections();
 
-        // Draw nodes
-        foreach (SkillNodeSO node in tree.nodes)
+        // Draw nodes with pure GUI — no GUILayout inside a ScrollView
+        if (tree != null)
         {
-            if (node != null)
-                DrawNode(node);
+            foreach (SkillNodeSO node in tree.nodes)
+            {
+                if (node != null)
+                    DrawNode(node);
+            }
         }
 
         GUI.EndScrollView();
 
-        // Handle pan with middle mouse
+        // Pan with middle mouse button
         HandlePan(canvasRect);
     }
 
     private void DrawConnections()
     {
+        if (tree == null) return;
+
         foreach (SkillNodeSO node in tree.nodes)
         {
             if (node == null) continue;
@@ -127,10 +143,10 @@ public class SkillTreeEditorWindow : EditorWindow
                 Vector2 from = NodeCenter(prereq) * zoom;
                 Vector2 to = NodeCenter(node) * zoom;
 
-                Handles.color = Color.gray;
+                Handles.color = new Color(0.7f, 0.7f, 0.7f, 0.8f);
                 Handles.DrawLine(from, to);
 
-                // Arrow head
+                // Arrow tip
                 Vector2 dir = (to - from).normalized;
                 Vector2 tip = to - dir * (NODE_H * 0.5f * zoom);
                 Handles.DrawSolidDisc(tip, Vector3.forward, 4f * zoom);
@@ -141,27 +157,35 @@ public class SkillTreeEditorWindow : EditorWindow
     private void DrawNode(SkillNodeSO node)
     {
         Rect rect = NodeRect(node);
-        Rect scaled = new Rect(rect.x * zoom, rect.y * zoom, rect.width * zoom, rect.height * zoom);
+        Rect scaled = Scale(rect);
 
-        bool hasDuplicateId = tree.FindDuplicateIDs().Contains(node.id);
+        bool isDuplicate = duplicateIds.Contains(node.id);
 
         // Background
-        Color bg = hasDuplicateId ? new Color(0.8f, 0.2f, 0.2f) : new Color(0.25f, 0.25f, 0.25f);
-        EditorGUI.DrawRect(scaled, bg);
+        EditorGUI.DrawRect(scaled, isDuplicate
+            ? new Color(0.65f, 0.15f, 0.15f)
+            : new Color(0.22f, 0.22f, 0.22f));
 
-        // Border
-        GUI.color = hasDuplicateId ? Color.red : Color.gray;
-        GUI.Box(scaled, GUIContent.none);
-        GUI.color = Color.white;
+        // Border (1px inset)
+        Rect border = new Rect(scaled.x + 1, scaled.y + 1, scaled.width - 2, scaled.height - 2);
+        EditorGUI.DrawRect(border, isDuplicate ? new Color(1f, 0.3f, 0.3f, 0.3f) : new Color(0.5f, 0.5f, 0.5f, 0.3f));
 
-        // Content
-        GUILayout.BeginArea(scaled);
-        GUILayout.Label(node.displayName, EditorStyles.boldLabel);
-        GUILayout.Label($"ID: {node.id}", EditorStyles.miniLabel);
-        GUILayout.Label($"Effects: {node.effects.Count}  Cost entries: {node.costs.Count}", EditorStyles.miniLabel);
-        GUILayout.EndArea();
+        // Labels — pure GUI.Label, no GUILayout
+        float pad = 6f * zoom;
+        float lineH = 16f * zoom;
 
-        // Click to ping the asset
+        Rect nameRect = new Rect(scaled.x + pad, scaled.y + pad, scaled.width - pad * 2, lineH);
+        Rect idRect = new Rect(scaled.x + pad, scaled.y + pad + lineH, scaled.width - pad * 2, lineH);
+        Rect detailRect = new Rect(scaled.x + pad, scaled.y + pad + lineH * 2, scaled.width - pad * 2, lineH);
+
+        GUIStyle bold = new GUIStyle(EditorStyles.boldLabel) { fontSize = Mathf.RoundToInt(11f * zoom) };
+        GUIStyle mini = new GUIStyle(EditorStyles.miniLabel) { fontSize = Mathf.RoundToInt(9f * zoom) };
+
+        GUI.Label(nameRect, node.displayName, bold);
+        GUI.Label(idRect, $"ID: {node.id}", mini);
+        GUI.Label(detailRect, $"Effects: {node.effects.Count}  Costs: {node.costs.Count}", mini);
+
+        // Invisible button over the whole node to handle click
         if (GUI.Button(scaled, GUIContent.none, GUIStyle.none))
         {
             EditorGUIUtility.PingObject(node);
@@ -183,6 +207,11 @@ public class SkillTreeEditorWindow : EditorWindow
     {
         Rect r = NodeRect(node);
         return new Vector2(r.center.x, r.center.y);
+    }
+
+    private Rect Scale(Rect r)
+    {
+        return new Rect(r.x * zoom, r.y * zoom, r.width * zoom, r.height * zoom);
     }
 
     private void HandlePan(Rect area)
