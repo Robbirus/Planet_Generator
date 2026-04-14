@@ -14,6 +14,7 @@ public class MenuPause : MonoBehaviour
     [Header("UI Containers")]
     [SerializeField] private GameObject pauseMenuContainer;
     [SerializeField] private GameObject hudContainer;
+    [SerializeField] private GameObject resourceContainer;
     [Space(10)]
 
     [Header("Level Loading")]
@@ -89,6 +90,7 @@ public class MenuPause : MonoBehaviour
     {
         pauseMenuContainer.SetActive(false);
         hudContainer.SetActive(true);
+        resourceContainer.SetActive(true);
 
         Time.timeScale = 1f;
         isGamePaused = false;
@@ -101,6 +103,7 @@ public class MenuPause : MonoBehaviour
     {
         pauseMenuContainer.SetActive(true);
         hudContainer.SetActive(false);
+        resourceContainer.SetActive(false);
 
         Time.timeScale = 0f;
         isGamePaused = true;
