@@ -60,7 +60,7 @@ public class SkillNodeUI : MonoBehaviour
         // Name
         if(nameLabel != null)
         {
-            nameLabel.text = data.name;
+            nameLabel.text = data.displayName;
         }
 
         // Icon
@@ -82,6 +82,12 @@ public class SkillNodeUI : MonoBehaviour
                                available ? colorAvailable : colorLocked;
         }
 
+        // Button
+        if(btn != null)
+        {
+            btn.onClick.AddListener(OnClick);
+        }
+
         // Disable the button if already unlocked or not yet available
         btn.interactable = available;
     }
@@ -95,7 +101,27 @@ public class SkillNodeUI : MonoBehaviour
         }
         else
         {
-            Debug.Log($"[SkillNodeUI] Cannot unlock {data.displayName} - check prerequisites or resources.");
+            LogOnClick();
+        }
+    }
+
+    private void LogOnClick()
+    {
+        Debug.Log($"Clicked on {data.displayName} (ID: {data.id})");
+        Debug.Log($"[SkillNodeUI] Cannot unlock {data.displayName} - check prerequisites or resources.");
+
+        if (data.prerequisites.Count == 0)
+        {
+            Debug.Log("No prerequisites for this node.");
+        }
+        else
+        {
+            Debug.Log($"Prerequisites are : {string.Join(", ", data.prerequisites)}");
+        }
+
+        foreach (SkillCost cost in data.costs)
+        {
+            Debug.Log($"Resources required are : {cost.amount} of {cost.resourceType}");
         }
     }
 
