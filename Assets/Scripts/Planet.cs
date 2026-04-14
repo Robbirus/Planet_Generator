@@ -26,6 +26,7 @@ public class Planet : MonoBehaviour
     void Initialize()
     {
         shapeGenerator = new ShapeGenerator(shapeSettings); // Create shape generator from current shape settings
+        
         if (meshFilters == null || meshFilters.Length == 0) // check if the mesh filter needs to be initialized
         {
             meshFilters = new MeshFilter[6];
@@ -59,7 +60,7 @@ public class Planet : MonoBehaviour
     }
 
     // Update shape (mesh) if shape settings have changed
-    public void onShapeSettingsUpdated()
+    public void OnShapeSettingsUpdated()
     {
         Initialize();
         GenerateMesh();
