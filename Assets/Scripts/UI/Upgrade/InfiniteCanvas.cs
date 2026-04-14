@@ -75,7 +75,6 @@ public class InfiniteCanvas : MonoBehaviour, IDragHandler, IScrollHandler, IPoin
 
     public void OnDrag(PointerEventData eventData)
     {
-        Debug.Log("Je drag");
         targetPosition += eventData.delta * panSpeed / currentZoom;
     }
 
