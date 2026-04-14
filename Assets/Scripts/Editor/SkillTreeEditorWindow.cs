@@ -198,8 +198,8 @@ public class SkillTreeEditorWindow : EditorWindow
     private Rect NodeRect(SkillNodeSO node)
     {
         return new Rect(
-            node.canvasPosition.x - NODE_W * 0.5f + 100f,
-            -node.canvasPosition.y - NODE_H * 0.5f + 100f,
+            node.canvasPosition.x - NODE_W * 0.5f + (1920/2f),
+            -node.canvasPosition.y - NODE_H * 0.5f + (1080/2f),
             NODE_W, NODE_H);
     }
 
