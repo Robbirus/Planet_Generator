@@ -10,20 +10,18 @@ MonoBehaviour:
   m_Enabled: 1
   m_EditorHideFlags: 0
   m_Script: {fileID: 11500000, guid: b62b6b487bc179b43995ac275919f987, type: 3}
-  m_Name: Node_BoostDuration
+  m_Name: Node_ForwardMax
   m_EditorClassIdentifier: Assembly-CSharp::SkillNodeSO
-  id: boost_duration_1
-  displayName: Enhanced Boost
-  description: Add 5s to boost duration
-  icon: {fileID: 21300000, guid: 8e48a6dc129f7ee438c96f4dde9af620, type: 3}
+  id: forward_max_1
+  displayName: Top Speed
+  description: Imrpove top speed by 10%
+  icon: {fileID: 21300000, guid: 30892b01978e2b1469e7339e8e9effb0, type: 3}
   costs:
-  - resourceType: 0
-    amount: 50
   - resourceType: 8
-    amount: 75
+    amount: 50
   effects:
-  - type: 7
-    mode: 0
-    value: 5
+  - type: 0
+    mode: 1
+    value: 0.1
   prerequisites: []
-  canvasPosition: {x: 200, y: -200}
+  canvasPosition: {x: 300, y: 300}

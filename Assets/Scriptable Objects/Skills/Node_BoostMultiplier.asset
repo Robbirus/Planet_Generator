@@ -27,4 +27,4 @@ MonoBehaviour:
     value: 5
   prerequisites:
   - {fileID: 11400000, guid: 22dc9426530584749af42e494cbf6be0, type: 2}
-  canvasPosition: {x: 500, y: -500}
+  canvasPosition: {x: 0, y: 0}
