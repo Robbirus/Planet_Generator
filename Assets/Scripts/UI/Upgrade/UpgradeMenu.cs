@@ -46,6 +46,11 @@ public class UpgradeMenu : MonoBehaviour
         inventory.OnInventoryChanged -= RefreshInventoryText;
     }
 
+    private void Start()
+    {
+        GenerateNodes();
+    }
+
     // „Ÿ„Ÿ Inventory display „Ÿ„Ÿ„Ÿ„Ÿ„Ÿ„Ÿ„Ÿ„Ÿ„Ÿ„Ÿ„Ÿ„Ÿ„Ÿ„Ÿ„Ÿ„Ÿ„Ÿ„Ÿ„Ÿ„Ÿ„Ÿ„Ÿ„Ÿ„Ÿ„Ÿ„Ÿ„Ÿ„Ÿ„Ÿ„Ÿ„Ÿ„Ÿ„Ÿ„Ÿ„Ÿ„Ÿ„Ÿ„Ÿ„Ÿ„Ÿ„Ÿ„Ÿ„Ÿ„Ÿ„Ÿ„Ÿ„Ÿ„Ÿ„Ÿ„Ÿ„Ÿ„Ÿ„Ÿ
 
     private void RefreshInventoryText()
@@ -59,5 +64,21 @@ public class UpgradeMenu : MonoBehaviour
             sb.AppendLine($"  {pair.Key} : {pair.Value:0}");
 
         resourceListText.text = sb.ToString();
+    }
+
+    private void GenerateNodes()
+    {
+        foreach (SkillNodeSO node in skillTree.nodes)
+        {
+            GameObject nodeGO = Instantiate(nodePrefab, nodeCanvas);
+            SkillNodeUI nodeUI = nodeGO.GetComponent<SkillNodeUI>();
+
+            nodeUI.Init(node, skillTreeManager);
+
+            nodeUIs[node] = nodeUI;
+
+            // Position the node
+            nodeGO.GetComponent<RectTransform>().anchoredPosition = node.canvasPosition;
+        }
     }
 }
