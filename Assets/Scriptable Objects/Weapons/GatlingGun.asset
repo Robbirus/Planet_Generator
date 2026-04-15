@@ -12,3 +12,14 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: e82d6cc75d4fbfb4d91ab41899348267, type: 3}
   m_Name: GatlingGun
   m_EditorClassIdentifier: Assembly-CSharp::WeaponSO
+  weaponName: Gatling Gun
+  weaponIcon: {fileID: 0}
+  weaponType: 0
+  fireRate: 100
+  hasMagazine: 0
+  magazineSize: 10
+  reloadTime: 2
+  isGuided: 0
+  guidedTurnRate: 120
+  guidedDetectionRadius: 200
+  defaultShell: {fileID: 11400000, guid: c5f2c010c4f7f824daf9e9281d5288ff, type: 2}
