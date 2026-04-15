@@ -19,6 +19,7 @@ public class WeaponSO : ScriptableObject
     public float fireRate = 2f;
 
     [Header("Magazine")]
+    public bool hasMagazine = true;
     public int magazineSize = 10;
     [Tooltip("Time in seconds to reload a full magazine.")]
     public float reloadTime = 2f;

@@ -13,7 +13,7 @@ public class WeaponManager : MonoBehaviour
     public class WeaponSlot
     {
         public WeaponSO weapon;
-        [Tooltip("Ammo currently loaded — defaults to weapon.defaultShell.")]
+        [Tooltip("Ammo currently loaded Edefaults to weapon.defaultShell.")]
         public ShellSO loadedShell;
         [Tooltip("Transform from which the shell is spawned.")]
         public Transform spawnPoint;
@@ -79,6 +79,7 @@ public class WeaponManager : MonoBehaviour
             slot.currentAmmo = slot.weapon.magazineSize;
             slot.isReloading = false;
             slot.fireTimer = 0f;
+            slot.hasMagasine = slot.weapon.hasMagazine;
         }
     }
 
@@ -168,7 +169,7 @@ public class WeaponManager : MonoBehaviour
         if (slot.isReloading) return;
         if (slot.fireTimer > 0f) return;
 
-        if (slot.currentAmmo <= 0)
+        if (slot.currentAmmo <= 0 && slot.hasMagasine)
         {
             StartCoroutine(Reloading(slot));
             return;
@@ -210,7 +211,7 @@ public class WeaponManager : MonoBehaviour
         }
 
 
-        shootParticle?.Play();
+        // shootParticle?.Play();
 
         OnShellChanged?.Invoke(slot.loadedShell);
 
@@ -277,7 +278,7 @@ public class WeaponManager : MonoBehaviour
         else
         {
             consecutiveMisses++;
-            // Pity grows by 1%  per consecutive non-crit, capped à 98% so there's always a small chance to miss
+            // Pity grows by 1%  per consecutive non-crit, capped E98% so there's always a small chance to miss
             pity = Mathf.Clamp(consecutiveMisses, 0, 98);
         }
 
