@@ -16,6 +16,8 @@ public class Shell : MonoBehaviour
     private int         velocity;
     private float       lifeTime;
     private TypeEffect  typeEffect;
+    private Color color;
+
     private WeaponType  type;
     private Team        owner;
 
@@ -36,6 +38,7 @@ public class Shell : MonoBehaviour
         this.lifeTime = shellData.lifeTime;
         this.type = shellData.weaponType;
         this.typeEffect = shellData.typeEffect;
+        this.color = shellData.color;
 
         this.isCrit = isCrit;
         this.critChance = critChance;
@@ -51,14 +54,11 @@ public class Shell : MonoBehaviour
         {
             Gradient gradient = new Gradient();
             gradient.SetKeys(
-                new GradientColorKey[] {
-                    new GradientColorKey(shellData.color, 0f),
-                    new GradientColorKey(Color.white, 1f) },
-                new GradientAlphaKey[] {
-                    new GradientAlphaKey(1f, 0f),
-                    new GradientAlphaKey(0f, 1f) }
+                new GradientColorKey[] { new GradientColorKey(this.color, 0f), new GradientColorKey(Color.white, 1f) },
+                new GradientAlphaKey[] { new GradientAlphaKey(1f, 0f), new GradientAlphaKey(0f, 1f) }
             );
-            trail.colorGradient = gradient;
+
+            gameObject.GetComponent<TrailRenderer>().colorGradient = gradient;
         }
 
         Destroy(gameObject, lifeTime);
