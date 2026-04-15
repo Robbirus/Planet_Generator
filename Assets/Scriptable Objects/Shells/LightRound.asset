@@ -13,10 +13,11 @@ MonoBehaviour:
   m_Name: LightRound
   m_EditorClassIdentifier: Assembly-CSharp::ShellSO
   color: {r: 1, g: 0.6431373, b: 0, a: 1}
-  weaponType: 0
   shellImage: {fileID: 0}
-  velocity: 100
+  weaponType: 0
+  velocity: 1500
+  lifeTime: 2
   standardDamage: 23
   durableDamage: 95
   armorPen: 2
-  lifeTime: 2
+  typeEffect: 3
