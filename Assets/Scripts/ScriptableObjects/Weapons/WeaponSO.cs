@@ -1,4 +1,5 @@
 using UnityEngine;
+using System.Collections.Generic;
 
 /// <summary>
 /// Defines all static properties of a weapon.
@@ -10,7 +11,7 @@ public class WeaponSO : ScriptableObject
 {
     [Header("Identity")]
     public string weaponName;
-    public Sprite weaponIcon;
+    public List<AudioClip> fireSounds;
     public WeaponType weaponType;
 
     [Header("Fire Rate")]
