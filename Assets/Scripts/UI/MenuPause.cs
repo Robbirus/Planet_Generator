@@ -168,7 +168,7 @@ public class MenuPause : MonoBehaviour
         {
             MenuController.sfxVolume++;
         }
-        audioMixer.SetFloat("BGM", Mathf.Log10(MenuController.sfxVolume / 10f) * 20);
+        audioMixer.SetFloat("SFX", Mathf.Log10(MenuController.sfxVolume / 10f) * 20);
         sfxTextValue.text = MenuController.sfxVolume.ToString("0");
     }
 
@@ -181,11 +181,11 @@ public class MenuPause : MonoBehaviour
 
         if (MenuController.sfxVolume == 0)
         {
-            audioMixer.SetFloat("BGM", Mathf.Log10(-1 * 20));
+            audioMixer.SetFloat("SFX", Mathf.Log10(-1 * 20));
         }
         else
         {
-            audioMixer.SetFloat("BGM", Mathf.Log10(MenuController.sfxVolume / 10f) * 20);
+            audioMixer.SetFloat("SFX", Mathf.Log10(MenuController.sfxVolume / 10f) * 20);
         }
 
         sfxTextValue.text = MenuController.sfxVolume.ToString("0");
