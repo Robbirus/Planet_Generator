@@ -15,8 +15,10 @@ public class WeaponManager : MonoBehaviour
         public WeaponSO weapon;
         [Tooltip("Ammo currently loaded ÅEdefaults to weapon.defaultShell.")]
         public ShellSO loadedShell;
-        [Tooltip("Transform from which the shell is spawned.")]
-        public Transform spawnPoint;
+        [Tooltip("Left Transform from which the shell is spawned.")]
+        public Transform leftSpawnPoint;
+        [Tooltip("Right Transform from which the shell is spawned.")]
+        public Transform rightSpawnPoint;
         public bool hasMagasine; // If false, weapon doesn't consume ammo and doesn't reload (e.g. energy weapons)
         [HideInInspector] public int currentAmmo;
         [HideInInspector] public bool isReloading;
@@ -175,12 +177,13 @@ public class WeaponManager : MonoBehaviour
             return;
         }
 
-        Fire(slot);
+        Fire(slot, slot.leftSpawnPoint);
+        Fire(slot, slot.rightSpawnPoint);
     }
 
-    private void Fire(WeaponSlot slot)
+    private void Fire(WeaponSlot slot, Transform spawnPoint)
     {
-        if (shellPrefab == null ||slot.spawnPoint == null)
+        if (shellPrefab == null ||slot.leftSpawnPoint == null || slot.rightSpawnPoint == null)
         {
             Debug.LogWarning("[WeaponManager] shellPrefab or spawnPoint is not assigned.", this);
             return;
@@ -188,7 +191,7 @@ public class WeaponManager : MonoBehaviour
 
         bool isCrit = RollCrit();
 
-        GameObject shellGO = Instantiate(shellPrefab, slot.spawnPoint.position, slot.spawnPoint.rotation);
+        GameObject shellGO = Instantiate(shellPrefab, spawnPoint.position, spawnPoint.rotation);
         Shell shell = shellGO.GetComponent<Shell>();
 
         if (shell != null)
