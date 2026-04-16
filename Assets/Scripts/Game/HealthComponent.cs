@@ -26,6 +26,9 @@ public class HealthComponent : MonoBehaviour, IDamageable
     [Header("Armor")]
     [Tooltip("The armor class of this part. Determines how much damage is reduced based on shell penetration.")]
     [SerializeField] private ArmorType armorType = ArmorType.LIGHT;
+    [Tooltip("The durability of this part. Determines how much damage is absorbed by the part.")]
+    [Range(0f, 100f)]
+    [SerializeField] private float durability = 100f;
     [Space(5)]
 
     [Header("Destruction")]
@@ -57,7 +60,7 @@ public class HealthComponent : MonoBehaviour, IDamageable
         // Ignore friendly fire
         if (shell.GetTeam() == team) return;
 
-        float damage = shell.GetFinalDamage(armorType);
+        float damage = shell.GetFinalDamage(armorType, this);
 
         TakeDamage(damage);
 
@@ -116,7 +119,7 @@ public class HealthComponent : MonoBehaviour, IDamageable
         currentHealth = Mathf.Min(currentHealth + amount, maxHealth);
     }
 
-    // Getters
+    #region GETTERS
     public float GetCurrentHealth() { return currentHealth; }
     public float GetMaxHealth() { return maxHealth; }
     public float GetHealthRatio() { return currentHealth / maxHealth; }
@@ -124,4 +127,6 @@ public class HealthComponent : MonoBehaviour, IDamageable
     public Team GetTeam() { return team; }
     public bool IsMainFrame() { return isMainFrame; }
     public bool IsDead() { return currentHealth <= 0; }
+    public float GetDurability() { return durability; }
+    #endregion
 }
