@@ -13,16 +13,19 @@ public class WeaponManager : MonoBehaviour
     public class WeaponSlot
     {
         public WeaponSO weapon;
-        [Tooltip("Ammo currently loaded ÅEdefaults to weapon.defaultShell.")]
+        [Tooltip("Ammo currently loaded defaults to weapon.defaultShell.")]
         public ShellSO loadedShell;
         [Tooltip("Left Transform from which the shell is spawned.")]
         public Transform leftSpawnPoint;
         [Tooltip("Right Transform from which the shell is spawned.")]
         public Transform rightSpawnPoint;
         public bool hasMagasine; // If false, weapon doesn't consume ammo and doesn't reload (e.g. energy weapons)
+        [Tooltip("For weapons with a fire rate that accelerates the longer you hold the trigger (e.g. minigun).")]
+        public float fireRateAcceleration = 5f;
         [HideInInspector] public int currentAmmo;
         [HideInInspector] public bool isReloading;
         [HideInInspector] public float fireTimer;
+        [HideInInspector] public float currentFireRate = 0f;
     }
 
     [Header("Weapon Slots")]
@@ -58,6 +61,7 @@ public class WeaponManager : MonoBehaviour
     public event Action<ShellSO> OnShellChanged;
     public event Action<float, float> OnReloadProgress;
     public event Action<bool> OnReloadStateChanged;
+    public event Action<AudioClip> OnPlayFireSound;
     #endregion
 
     private int currentWeaponIndex = 0;
@@ -145,8 +149,11 @@ public class WeaponManager : MonoBehaviour
 
     private void Update()
     {
+        bool isShooting = shootActionReference != null && shootActionReference.action.IsPressed();
+
         // Tick fire timers for all slots
-        for(int i = 0; i < weaponSlots.Length; i++)
+        // Tick fire timers for all slots
+        for (int i = 0; i < weaponSlots.Length; i++)
         {
             if (weaponSlots[i].fireTimer > 0)
             {
@@ -155,7 +162,7 @@ public class WeaponManager : MonoBehaviour
         }
 
         // Shoot
-        if(shootActionReference != null && shootActionReference.action.IsPressed())
+        if (isShooting)
         {
             TryShoot();
         }
@@ -189,6 +196,16 @@ public class WeaponManager : MonoBehaviour
             return;
         }
 
+        if(slot.weapon.fireSounds == null || slot.weapon.fireSounds.Count == 0)
+        {
+            Debug.LogWarning($"[WeaponManager] No fire sounds assigned for weapon {slot.weapon.weaponName}.", this);
+            return;
+        }
+
+        // Play a random fire sound from the weapon's list
+        AudioClip clip = slot.weapon.fireSounds[UnityEngine.Random.Range(0, slot.weapon.fireSounds.Count)];
+        OnPlayFireSound?.Invoke(clip);
+
         bool isCrit = RollCrit();
 
         GameObject shellGO = Instantiate(shellPrefab, spawnPoint.position, spawnPoint.rotation);
@@ -213,12 +230,10 @@ public class WeaponManager : MonoBehaviour
             slot.currentAmmo--;
         }
 
-
         // shootParticle?.Play();
-
         OnShellChanged?.Invoke(slot.loadedShell);
 
-        if(slot.currentAmmo <= 0)
+        if (slot.currentAmmo <= 0)
         {
             StartCoroutine(Reloading(slot));
         }
