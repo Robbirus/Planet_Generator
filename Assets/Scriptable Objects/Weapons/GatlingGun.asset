@@ -15,7 +15,7 @@ MonoBehaviour:
   weaponName: Gatling Gun
   weaponIcon: {fileID: 0}
   weaponType: 0
-  fireRate: 100
+  fireRate: 200
   hasMagazine: 0
   magazineSize: 10
   reloadTime: 2

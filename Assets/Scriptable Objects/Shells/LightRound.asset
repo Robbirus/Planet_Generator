@@ -12,10 +12,10 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 13548f94088ebeb48ad4a06c685f96a0, type: 3}
   m_Name: LightRound
   m_EditorClassIdentifier: Assembly-CSharp::ShellSO
-  color: {r: 1, g: 0.6431373, b: 0, a: 1}
+  color: {r: 1, g: 0.6431373, b: 0, a: 0.6}
   shellImage: {fileID: 0}
   weaponType: 0
-  velocity: 1500
+  velocity: 3500
   lifeTime: 2
   standardDamage: 23
   durableDamage: 95
