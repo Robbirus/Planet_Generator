@@ -126,9 +126,10 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::HealthComponent
   team: 1
-  maxHealth: 100
+  maxHealth: 1000
   currentHealth: 0
   armorType: 3
+  durability: 100
   isDestructible: 1
   isMainFrame: 0
   logDamage: 0
@@ -258,9 +259,10 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::HealthComponent
   team: 1
-  maxHealth: 100
+  maxHealth: 1000
   currentHealth: 0
   armorType: 3
+  durability: 100
   isDestructible: 1
   isMainFrame: 0
   logDamage: 0
@@ -445,9 +447,10 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::HealthComponent
   team: 1
-  maxHealth: 100
+  maxHealth: 10000
   currentHealth: 0
   armorType: 4
+  durability: 100
   isDestructible: 1
   isMainFrame: 1
   logDamage: 0
@@ -579,9 +582,10 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::HealthComponent
   team: 1
-  maxHealth: 100
+  maxHealth: 1000
   currentHealth: 0
   armorType: 2
+  durability: 100
   isDestructible: 1
   isMainFrame: 0
   logDamage: 0
