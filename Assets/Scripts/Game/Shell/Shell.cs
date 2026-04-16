@@ -89,12 +89,12 @@ public class Shell : MonoBehaviour
     /// <summary>
     /// Returns final damage considering durable damage, crit and armor penetration.
     /// </summary>
-    public float GetFinalDamage(ArmorType targetArmor)
+    public float GetFinalDamage(ArmorType targetArmor, HealthComponent enemyPart)
     {
         if (targetArmor == ArmorType.INDESTRUCTIBLE) return 0f;
 
         // Base damage formula
-        float baseDamage = standardDamage * (1 - durableDamage / 100f) + (durableDamage * durableDamage / 100f);
+        float baseDamage = standardDamage * (1 - enemyPart.GetDurability() / 100f) + (durableDamage * enemyPart.GetDurability() / 100f);
         
         // Crit only for player shells
         if (this.owner == Team.Player && isCrit)
@@ -127,11 +127,15 @@ public class Shell : MonoBehaviour
         int pen     = (int)shellPen;
         int armor   = (int)targetArmor;
 
-        if(pen >= armor) return 1f;
-        if(pen == armor) return 0.65f;
-
-        return 0f;
-
+        if (pen >= armor)
+        {
+            return 1f;
+        }
+        else
+        {
+            // Example: pen 2 vs armor 4 -> 50% damage
+            return 1f - (armor - pen) * 0.25f;
+        }
     }
 
     #region Getter
