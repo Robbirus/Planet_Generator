@@ -13,9 +13,14 @@ MonoBehaviour:
   m_Name: GatlingGun
   m_EditorClassIdentifier: Assembly-CSharp::WeaponSO
   weaponName: Gatling Gun
-  weaponIcon: {fileID: 0}
+  fireSounds:
+  - {fileID: 8300000, guid: c72a94a847f23fa479edb9dff2e3d4ac, type: 3}
+  - {fileID: 8300000, guid: 7e6a89e81bc46cf49944b136c869d927, type: 3}
+  - {fileID: 8300000, guid: e6e5c77d10a180644b601d28050eb903, type: 3}
+  - {fileID: 8300000, guid: 110d5837213fffe4c94c4f53c85b35da, type: 3}
+  - {fileID: 8300000, guid: 755489b7e3685db46bac9b7b4977df42, type: 3}
   weaponType: 0
-  fireRate: 200
+  fireRate: 10
   hasMagazine: 0
   magazineSize: 10
   reloadTime: 2
