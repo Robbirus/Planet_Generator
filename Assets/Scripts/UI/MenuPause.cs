@@ -211,7 +211,7 @@ public class MenuPause : MonoBehaviour
     public IEnumerator ConfirmationBox()
     {
         confirmationPrompt.SetActive(true);
-        yield return new WaitForSeconds(2);
+        yield return new WaitForSecondsRealtime(2);
         confirmationPrompt.SetActive(false);
     }
 }
