@@ -7,7 +7,8 @@ public class EnemyHealthBarUI : MonoBehaviour
     [SerializeField] private Slider fillImage;
 
     [Header("Settings")]
-    [SerializeField] private Vector3 offset = new Vector3(0f, 2f, 0f);
+    [SerializeField] private Vector3 offset = new Vector3(0f, 3f, 0f);
+    [SerializeField] private Vector3 scale = new Vector3(0.3f, 0.3f, 0.3f);
     [SerializeField] private Color colorFull = new Color(0.2f, 0.8f, 0.2f);
     [SerializeField] private Color colorDanger = new Color(0.9f, 0.2f, 0.2f);
     [Tooltip("Bar disappears when HP is full (saves screen clutter).")]
@@ -36,8 +37,8 @@ public class EnemyHealthBarUI : MonoBehaviour
         if (tracked == null) { Destroy(gameObject); return; }
 
         // Follow the part
-        transform.position = tracked.transform.position + offset;
-        transform.localScale = new Vector3(0.3f, 0.3f, 0.3f); // Keep a consistent size regardless of distance
+        transform.position = tracked.transform.position + (offset * 100f);
+        transform.localScale = scale; // Keep a consistent size regardless of distance
 
         // Billboard — always face the camera
         transform.LookAt(transform.position + cam.forward);
