@@ -14,26 +14,30 @@ public class PlanetEditor : Editor
     {
         base.OnInspectorGUI();
 
-        DrawSettingsEditor(planet.shapeSettings, planet.OnShapeSettingsUpdated);
-        DrawSettingsEditor(planet.colourSettings, planet.OnColourSettingsUpdated);
+        DrawSettingsEditor(planet.shapeSettings, planet.OnShapeSettingsUpdated, ref planet.shapeSettingsFoldout);
+        DrawSettingsEditor(planet.colourSettings, planet.OnColourSettingsUpdated, ref planet.colourSettingsFoldout);
     }
 
     // With this we can check if the planet's settings have been changed in the editor
     // and update the planet accordingly
-    void DrawSettingsEditor(Object settings, System.Action onSettingsUpdated)
+    void DrawSettingsEditor(Object settings, System.Action onSettingsUpdated, ref bool foldout)
     {
         using (var check = new EditorGUI.ChangeCheckScope()) 
         {
-            Editor editor = CreateEditor(settings);
-            editor.OnInspectorGUI();
-
-            if (check.changed) 
+            foldout = EditorGUILayout.InspectorTitlebar(foldout, settings); // Create titlebar
+            
+            if (foldout)
             {
-                if (onSettingsUpdated != null)
-                { 
-                    onSettingsUpdated();
+                Editor editor = CreateEditor(settings);
+                editor.OnInspectorGUI();
+
+                if (check.changed)
+                {
+                    if (onSettingsUpdated != null)
+                    {
+                        onSettingsUpdated();
+                    }
                 }
-                
             }
         }
     }
