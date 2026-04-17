@@ -253,7 +253,7 @@ GameObject:
   - component: {fileID: 1611522868622428402}
   - component: {fileID: 3236493453444043741}
   m_Layer: 0
-  m_Name: Enemy Canvas
+  m_Name: Enemy Health
   m_TagString: Untagged
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
@@ -355,7 +355,8 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::EnemyHealthBarUI
   fillImage: {fileID: 5807620854767021475}
-  offset: {x: 0, y: 1.5, z: 0}
+  offset: {x: 0, y: 3, z: 0}
+  scale: {x: 0.3, y: 0.3, z: 0.3}
   colorFull: {r: 0.2, g: 0.8, b: 0.2, a: 1}
   colorDanger: {r: 0.9, g: 0.2, b: 0.2, a: 1}
   hideWhenFull: 1
