@@ -7,6 +7,7 @@ public class Planet : MonoBehaviour
 
     [Range(2, 256)]
     public int resolution = 10;
+    public bool autoUpdate = true;
 
     public ShapeSettings shapeSettings; // link shape editor
     public ColourSettings colourSettings; // link color editor
@@ -21,11 +22,6 @@ public class Planet : MonoBehaviour
     [SerializeField, HideInInspector]
     MeshFilter[] meshFilters; // a mesh filter holds a reference to a mesh
     TerrainFace[] terrainFaces;
-
-    private void OnValidate()
-    {
-        GeneratePlanet();
-    }
 
     // Initialize mesh filters for each terrain face
     void Initialize()
@@ -67,15 +63,21 @@ public class Planet : MonoBehaviour
     // Update shape (mesh) if shape settings have changed
     public void OnShapeSettingsUpdated()
     {
-        Initialize();
-        GenerateMesh();
+        if (autoUpdate)
+        {
+            Initialize();
+            GenerateMesh();
+        }
     }
 
     // Update colors if color settings have changed
     public void OnColourSettingsUpdated()
     {
-        Initialize();
-        GenerateColours();
+        if (autoUpdate)
+        {
+            Initialize();
+            GenerateColours();
+        }
     }
 
     // Generate mesh for each terrain face
