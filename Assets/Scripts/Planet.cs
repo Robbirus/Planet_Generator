@@ -11,6 +11,11 @@ public class Planet : MonoBehaviour
     public ShapeSettings shapeSettings; // link shape editor
     public ColourSettings colourSettings; // link color editor
 
+    [HideInInspector]
+    public bool shapeSettingsFoldout;
+    [HideInInspector]
+    public bool colourSettingsFoldout;
+
     ShapeGenerator shapeGenerator; // use shapeGenerator object to update shape
 
     [SerializeField, HideInInspector]
