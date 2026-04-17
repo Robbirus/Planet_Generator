@@ -133,8 +133,7 @@ public class Shell : MonoBehaviour
         }
         else
         {
-            // Example: pen 2 vs armor 4 -> 50% damage
-            return 1f - (armor - pen) * 0.25f;
+            return pen / (float)armor;
         }
     }
 
