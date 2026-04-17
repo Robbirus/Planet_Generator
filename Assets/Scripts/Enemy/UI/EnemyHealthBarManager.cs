@@ -31,14 +31,6 @@ public class EnemyHealthBarManager : MonoBehaviour
                 barParent);
 
             bar.Init(part);
-
-            part.OnDamaged += (damage, current, max) =>
-                DamagePopupManager.instance.Show(
-                damage,
-                false,
-                part.transform.position);
-
-            Debug.Log($"[EnemyHealthBarManager] Spawned health bar for '{part.gameObject.name}'.");
         }
     }
 }
