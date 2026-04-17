@@ -69,6 +69,13 @@ public class HealthComponent : MonoBehaviour, IDamageable
         {
             ApplyEffect(shell.GetTypeEffect());
         }
+
+        if(shell.GetTeam() == Team.Player)
+        {
+            // Optionally, add feedback for the enemy here (e.g., hit sparks, sound effects).
+            // Damage popups
+            DamagePopupManager.instance.Show(damage, shell.IsCrit(), transform.position);
+        }
     }
 
     public void TakeDamage(float damage)

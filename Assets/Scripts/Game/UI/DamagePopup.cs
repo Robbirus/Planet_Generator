@@ -16,7 +16,9 @@ public class DamagePopup : MonoBehaviour
     [SerializeField] private Color colorCrit = new Color(1f, 0.7f, 0f);
     [SerializeField] private float normalSize = 0.4f;
     [SerializeField] private float critSize = 0.6f;
-    [SerializeField] private Vector2 randomOffset = new Vector2(0.5f, 0f);
+    [SerializeField] private Vector3 randomOffset = new Vector2(5f, 5f);
+    [SerializeField] private Vector3 scale = new Vector2(0.3f, 0.3f);
+    [SerializeField] private float scatterRadius = 100f;
 
     private float elapsed;
     private bool isCrit;
@@ -30,15 +32,16 @@ public class DamagePopup : MonoBehaviour
 
         // Random horizontal scatter so multiple popups don't stack
         Vector3 scatter = new Vector3(
-            Random.Range(-randomOffset.x, randomOffset.x),
-            Random.Range(0f, randomOffset.y),
+            Random.Range(-randomOffset.x * scatterRadius, randomOffset.x * scatterRadius),
+            Random.Range(0f, randomOffset.y * scatterRadius),
             0f);
 
         transform.position = worldPosition + scatter;
 
         if (label != null)
         {
-            label.text = isCrit ? $"★ {damage:0.#}" : $"{damage:0.#}";
+            label.rectTransform.localScale = scale;
+            label.text = isCrit ? $"{damage:0.#}" : $"{damage:0.#}";
             label.color = isCrit ? colorCrit : colorNormal;
             label.fontSize = isCrit ? critSize : normalSize;
         }

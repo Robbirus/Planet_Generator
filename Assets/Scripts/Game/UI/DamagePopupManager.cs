@@ -11,6 +11,10 @@ public class DamagePopupManager : MonoBehaviour
     [Tooltip("Parent transform for spawned popups. Leave empty for scene root.")]
     [SerializeField] private Transform popupParent;
 
+    [Header("Debug")]
+    [Tooltip("Log damage popup spawns to console.")]
+    [SerializeField] private bool logPopups = false;
+
     private void Awake()
     {
         if (instance != null && instance != this)
@@ -22,7 +26,6 @@ public class DamagePopupManager : MonoBehaviour
         {
             instance = this;
         }
-        DontDestroyOnLoad(gameObject);
     }
 
     /// <summary>
@@ -37,7 +40,11 @@ public class DamagePopupManager : MonoBehaviour
             return;
         }
 
-        Debug.Log($"[DamagePopupManager] Showing damage popup: {damage} at {worldPosition} (crit: {isCrit})");
+        if (logPopups)
+        {
+            Debug.Log($"[DamagePopupManager] Showing damage popup: {damage} at {worldPosition} (crit: {isCrit})");
+        }
+
         DamagePopup popup = Instantiate(popupPrefab, worldPosition, Quaternion.identity, popupParent);
         popup.Init(damage, isCrit, worldPosition);
     }
