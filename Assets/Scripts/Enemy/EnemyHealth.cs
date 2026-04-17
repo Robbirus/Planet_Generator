@@ -19,7 +19,7 @@ public class EnemyHealth : MonoBehaviour
     [Space(5)]
 
     [Header("Debug")]
-    [SerializeField] private bool logEvents = true;
+    [SerializeField] private bool logEvents = false;
 
     // Events
     /// <summary>Fires when any part is destroyed, with the destroyed part.</summary>

@@ -28,6 +28,9 @@ public class ResourceHarvester : MonoBehaviour
     [Tooltip("Fires every tick with the list of resources just harvested this tick.")]
     public System.Action<List<(ResourceType type, float amount)>> OnHarvestTick;
 
+    [Header("Debug")]
+    [SerializeField] private bool isDebug = false;
+
     private PlanetLockSystem lockSystem;
     private ShipInventory inventory;
 
@@ -98,7 +101,10 @@ public class ResourceHarvester : MonoBehaviour
             OnHarvestTick?.Invoke(tickResults);
         }
 
-        LogTick(tickResults, planet.name);
+        if (isDebug)
+        {
+            LogTick(tickResults, planet.name);
+        }
     }
 
     // Debug
