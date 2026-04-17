@@ -9,27 +9,43 @@ using Unity.VisualScripting;
 public class PlanetEditor : Editor
 {
     Planet planet;
+    Editor shapeEditor;
+    Editor colourEditor;
 
     public override void OnInspectorGUI()
     {
-        base.OnInspectorGUI();
+        using (var check = new EditorGUI.ChangeCheckScope())
+        {
+            base.OnInspectorGUI();
+            if (check.changed)
+            {
+                planet.GeneratePlanet();
+            }
+        }
 
-        DrawSettingsEditor(planet.shapeSettings, planet.OnShapeSettingsUpdated, ref planet.shapeSettingsFoldout);
-        DrawSettingsEditor(planet.colourSettings, planet.OnColourSettingsUpdated, ref planet.colourSettingsFoldout);
+        if (GUILayout.Button("Generate Planet"))
+        {
+            planet.GeneratePlanet();
+        }
+
+        DrawSettingsEditor(planet.shapeSettings, planet.OnShapeSettingsUpdated, ref planet.shapeSettingsFoldout, ref shapeEditor);
+        DrawSettingsEditor(planet.colourSettings, planet.OnColourSettingsUpdated, ref planet.colourSettingsFoldout, ref colourEditor);
     }
 
     // With this we can check if the planet's settings have been changed in the editor
     // and update the planet accordingly
-    void DrawSettingsEditor(Object settings, System.Action onSettingsUpdated, ref bool foldout)
+    void DrawSettingsEditor(Object settings, System.Action onSettingsUpdated, ref bool foldout, ref Editor editor)
     {
-        using (var check = new EditorGUI.ChangeCheckScope()) 
+        if (settings != null)
         {
             foldout = EditorGUILayout.InspectorTitlebar(foldout, settings); // Create titlebar
-            
-            if (foldout)
+            using (var check = new EditorGUI.ChangeCheckScope())
             {
-                Editor editor = CreateEditor(settings);
-                editor.OnInspectorGUI();
+                if (foldout)
+                {
+                    CreateCachedEditor(settings, null, ref editor);
+                    editor.OnInspectorGUI();
+                }
 
                 if (check.changed)
                 {
