@@ -39,7 +39,7 @@ MonoBehaviour:
   - Hellmire
   - Puy-en-Velay
   numberRange: {x: 0, y: 10}
-  distanceRange: {x: 2000, y: 80000}
+  distanceRange: {x: 14000, y: 80000}
   orbitalSpeedRange: {x: 100, y: 1000}
   rotationSpeedRange: {x: 5, y: 50}
   massRange: {x: 2000, y: 7000}
