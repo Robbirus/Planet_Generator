@@ -8,11 +8,14 @@ public class DistantStars : MonoBehaviour
     [SerializeField] private Vector2 starDistance = new Vector2(1500f, 3000f);
     [SerializeField] private Material starMaterial;
 
-    private System.Random stellarRNG;
+    private System.Random rng;
     private MeshFilter meshFilter;
     private MeshRenderer meshRenderer;
 
-    // ─── Lifecycle ────────────────────────────────────────────────────────────
+    private void Awake()
+    {
+        rng = SeedManager.GetRNG("distantStars");
+    }
 
     private void OnEnable()
     {
@@ -50,7 +53,6 @@ public class DistantStars : MonoBehaviour
         transform.position = cam.transform.position;
     }
 
-    // ─── Generation ───────────────────────────────────────────────────────────
 
     public void GenerateStars()
     {
@@ -67,7 +69,6 @@ public class DistantStars : MonoBehaviour
             meshRenderer.sharedMaterial = starMaterial;
     }
 
-    // ─── Mesh building ────────────────────────────────────────────────────────
 
     /// <summary>
     /// Construit un unique mesh composé de quads billboard pour chaque étoile.
@@ -103,10 +104,10 @@ public class DistantStars : MonoBehaviour
 
         for (int i = 0; i < starAmount; i++)
         {
-            Vector3 dir = RandomOnUnitSphere();
-            float distance = Range(starDistance.x, starDistance.y);
-            float scale = Range(0.03f, 0.3f) * distance * 0.01f;
-            float bright = Range(0.6f, 1.0f);
+            Vector3 dir = RandomOnUnitSphere(rng);
+            float distance = SeedManager.Range(starDistance.x, starDistance.y, rng);
+            float scale = SeedManager.Range(0.03f, 0.3f, rng) * distance * 0.01f;
+            float bright = SeedManager.Range(0.6f, 1.0f, rng);
 
             Vector3 center = dir * distance;
 
@@ -153,7 +154,6 @@ public class DistantStars : MonoBehaviour
         return mesh;
     }
 
-    // ─── Helpers ──────────────────────────────────────────────────────────────
 
     private void EnsureComponents()
     {
@@ -170,15 +170,10 @@ public class DistantStars : MonoBehaviour
         }
     }
 
-    private float Range(float min, float max)
+    private Vector3 RandomOnUnitSphere(System.Random rng)
     {
-        return (float)(stellarRNG.NextDouble() * (max - min) + min);
-    }
-
-    private Vector3 RandomOnUnitSphere()
-    {
-        float u = (float)stellarRNG.NextDouble();
-        float v = (float)stellarRNG.NextDouble();
+        float u = (float)rng.NextDouble();
+        float v = (float)rng.NextDouble();
 
         float theta = u * 2f * Mathf.PI;
         float phi = Mathf.Acos(2f * v - 1f);
@@ -188,10 +183,5 @@ public class DistantStars : MonoBehaviour
         float z = Mathf.Cos(phi);
 
         return new Vector3(x, y, z);
-    }
-
-    public void SetSeed(System.Random newSeed)
-    {
-        stellarRNG = newSeed;
     }
 }
