@@ -1,4 +1,4 @@
-using System;
+using System.Collections.Generic;
 
 /// <summary>
 /// Manages the master seed for the current game session.
@@ -16,6 +16,7 @@ using System;
 public static class SeedManager
 {
     private static int currentSeed = 0;
+    private static Dictionary<string, System.Random> rngCache = new();
 
     /// <summary>Sets the master seed explicitly.</summary>
     public static void SetSeed(int seed)
@@ -23,6 +24,9 @@ public static class SeedManager
         currentSeed = seed;
         UnityEngine.Debug.Log($"[SeedManager] Seed set to {currentSeed}");
     }
+
+    /// <summary>Returns the current master seed.</summary>
+    public static int GetSeed() { return currentSeed; }
 
     /// <summary>
     /// Parses a seed from a string (for text input fields).
@@ -44,14 +48,14 @@ public static class SeedManager
     }
 
     /// <summary>Generates and stores a new random seed.</summary>
-    public static void Randomize()
+    public static void Randomize(bool isDebugMode = false)
     {
         currentSeed = UnityEngine.Random.Range(int.MinValue, int.MaxValue);
-        UnityEngine.Debug.Log($"[SeedManager] Random seed generated: {currentSeed}");
+        if (isDebugMode)
+        {
+            UnityEngine.Debug.Log($"[SeedManager] Random seed generated: {currentSeed}");
+        }
     }
-
-    /// <summary>Returns the current master seed.</summary>
-    public static int GetSeed() { return currentSeed; }
 
     /// <summary>
     /// Returns a System.Random derived from the master seed
@@ -61,13 +65,25 @@ public static class SeedManager
     /// </summary>
     public static System.Random GetRNG(string salt = "")
     {
-        int derivedSeed = string.IsNullOrEmpty(salt)
-            ? currentSeed
-            : currentSeed ^ salt.GetHashCode();
+        if (!rngCache.ContainsKey(salt))
+        {
+            int derivedSeed = string.IsNullOrEmpty(salt)
+                ? currentSeed
+                : currentSeed ^ salt.GetHashCode();
 
-        return new System.Random(derivedSeed);
+            rngCache[salt] = new System.Random(derivedSeed);
+        }
+
+        return rngCache[salt];
     }
 
+    /// <summary>
+    /// Returns a number between min and max value with the given rng.
+    /// </summary>
+    /// <param name="min">Minimum value</param>
+    /// <param name="max">Maximum value</param>
+    /// <param name="rng">System.Random generator</param>
+    /// <returns></returns>
     public static float Range(float min, float max, System.Random rng)
     {
         return (float)(rng.NextDouble() * (max - min) + min);
