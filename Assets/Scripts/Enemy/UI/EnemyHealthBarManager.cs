@@ -4,8 +4,9 @@ using UnityEngine;
 public class EnemyHealthBarManager : MonoBehaviour
 {
     [Header("Prefab")]
-    [Tooltip("WorldSpaceHealthBar prefab — one instance will be spawned per part.")]
+    [Tooltip("WorldSpaceHealthBar prefab, one instance will be spawned per part.")]
     [SerializeField] private EnemyHealthBarUI healthBarPrefab;
+    [Space(5)]
 
     [Header("Parent (optional)")]
     [Tooltip("If assigned, all bars are parented here. Leave empty to use scene root.")]
@@ -31,6 +32,11 @@ public class EnemyHealthBarManager : MonoBehaviour
                 barParent);
 
             bar.Init(part);
+
+            part.OnDamaged += (damage, currentHP, maxHP, isCrit) =>
+            {
+                DamagePopupManager.instance?.Show(damage, isCrit, part.transform.position);
+            };
         }
     }
 }

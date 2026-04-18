@@ -40,7 +40,7 @@ public class EnemyHealthBarUI : MonoBehaviour
         transform.position = tracked.transform.position + (offset * 100f);
         transform.localScale = scale; // Keep a consistent size regardless of distance
 
-        // Billboard — always face the camera
+        // Billboard Ealways face the camera
         transform.LookAt(transform.position + cam.forward);
     }
 
@@ -53,7 +53,7 @@ public class EnemyHealthBarUI : MonoBehaviour
 
     // Handlers
 
-    private void OnDamaged(float damage, float current, float max)
+    private void OnDamaged(float damage, float current, float max, bool isCrit)
     {
         float ratio = max > 0f ? current / max : 0f;
         UpdateBar(ratio);

@@ -44,7 +44,7 @@ public class HealthComponent : MonoBehaviour, IDamageable
 
     // Events
     /// <summary>Fires on every hit with (damageTaken, currentHP, maxHP)</summary>
-    public event Action<float, float, float> OnDamaged;
+    public event Action<float, float, float, bool> OnDamaged;
 
     /// <summary>Fires once when HP reaches 0.</summary>
     public event Action<HealthComponent> OnDestroyed;
@@ -62,7 +62,7 @@ public class HealthComponent : MonoBehaviour, IDamageable
 
         float damage = shell.GetFinalDamage(armorType, this);
 
-        TakeDamage(damage);
+        TakeDamage(damage, shell.IsCrit());
 
         // Apply status effects
         if (shell.GetTypeEffect() != TypeEffect.NONE)
@@ -74,11 +74,12 @@ public class HealthComponent : MonoBehaviour, IDamageable
         {
             // Optionally, add feedback for the enemy here (e.g., hit sparks, sound effects).
             // Damage popups
-            DamagePopupManager.instance.Show(damage, shell.IsCrit(), transform.position);
+
+            // DamagePopupManager.instance.Show(damage, shell.IsCrit(), transform.position);
         }
     }
 
-    public void TakeDamage(float damage)
+    public void TakeDamage(float damage, bool isCrit = false)
     {
         if(currentHealth <= 0) return; // Already destroyed
 
@@ -91,7 +92,7 @@ public class HealthComponent : MonoBehaviour, IDamageable
                 $" {currentHealth:0.#}/{maxHealth} HP");
         }
 
-        OnDamaged?.Invoke(actualDamage, currentHealth, maxHealth);
+        OnDamaged?.Invoke(actualDamage, currentHealth, maxHealth, isCrit);
 
         if(currentHealth <= 0)
         {
