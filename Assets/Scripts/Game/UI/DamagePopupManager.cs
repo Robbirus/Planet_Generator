@@ -1,19 +1,29 @@
 using UnityEngine;
 
+/// <summary>
+/// Spawns DamagePopup instances on a Screen Space canvas.
+/// Converts world position -> screen position and scales the popup distance
+/// so far-away numbers appear smaller than close ones.
+/// </summary>
 public class DamagePopupManager : MonoBehaviour
 {
-    public static DamagePopupManager instance;
+    public static DamagePopupManager instance = null;
 
     [Header("Prefab")]
+    [Tooltip("DamagePopup prefab. Must have a DamagePopup component on the root.")]
     [SerializeField] private DamagePopup popupPrefab;
+    [Space(5)]
 
-    [Header("Parent (optional)")]
-    [Tooltip("Parent transform for spawned popups. Leave empty for scene root.")]
-    [SerializeField] private Transform popupParent;
+    [Header("Canvas")]
+    [Tooltip("Screen Space Canvas where popup are spawned. Must be Screen Overlay.")]
+    [SerializeField] private Canvas popupCanvas;
+    [Space(5)]
 
     [Header("Debug")]
     [Tooltip("Log damage popup spawns to console.")]
     [SerializeField] private bool logPopups = false;
+
+    private Camera cam;
 
     private void Awake()
     {
@@ -25,12 +35,13 @@ public class DamagePopupManager : MonoBehaviour
         else
         {
             instance = this;
+            cam = Camera.main;
         }
     }
 
     /// <summary>
-    /// Spawns a floating damage number at the given world position.
-    /// Called from EnemyHealthBarManager (which bridges HealthComponent -> popup).
+    /// Converts worldPosition to screen space and spawns a popup on the UI canvas.
+    /// Call this from EnemyHealthBarManager or HealthComponent events.
     /// </summary>
     public void Show(float damage, bool isCrit, Vector3 worldPosition)
     {
@@ -40,12 +51,39 @@ public class DamagePopupManager : MonoBehaviour
             return;
         }
 
-        if (logPopups)
+        if(popupCanvas == null)
         {
-            Debug.Log($"[DamagePopupManager] Showing damage popup: {damage} at {worldPosition} (crit: {isCrit})");
+            Debug.LogWarning("[DamagePopupManager] popupCanvas is not assigned.", this);
+            return;
         }
 
-        DamagePopup popup = Instantiate(popupPrefab, worldPosition, Quaternion.identity, popupParent);
-        popup.Init(damage, isCrit, worldPosition);
+        // Up-shifts the object
+        worldPosition += Vector3.up * 1.5f;
+
+        Vector3 screenPos = cam.WorldToScreenPoint(worldPosition);
+
+        // If behind the camera -> ignores
+        if (screenPos.z < 0)
+            return;
+
+        // Convert to UI position
+        RectTransform canvasRect = popupCanvas.GetComponent<RectTransform>();
+
+        Vector2 anchoredPos;
+        RectTransformUtility.ScreenPointToLocalPointInRectangle(
+            canvasRect,
+            screenPos,
+            null,
+            out anchoredPos
+        );
+
+        if (logPopups)
+        {
+            Debug.Log($"[DamagePopupManager] Showing damage popup: {damage:0} at {screenPos} (crit: {isCrit})");
+        }
+
+        // Spawn
+        DamagePopup popup = Instantiate(popupPrefab, popupCanvas.transform);
+        popup.Init(damage, isCrit, anchoredPos);
     }
 }

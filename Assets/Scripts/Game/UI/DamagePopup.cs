@@ -1,4 +1,6 @@
-﻿using TMPro;
+﻿using System;
+using System.Collections;
+using TMPro;
 using UnityEngine;
 
 public class DamagePopup : MonoBehaviour
@@ -7,73 +9,120 @@ public class DamagePopup : MonoBehaviour
     [SerializeField] private TMP_Text label;
 
     [Header("Animation")]
+    [Tooltip("Total lifetime of the popup in seconds")]
     [SerializeField] private float lifetime = 1.2f;
-    [SerializeField] private float riseSpeed = 1.5f;
-    [SerializeField] private float fadeStart = 0.6f;  // ratio of lifetime when fade begins
+    [Tooltip("Upward speed in pixels per second")]
+    [SerializeField] private float riseSpeed = 80f;
+    [Space(5)]
 
     [Header("Style")]
     [SerializeField] private Color colorNormal = Color.white;
     [SerializeField] private Color colorCrit = new Color(1f, 0.7f, 0f);
-    [SerializeField] private float normalSize = 0.4f;
-    [SerializeField] private float critSize = 0.6f;
-    [SerializeField] private Vector3 randomOffset = new Vector2(5f, 5f);
-    [SerializeField] private Vector3 scale = new Vector2(0.3f, 0.3f);
-    [SerializeField] private float scatterRadius = 100f;
+    [SerializeField] private float normalSize = 28f; // TMP font size
+    [SerializeField] private float critSize = 38f;
+    [SerializeField] private float scale = 1f; // Scale multiplier for font size
+    [Space(5)]
 
-    private float elapsed;
-    private bool isCrit;
-    private Transform cam;
+    [Header("Scatter")]
+    [Tooltip("Max horizontal scatter in pixels so stacked popups don't overlap")]
+    [SerializeField] private float scatterX = 30f;
+    [Tooltip("Max vertical scatter in pixels")]
+    [SerializeField] private float scatterY = 15f;
+    [Tooltip("Scale multiplier for the X axis")]
+    [SerializeField] private float scatterScaleX = 50f;
+    [Tooltip("Scale multiplier for the Y axis")]
+    [SerializeField] private float scatterScaleY = 50f;
+    [Space(5)]
+
+    [Header("Debug")]
+    [Tooltip("If true, popups will have a random scatter offset to avoid stacking on top of each other.")]
+    [SerializeField] private bool isScattered = false;
+    [Tooltip("If true, logs to console.")]
+    [SerializeField] private bool isDebugMode = false;
+
+    private RectTransform rect;
     private System.Random rng;
 
     private void Awake()
     {
+        rect = GetComponent<RectTransform>();
         rng = SeedManager.GetRNG("damagePopup");
     }
 
     /// <summary>Call immediately after instantiation.</summary>
-    public void Init(float damage, bool isCrit, Vector3 worldPosition)
+    public void Init(float damage, bool isCrit, Vector3 screenPos)
     {
-        this.isCrit = isCrit;
-        cam = Camera.main.transform;
-
-        // Random horizontal scatter so multiple popups don't stack
-        Vector3 scatter = new Vector3(
-            SeedManager.Range(-randomOffset.x * scatterRadius, randomOffset.x * scatterRadius, rng),
-            SeedManager.Range(0f, randomOffset.y * scatterRadius, rng),
-            0f);
-
-        transform.position = worldPosition + scatter;
-
-        if (label != null)
+        // Texte
+        if(damage < 0.01f)
         {
-            label.rectTransform.localScale = scale;
-            label.text = isCrit ? $"{damage:0.#}" : $"{damage:0.#}";
-            label.color = isCrit ? colorCrit : colorNormal;
-            label.fontSize = isCrit ? critSize : normalSize;
+            label.text = "";
+        }
+        else
+        {
+            label.text = $"{damage: 0}";
         }
 
+        label.color = isCrit ? colorCrit : colorNormal;
+        label.fontSize = (isCrit ? critSize : normalSize) * scale;
+
+        // Initial position
+        rect.anchoredPosition = new Vector3(0f, 0f, 0f); // Start at center, then apply scatter and movement
+
+        // Small variation
+        if(isScattered)
+        {
+            rect.anchoredPosition += new Vector2(
+                SeedManager.Range(-scatterX, scatterX, rng) * scatterScaleX,
+                SeedManager.Range(0f, scatterY, rng) * scatterScaleY
+            );
+        }
+
+        if (isDebugMode)
+        {
+            Debug.Log($"DamagePopup Init: damage={damage:0}, position={rect.anchoredPosition}");
+        }
+
+        // Rotation
+        rect.rotation = Quaternion.identity;
+
+        // Scale "pop"
+        StartCoroutine(ScaleUp());
+
+        // Destruction
         Destroy(gameObject, lifetime);
     }
 
     private void Update()
     {
-        elapsed += Time.deltaTime;
-        float t = Mathf.Clamp01(elapsed / lifetime);
+        // Rises upwards
+        rect.anchoredPosition += Vector2.up * riseSpeed * Time.deltaTime;
 
-        // Rise
-        transform.position += Vector3.up * riseSpeed * Time.deltaTime;
+        // Fade out
+        FadeOut();
+    }
 
-        // Billboard
-        if (cam != null)
-            transform.LookAt(transform.position + cam.forward);
+    private void FadeOut()
+    {
+        float alpha = Time.deltaTime / lifetime;
 
-        // Fade out in the last portion of lifetime
-        if (label != null && t >= fadeStart)
+        if (label != null)
         {
-            float alpha = 1f - Mathf.InverseLerp(fadeStart, 1f, t);
             Color c = label.color;
-            c.a = alpha;
+            c.a -= alpha;
             label.color = c;
+        }
+    }
+
+    private IEnumerator ScaleUp()
+    {
+        rect.localScale = Vector3.zero;
+        float t = 0f;
+
+        while (t < 1f)
+        {
+            t += Time.deltaTime * 8f;
+            rect.localScale = Vector3.Lerp(Vector3.zero, Vector3.one, t);
+            yield return null;
         }
     }
 }
