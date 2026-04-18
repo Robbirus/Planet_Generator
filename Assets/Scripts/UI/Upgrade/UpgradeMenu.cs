@@ -29,7 +29,6 @@ public class UpgradeMenu : MonoBehaviour
     [Space(10)]
 
     private readonly Dictionary<SkillNodeSO, SkillNodeUI> nodeUIs = new();
-    private bool initialized = false;
 
     private void OnEnable()
     {
