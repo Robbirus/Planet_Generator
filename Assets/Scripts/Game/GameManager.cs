@@ -6,6 +6,10 @@ public class GameManager : MonoBehaviour
 {
     private SpaceshipController spaceship;
 
+    [Header("Game settings")]
+    [SerializeField] private int seed = 420;
+    [Space(5)]
+
     [Header("State debug")]
     [SerializeField] private GameState currentState;
 
@@ -25,6 +29,9 @@ public class GameManager : MonoBehaviour
             instance = this;
         }
         DontDestroyOnLoad(gameObject);
+
+        // Set the seed for the game
+        SeedManager.SetSeed(seed);
     }
 
     private void Start()
