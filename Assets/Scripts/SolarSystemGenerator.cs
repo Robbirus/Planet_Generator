@@ -10,7 +10,6 @@ public class SolarSystemGenerator : MonoBehaviour
     [Space(10)]
 
     [Header("Seed")]
-    [SerializeField] private int seed = 0;
     [SerializeField] private DistantStars distantStars;
     private System.Random stellarRNG;
     private System.Random planetaryRNG;
@@ -92,24 +91,18 @@ public class SolarSystemGenerator : MonoBehaviour
             return;
         }
 
-        GenerateSeeds(seed);
+        GenerateSeeds();
         SetPlanetData(planetData);
         SetMoonData(moonData);
         GenerateStars();
         GeneratePlanets();
     }
 
-    private void GenerateSeeds(int seed)
+    private void GenerateSeeds()
     {
-        UnityEngine.Random.InitState(seed);
-        stellarRNG = new(UnityEngine.Random.Range(int.MinValue, int.MaxValue));
-        planetaryRNG = new(UnityEngine.Random.Range(int.MinValue, int.MaxValue));
-        lunarRNG = new(UnityEngine.Random.Range(int.MinValue, int.MaxValue));
-
-        if(distantStars != null)
-        {
-            distantStars.SetSeed(stellarRNG);
-        }
+        stellarRNG = SeedManager.GetRNG("stellar");
+        planetaryRNG = SeedManager.GetRNG("planetary");
+        lunarRNG = SeedManager.GetRNG("lunar");
     }
 
     private void SetPlanetData(CelestialObjectDataSO planetData)
