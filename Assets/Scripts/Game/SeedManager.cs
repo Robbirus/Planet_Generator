@@ -1,0 +1,75 @@
+using System;
+
+/// <summary>
+/// Manages the master seed for the current game session.
+///
+/// USAGE IN MAIN MENU (before loading the game scene):
+///   SeedManager.Randomize();
+///   SeedManager.SetSeedFromString(inputField.text);
+///   SeedManager.SetSeed(42);
+///
+/// USAGE IN SolarSystemGenerator:
+///   System.Random stellarRNG   = SeedManager.GetRNG("stellar");
+///   System.Random planetaryRNG = SeedManager.GetRNG("planetary");
+///   System.Random lunarRNG     = SeedManager.GetRNG("lunar");
+/// </summary>
+public static class SeedManager
+{
+    private static int currentSeed = 0;
+
+    /// <summary>Sets the master seed explicitly.</summary>
+    public static void SetSeed(int seed)
+    {
+        currentSeed = seed;
+        UnityEngine.Debug.Log($"[SeedManager] Seed set to {currentSeed}");
+    }
+
+    /// <summary>
+    /// Parses a seed from a string (for text input fields).
+    /// If the string is a valid integer, it is used directly.
+    /// Otherwise its hash code is used.
+    /// </summary>
+    public static void SetSeedFromString(string input)
+    {
+        if (string.IsNullOrWhiteSpace(input))
+        {
+            Randomize();
+            return;
+        }
+
+        if (int.TryParse(input, out int parsed))
+            SetSeed(parsed);
+        else
+            SetSeed(input.GetHashCode());
+    }
+
+    /// <summary>Generates and stores a new random seed.</summary>
+    public static void Randomize()
+    {
+        currentSeed = UnityEngine.Random.Range(int.MinValue, int.MaxValue);
+        UnityEngine.Debug.Log($"[SeedManager] Random seed generated: {currentSeed}");
+    }
+
+    /// <summary>Returns the current master seed.</summary>
+    public static int GetSeed() { return currentSeed; }
+
+    /// <summary>
+    /// Returns a System.Random derived from the master seed
+    /// and an optional salt string.
+    ///
+    /// Each unique salt produces a different but reproducible sequence.
+    /// </summary>
+    public static System.Random GetRNG(string salt = "")
+    {
+        int derivedSeed = string.IsNullOrEmpty(salt)
+            ? currentSeed
+            : currentSeed ^ salt.GetHashCode();
+
+        return new System.Random(derivedSeed);
+    }
+
+    public static float Range(float min, float max, System.Random rng)
+    {
+        return (float)(rng.NextDouble() * (max - min) + min);
+    }
+}
