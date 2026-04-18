@@ -23,6 +23,12 @@ public class DamagePopup : MonoBehaviour
     private float elapsed;
     private bool isCrit;
     private Transform cam;
+    private System.Random rng;
+
+    private void Awake()
+    {
+        rng = SeedManager.GetRNG("damagePopup");
+    }
 
     /// <summary>Call immediately after instantiation.</summary>
     public void Init(float damage, bool isCrit, Vector3 worldPosition)
@@ -32,8 +38,8 @@ public class DamagePopup : MonoBehaviour
 
         // Random horizontal scatter so multiple popups don't stack
         Vector3 scatter = new Vector3(
-            Random.Range(-randomOffset.x * scatterRadius, randomOffset.x * scatterRadius),
-            Random.Range(0f, randomOffset.y * scatterRadius),
+            SeedManager.Range(-randomOffset.x * scatterRadius, randomOffset.x * scatterRadius, rng),
+            SeedManager.Range(0f, randomOffset.y * scatterRadius, rng),
             0f);
 
         transform.position = worldPosition + scatter;
