@@ -18,7 +18,7 @@ public class OrbitBody : MonoBehaviour
         // Fall back to a default RNG if none is provided
         if (orbitRNG == null)
         {
-            orbitRNG = new System.Random(gameObject.GetInstanceID());
+            orbitRNG = SeedManager.GetRNG("orbitBody");
         }
     }
 
