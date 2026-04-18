@@ -17,6 +17,8 @@ public class MusicManager : MonoBehaviour
     [SerializeField] private int currentMusicIndex;
     [SerializeField] private int previousMusicIndex;
 
+    private System.Random rng;
+
     private void Awake() 
     { 
         if (instance != null && instance != this)
@@ -29,6 +31,8 @@ public class MusicManager : MonoBehaviour
             instance = this;
         }
         DontDestroyOnLoad(gameObject);
+
+        rng = SeedManager.GetRNG("music");
     }
 
     private void PlayMusic(AudioClip clip)
@@ -56,7 +60,7 @@ public class MusicManager : MonoBehaviour
 
     public void PlayRandom()
     {
-        currentMusicIndex = UnityEngine.Random.Range(1, musics.musicClips.Count);
+        currentMusicIndex = (int)SeedManager.Range(1f, musics.musicClips.Count, rng);
 
         currentMusic = musics.GetMusicFrom(currentMusicIndex);
         previousMusicIndex = currentMusicIndex;
