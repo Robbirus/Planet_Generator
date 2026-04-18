@@ -17,8 +17,6 @@ public class SpaceshipController : MonoBehaviour
     [SerializeField] private ResourceHarvester harvester;
     [SerializeField] private WeaponManager weaponManager;
 
-    // ── Unity ─────────────────────────────────────────────────────────────────
-
     private void Awake()
     {
         GameManager.instance.RegisterShip(this);
@@ -30,7 +28,7 @@ public class SpaceshipController : MonoBehaviour
         GameManager.instance.UnregisterShip(this);
     }
 
-    // ── Delegation → SpaceshipMovement ────────────────────────────────────────
+    // Delegation -> SpaceshipMovement 
 
     /// <summary>Switches between free-flight and orbital mode.</summary>
     public void SetLockedMode(bool locked) { movement.SetLockedMode(locked); }
@@ -49,7 +47,7 @@ public class SpaceshipController : MonoBehaviour
             boostRegenRate, boostRegenDelay);
     }
 
-    // ── Getters for UIShip ────────────────────────────────────────────────────
+    // Getters for UIShip 
 
     public float GetForwardSpeedRatio() { return movement.GetForwardSpeedRatio(); }
     public float GetActiveForwardSpeed() { return movement.GetActiveForwardSpeed(); }
@@ -58,7 +56,7 @@ public class SpaceshipController : MonoBehaviour
     public Vector2 GetMouseDistance() { return movement.GetMouseDistance(); }
     public Vector2 GetVirtualCursor() { return movement.GetVirtualCursor(); }
 
-    // ── Getters for UIShip — Planet info ──────────────────────────────────────
+    // GETTERS
 
     public string GetCurrentPlanetName()
     {
@@ -79,12 +77,11 @@ public class SpaceshipController : MonoBehaviour
         return planetLockSystem != null ? planetLockSystem.GetState().ToString() : "None";
     }
 
-    // ── Getters for other systems ─────────────────────────────────────────────
+    // Getters
 
     public ShipInventory GetInventory() { return inventory; }
     public ResourceHarvester GetHarvester() { return harvester; }
     public PlanetLockSystem GetPlanetLock() { return planetLockSystem; }
     public SpaceshipMovement GetMovement() { return movement; }
-
     public WeaponManager GetWeaponManager() { return weaponManager; }
 }
