@@ -67,6 +67,9 @@ public class WeaponManager : MonoBehaviour
     private int currentWeaponIndex = 0;
     private int consecutiveMisses = 0;
 
+    private System.Random soundRng;
+    private System.Random critRng;
+
     private WeaponSlot GetCurrentWeapon()
     {
         return weaponSlots[currentWeaponIndex];
@@ -74,7 +77,10 @@ public class WeaponManager : MonoBehaviour
 
     private void Awake()
     {
-        foreach(WeaponSlot slot in weaponSlots)
+        soundRng = SeedManager.GetRNG("WeaponSound");
+        critRng = SeedManager.GetRNG("Crit");
+
+        foreach (WeaponSlot slot in weaponSlots)
         {
             if (slot.weapon == null) continue;
 
@@ -203,7 +209,7 @@ public class WeaponManager : MonoBehaviour
         }
 
         // Play a random fire sound from the weapon's list
-        AudioClip clip = slot.weapon.fireSounds[UnityEngine.Random.Range(0, slot.weapon.fireSounds.Count)];
+        AudioClip clip = slot.weapon.fireSounds[(int)SeedManager.Range(0, slot.weapon.fireSounds.Count, soundRng)];
         OnPlayFireSound?.Invoke(clip);
 
         bool isCrit = RollCrit();
@@ -286,7 +292,7 @@ public class WeaponManager : MonoBehaviour
     private bool RollCrit()
     {
         int effectiveChance = Mathf.Clamp(critChance + pity, 0, 100);
-        bool isCrit = UnityEngine.Random.Range(0, 100) < effectiveChance;
+        bool isCrit = SeedManager.Range(0, 100, critRng) < effectiveChance;
 
         if (isCrit)
         {
