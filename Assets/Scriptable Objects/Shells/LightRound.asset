@@ -20,4 +20,4 @@ MonoBehaviour:
   standardDamage: 23
   durableDamage: 95
   armorPen: 2
-  typeEffect: 3
+  effectData: {fileID: 11400000, guid: 1f6054c44b80bdb4db8785e3542f347f, type: 2}
