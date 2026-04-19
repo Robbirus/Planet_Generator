@@ -19,13 +19,12 @@ public class WeaponManager : MonoBehaviour
         public Transform leftSpawnPoint;
         [Tooltip("Right Transform from which the shell is spawned.")]
         public Transform rightSpawnPoint;
-        public bool hasMagasine; // If false, weapon doesn't consume ammo and doesn't reload (e.g. energy weapons)
-        [Tooltip("For weapons with a fire rate that accelerates the longer you hold the trigger (e.g. minigun).")]
-        public float fireRateAcceleration = 5f;
-        [HideInInspector] public int currentAmmo;
-        [HideInInspector] public bool isReloading;
-        [HideInInspector] public float fireTimer;
-        [HideInInspector] public float currentFireRate = 0f;
+        [Tooltip("If false, weapon never consumes ammo.")]
+        public bool hasMagasine;
+
+        [HideInInspector] public int    currentAmmo;
+        [HideInInspector] public bool   isReloading;
+        [HideInInspector] public float  fireTimer;
     }
 
     [Header("Weapon Slots")]
@@ -36,18 +35,12 @@ public class WeaponManager : MonoBehaviour
     [SerializeField] private GameObject shellPrefab;
     [Space(10)]
 
-    [Header("Critical Hits")]
-    [Tooltip("The base chance of doing a critical damage")]
-    [SerializeField] private int critChance = 2;
-    [Tooltip("The base critical damage coefficient")]
-    [SerializeField] private float critCoef = 1.1f;
-    [Tooltip("The pity allows to temporarily up the crit chance")]
-    [Range(0, 100)]
-    [SerializeField] private int pity = 0;
-    [Space(10)]
-
     [Header("VFX")]
     [SerializeField] private ParticleSystem shootParticle;
+    [Space(10)]
+
+    [Header("Pity (Debug)")]
+    [SerializeField] private int pity = 0;
     [Space(10)]
 
     [Header("Input Action Reference")]
@@ -85,13 +78,12 @@ public class WeaponManager : MonoBehaviour
             if (slot.weapon == null) continue;
 
             // Load default ammo if none assigned
-            if(slot.loadedShell == null)
-                slot.loadedShell = slot.weapon.defaultShell;
+            if(slot.loadedShell == null) slot.loadedShell = slot.weapon.defaultShell;
 
             slot.currentAmmo = slot.weapon.magazineSize;
-            slot.isReloading = false;
-            slot.fireTimer = 0f;
             slot.hasMagasine = slot.weapon.hasMagazine;
+            slot.isReloading = false;
+            slot.fireTimer   = 0;
         }
     }
 
@@ -179,10 +171,10 @@ public class WeaponManager : MonoBehaviour
     {
         WeaponSlot slot = GetCurrentWeapon();
 
-        if (slot.weapon == null) return;
-        if (slot.loadedShell == null) return;
-        if (slot.isReloading) return;
-        if (slot.fireTimer > 0f) return;
+        if (slot.weapon         == null) return;
+        if (slot.loadedShell    == null) return;
+        if (slot.isReloading)            return;
+        if (slot.fireTimer > 0f)         return;
 
         if (slot.currentAmmo <= 0 && slot.hasMagasine)
         {
@@ -190,58 +182,56 @@ public class WeaponManager : MonoBehaviour
             return;
         }
 
-        Fire(slot, slot.leftSpawnPoint);
-        Fire(slot, slot.rightSpawnPoint);
+        bool isCrit = RollCrit(slot.weapon);
+
+        if (slot.leftSpawnPoint != null) Fire(slot, slot.leftSpawnPoint, isCrit);
+        if (slot.rightSpawnPoint != null) Fire(slot, slot.rightSpawnPoint, isCrit);
+
+        slot.fireTimer = 1f / slot.weapon.fireRate;
+        if (slot.hasMagasine) slot.currentAmmo--;
+
+        if(shootParticle != null)
+        {
+            shootParticle?.Play();
+        }
+
+        OnShellChanged?.Invoke(slot.loadedShell);
+
+        if(slot.currentAmmo <= 0 && slot.hasMagasine)
+        {
+            StartCoroutine(Reloading(slot));
+        }
     }
 
-    private void Fire(WeaponSlot slot, Transform spawnPoint)
+    private void Fire(WeaponSlot slot, Transform spawnPoint, bool isCrit)
     {
-        if (shellPrefab == null ||slot.leftSpawnPoint == null || slot.rightSpawnPoint == null)
+        if(shellPrefab == null)
         {
-            Debug.LogWarning("[WeaponManager] shellPrefab or spawnPoint is not assigned.", this);
+            Debug.LogWarning("[WeaponManager] shellPrefab not assigned.", this);
             return;
         }
 
-        if(slot.weapon.fireSounds == null || slot.weapon.fireSounds.Count == 0)
+        // SFX shooting
+        if(slot.weapon.fireSounds != null && slot.weapon.fireSounds.Count > 0)
         {
-            Debug.LogWarning($"[WeaponManager] No fire sounds assigned for weapon {slot.weapon.weaponName}.", this);
-            return;
+            int idx = soundRng.Next(0, slot.weapon.fireSounds.Count);
+            OnPlayFireSound?.Invoke(slot.weapon.fireSounds[idx]);
         }
-
-        // Play a random fire sound from the weapon's list
-        AudioClip clip = slot.weapon.fireSounds[(int)SeedManager.Range(0, slot.weapon.fireSounds.Count, soundRng)];
-        OnPlayFireSound?.Invoke(clip);
-
-        bool isCrit = RollCrit();
 
         GameObject shellGO = Instantiate(shellPrefab, spawnPoint.position, spawnPoint.rotation);
         Shell shell = shellGO.GetComponent<Shell>();
 
-        if (shell != null)
+        if(shell != null)
         {
-            shell.Setup(slot.loadedShell, Team.Player, isCrit, critChance, critCoef, pity);
+            shell.Setup(slot.loadedShell, Team.Player, isCrit, slot.weapon.critChance, slot.weapon.critCoef, pity);
         }
 
-        // Add guidance if the weapon requires it
         if (slot.weapon.isGuided)
         {
-            Debug.LogWarning("[WeaponManager] Guided weapons are not yet implemented.", this);
-        }
-
-        // Fire rate - seconds per shot
-        slot.fireTimer = 1f / slot.weapon.fireRate;
-
-        if (slot.hasMagasine)
-        {
-            slot.currentAmmo--;
-        }
-
-        // shootParticle?.Play();
-        OnShellChanged?.Invoke(slot.loadedShell);
-
-        if (slot.currentAmmo <= 0)
-        {
-            StartCoroutine(Reloading(slot));
+            /*
+            GuidedShell guided = shellGO.AddComponent<GuidedShell>();
+            guided.Init(slot.weapon.guidedTurnRate, slot.weapon.guidedDetectionRadius, Team.Player);
+            */
         }
     }
 
@@ -278,6 +268,7 @@ public class WeaponManager : MonoBehaviour
         if(index == currentWeaponIndex) return;
 
         currentWeaponIndex = index;
+        pity = 0; // Resets pity on switch
         OnShellChanged?.Invoke(GetCurrentWeapon().loadedShell);
 
         Debug.Log($"[WeaponManager] Switched to weapon slot {index}: {GetCurrentWeapon().weapon.weaponName}");
@@ -289,22 +280,13 @@ public class WeaponManager : MonoBehaviour
     /// Pity increases after each non-crit and resets on a crit.
     /// </summary>
     /// <returns>True if the shot is a crit</returns>
-    private bool RollCrit()
+    private bool RollCrit(WeaponSO weapon)
     {
-        int effectiveChance = Mathf.Clamp(critChance + pity, 0, 100);
+        int effectiveChance = Mathf.Clamp(weapon.critChance + pity, 0, 100);
         bool isCrit = SeedManager.Range(0, 100, critRng) < effectiveChance;
 
-        if (isCrit)
-        {
-            consecutiveMisses = 0;
-            pity = 0;
-        }
-        else
-        {
-            consecutiveMisses++;
-            // Pity grows by 1%  per consecutive non-crit, capped E98% so there's always a small chance to miss
-            pity = Mathf.Clamp(consecutiveMisses, 0, 98);
-        }
+        if (isCrit) { consecutiveMisses = 0; pity = 0; }
+        else        { consecutiveMisses++;   pity = Mathf.Clamp(consecutiveMisses, 0, 98); }
 
         return isCrit;
     }
@@ -317,8 +299,10 @@ public class WeaponManager : MonoBehaviour
         OnShellChanged?.Invoke(shell);
     }
 
-    public int GetCritChance() { return critChance; }
-    public float GetCritCoef() { return critCoef; }
+    /// <summary>Returns the chance of making a critical hit.</summary>
+    public int GetCritChance() { return GetCurrentWeapon().weapon != null ? GetCurrentWeapon().weapon.critChance : 0; }
+    /// <summary>Returns the crit coefficient.</summary>
+    public float GetCritCoef() { return GetCurrentWeapon().weapon != null ? GetCurrentWeapon().weapon.critCoef : 1f; }
     public int GetPity() { return pity; }
     public int GetCurrentAmmo() { return GetCurrentWeapon().currentAmmo; }
     public int GetMagazineSize() { return GetCurrentWeapon().weapon != null ? GetCurrentWeapon().weapon.magazineSize : 0; }
