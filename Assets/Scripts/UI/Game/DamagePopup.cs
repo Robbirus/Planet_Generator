@@ -1,5 +1,4 @@
-﻿using System;
-using System.Collections;
+﻿using System.Collections;
 using TMPro;
 using UnityEngine;
 
@@ -50,7 +49,7 @@ public class DamagePopup : MonoBehaviour
     }
 
     /// <summary>Call immediately after instantiation.</summary>
-    public void Init(float damage, bool isCrit, Vector3 screenPos)
+    public void Init(float damage, bool isCrit, Vector3 screenPos, Color effectColor, bool isEffect = false)
     {
         // Texte
         if(damage < 0.01f)
@@ -62,8 +61,17 @@ public class DamagePopup : MonoBehaviour
             label.text = $"{damage: 0}";
         }
 
-        label.color = isCrit ? colorCrit : colorNormal;
-        label.fontSize = (isCrit ? critSize : normalSize) * scale;
+        if (isEffect)
+        {
+            label.color = effectColor;
+            label.fontSize = normalSize * scale;
+        }
+        else
+        {
+            label.color = isCrit ? colorCrit : colorNormal;
+            label.fontSize = (isCrit ? critSize : normalSize) * scale;
+        }
+
 
         // Initial position
         rect.anchoredPosition = new Vector3(0f, 0f, 0f); // Start at center, then apply scatter and movement

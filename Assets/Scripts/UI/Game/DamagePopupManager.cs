@@ -43,7 +43,7 @@ public class DamagePopupManager : MonoBehaviour
     /// Converts worldPosition to screen space and spawns a popup on the UI canvas.
     /// Call this from EnemyHealthBarManager or HealthComponent events.
     /// </summary>
-    public void Show(float damage, bool isCrit, Vector3 worldPosition)
+    public void Show(float damage, bool isCrit, Vector3 worldPosition, Color effectColor, bool isEffect)
     {
         if (popupPrefab == null)
         {
@@ -84,6 +84,6 @@ public class DamagePopupManager : MonoBehaviour
 
         // Spawn
         DamagePopup popup = Instantiate(popupPrefab, popupCanvas.transform);
-        popup.Init(damage, isCrit, anchoredPos);
+        popup.Init(damage, isCrit, anchoredPos, effectColor, isEffect);
     }
 }
