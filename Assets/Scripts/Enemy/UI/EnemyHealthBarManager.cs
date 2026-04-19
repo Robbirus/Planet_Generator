@@ -33,9 +33,9 @@ public class EnemyHealthBarManager : MonoBehaviour
 
             bar.Init(part);
 
-            part.OnDamaged += (damage, currentHP, maxHP, isCrit) =>
+            part.OnDamaged += (damage, currentHP, maxHP, isCrit, effectColor, isEffect) =>
             {
-                DamagePopupManager.instance?.Show(damage, isCrit, part.transform.position);
+                DamagePopupManager.instance?.Show(damage, isCrit, part.transform.position, effectColor, isEffect);
             };
         }
     }

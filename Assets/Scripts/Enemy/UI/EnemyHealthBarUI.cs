@@ -53,7 +53,7 @@ public class EnemyHealthBarUI : MonoBehaviour
 
     // Handlers
 
-    private void OnDamaged(float damage, float current, float max, bool isCrit)
+    private void OnDamaged(float damage, float current, float max, bool isCrit, Color color, bool isEffect)
     {
         float ratio = max > 0f ? current / max : 0f;
         UpdateBar(ratio);
