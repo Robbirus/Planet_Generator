@@ -2,8 +2,12 @@ using UnityEngine;
 
 public enum TypeEffect
 {
-    FLAME,
-    POISON,
-    LIFESTEAL,
+    ACID,
+    ARC,
+    EXPLOSION,
+    FIRE,
+    IMPACT,
+    LASER,
+    CHEMICAL,
     NONE
 }
