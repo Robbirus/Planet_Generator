@@ -25,6 +25,14 @@ public class WeaponSO : ScriptableObject
     [Tooltip("Time in seconds to reload a full magazine.")]
     public float reloadTime = 2f;
 
+    [Header("Critical Hits")]
+    [Range(0, 100)]
+    [Tooltip("Base crit chance (0-100).")]
+    public int critChance = 2;
+    [Min(1f)]
+    [Tooltip("Crit damage multiplier (1.1 = +10%).")]
+    public float critCoef = 1.1f;
+
     [Header("Guided Projectile")]
     [Tooltip("If true, fired shells will home toward the nearest enemy.")]
     public bool isGuided = false;
