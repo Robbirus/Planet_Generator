@@ -10,20 +10,16 @@ public class FlameEffect : StatusEffect
         return TypeEffect.FIRE;
     }
 
-    // Default values - Override via constructor if needed
-    private const float DEFAULT_DURATION        = 4f;
-    private const float DEFAULT_TICK_INTERVAL   = 0.5f;
-    private const float DEFAULT_DAMAGE          = 5f;
+    private StatusEffectSO data;
 
-    public FlameEffect(Team owner,
-                       float duration       = DEFAULT_DURATION,
-                       float tickeInterval  = DEFAULT_TICK_INTERVAL,
-                       float damagePerTick  = DEFAULT_DAMAGE)
+    public FlameEffect(Team owner, StatusEffectSO data)
     {
         this.owner          = owner;
-        this.duration       = duration;
-        this.tickInterval   = tickeInterval;
-        this.damagePerTick  = damagePerTick;
+        this.data           = data;
+        this.color          = data.color;
+        this.duration       = data.duration;
+        this.tickInterval   = data.tickInterval;
+        this.damagePerTick  = data.damagePerTick;
     }
 
     public override void OnApply(HealthComponent target)
@@ -39,7 +35,7 @@ public class FlameEffect : StatusEffect
     {
         if (target == null || target.IsDead()) return;
 
-        target.TakeDamage(damagePerTick);
+        target.TakeDamage(damagePerTick, color, true);
 
         Debug.Log($"[FlameEffect] Burn tick on {target.gameObject.name}: -{damagePerTick} HP");
     }
