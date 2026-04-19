@@ -52,6 +52,10 @@ public class HealthComponent : MonoBehaviour, IDamageable
     private void Awake()
     {
         currentHealth = maxHealth;
+
+        // Auto-add and init the StatusEffectHandler
+        StatusEffectHandler handler = gameObject.AddComponent<StatusEffectHandler>();
+        handler.Init(this);
     }
 
     // IDamageable implementation
@@ -67,7 +71,7 @@ public class HealthComponent : MonoBehaviour, IDamageable
         // Apply status effects
         if (shell.GetTypeEffect() != TypeEffect.NONE)
         {
-            ApplyEffect(shell.GetTypeEffect());
+            ApplyEffect(shell);
         }
 
         if(shell.GetTeam() == Team.Player)
@@ -114,11 +118,17 @@ public class HealthComponent : MonoBehaviour, IDamageable
     }
 
     // Effects
-    private void ApplyEffect(TypeEffect effect)
+    private void ApplyEffect(Shell shell)
     {
-        // Placeholder for applying status effects like fire, EMP, etc.
-        // This could involve adding components, starting coroutines, etc.
-        Debug.Log($"[HealthComponent] {gameObject.name} affected by {effect}");
+        TypeEffect effect = shell.GetTypeEffect();
+
+        // Delegate to the handler - it manages active effects and their lifecycle
+        StatusEffectHandler handler = GetComponent<StatusEffectHandler>();
+
+        if(handler != null)
+        {
+            handler.Apply(effect, shell.GetTeam());
+        }
     }
 
     // Healing
