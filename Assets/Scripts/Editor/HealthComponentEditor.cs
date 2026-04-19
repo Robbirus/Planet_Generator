@@ -201,7 +201,7 @@ public class HealthComponentEditor : Editor
         testDamage = EditorGUILayout.FloatField("Damage", testDamage, GUILayout.Width(200f));
         if (GUILayout.Button("Apply Damage"))
         {
-            hc.TakeDamage(testDamage);
+            hc.TakeDamage(testDamage, Color.white, false);
             EditorUtility.SetDirty(hc);
         }
         EditorGUILayout.EndHorizontal();
@@ -217,7 +217,7 @@ public class HealthComponentEditor : Editor
 
         if (GUILayout.Button("Kill (set HP to 0)"))
         {
-            hc.TakeDamage(hc.GetCurrentHealth() + 1f);
+            hc.TakeDamage(hc.GetCurrentHealth() + 1f, Color.white, false);
             EditorUtility.SetDirty(hc);
         }
 
