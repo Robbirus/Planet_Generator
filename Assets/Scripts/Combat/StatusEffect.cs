@@ -18,6 +18,9 @@ public abstract class StatusEffect
     /// <summary>The team that applied this effect</summary>
     protected Team owner;
 
+    /// <summary>The color the text damage will appear</summary>
+    protected Color color;
+
     protected float elapsed = 0f;
     protected float tickTimer = 0f;
     

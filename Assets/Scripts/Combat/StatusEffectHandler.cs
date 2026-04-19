@@ -51,9 +51,9 @@ public class StatusEffectHandler : MonoBehaviour
     /// Applies an effect from a shell.
     /// If the same effect type is already active, refreshes it instead of stacking.
     /// </summary>
-    public void Apply(TypeEffect type, Team team)
+    public void Apply(TypeEffect type, Team team, StatusEffectSO data)
     {
-        StatusEffect incoming = StatusEffectFactory.Create(type, team);
+        StatusEffect incoming = StatusEffectFactory.Create(type, team, data);
         if (incoming == null) return;
 
         if(activesEffects.TryGetValue(type, out StatusEffect existing))

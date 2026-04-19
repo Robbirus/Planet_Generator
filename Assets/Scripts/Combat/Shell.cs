@@ -6,20 +6,22 @@ using UnityEngine;
 /// </summary>
 public class Shell : MonoBehaviour
 {
-    private float       standardDamage;
-    private float       durableDamage;
-    private int         critChance;
-    private float       critCoef;
-    private bool        isCrit = false;
-    private int         pity;
-    private ArmorType   armorPen;
-    private int         velocity;
-    private float       lifeTime;
-    private TypeEffect  typeEffect;
-    private Color color;
+    private float           standardDamage;
+    private float           durableDamage;
+    private int             critChance;
+    private float           critCoef;
+    private bool            isCrit = false;
+    private int             pity;
+    private ArmorType       armorPen;
+    private int             velocity;
+    private float           lifeTime;
+    private TypeEffect      typeEffect;
+    private StatusEffectSO  effectData;
+    private Color           effectColor;
+    private Color           color;
 
-    private WeaponType  type;
-    private Team        owner;
+    private WeaponType      type;
+    private Team            owner;
 
     // Direction is set in Setup so GuidedShell can override it each frame
     private Vector3 direction;
@@ -31,20 +33,22 @@ public class Shell : MonoBehaviour
     /// </summary>
     public void Setup(ShellSO shellData, Team team, bool isCrit, int critChance, float critCoef, int pity)
     {
-        this.armorPen = shellData.armorPen;
+        this.armorPen       = shellData.armorPen;
         this.standardDamage = shellData.standardDamage;
-        this.durableDamage = shellData.durableDamage;
-        this.velocity = shellData.velocity;
-        this.lifeTime = shellData.lifeTime;
-        this.type = shellData.weaponType;
-        this.typeEffect = shellData.typeEffect;
-        this.color = shellData.color;
+        this.durableDamage  = shellData.durableDamage;
+        this.velocity       = shellData.velocity;
+        this.lifeTime       = shellData.lifeTime;
+        this.type           = shellData.weaponType;
+        this.typeEffect     = shellData.GetTypeEffect();
+        this.effectData     = shellData.effectData;
+        this.effectColor    = shellData.effectData.color;
+        this.color          = shellData.color;
 
-        this.isCrit = isCrit;
-        this.critChance = critChance;
-        this.critCoef = critCoef;
-        this.pity = pity;
-        this.owner = team;
+        this.isCrit         = isCrit;
+        this.critChance     = critChance;
+        this.critCoef       = critCoef;
+        this.pity           = pity;
+        this.owner          = team;
 
         direction = transform.forward;
 
@@ -143,6 +147,11 @@ public class Shell : MonoBehaviour
         return this.armorPen;
     }
 
+    public Color GetEffectColor()
+    {
+        return this.effectColor;
+    }
+
     public TypeEffect GetTypeEffect()
     {
         return this.typeEffect;
@@ -177,6 +186,11 @@ public class Shell : MonoBehaviour
     {
         return this.type;
     }
+
+    public StatusEffectSO GetEffectData()
+    {
+        return this.effectData;
+    }
     #endregion
 
     #region Setter
@@ -203,6 +217,11 @@ public class Shell : MonoBehaviour
     public void SetDurableDamage(float damage)
     {
         this.durableDamage = damage;
+    }
+
+    public void SetDirection(Vector3 direction)
+    {
+        this.direction = direction;
     }
     #endregion
 }

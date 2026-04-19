@@ -8,11 +8,13 @@ public static class StatusEffectFactory
     /// <summary>
     /// Returns a new StatusEffect instance for the given type, or null if NONE.
     /// </summary>
-    public static StatusEffect Create(TypeEffect type, Team owner)
+    public static StatusEffect Create(TypeEffect type, Team owner, StatusEffectSO data)
     {
+        if (data == null || type == TypeEffect.NONE) return null;
+
         return type switch
         {
-            TypeEffect.FIRE         => new FlameEffect(owner),
+            TypeEffect.FIRE         => new FlameEffect(owner, data),
             TypeEffect.ACID         => null, // TODO: implement AcidEffect
             TypeEffect.ARC          => null, // TODO: implement ArcEffect
             TypeEffect.EXPLOSION    => null, // TODO: implement ExplosionEffect

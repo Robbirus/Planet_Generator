@@ -43,19 +43,22 @@ public class HealthComponent : MonoBehaviour, IDamageable
     [SerializeField] private bool logDamage = false;
 
     // Events
-    /// <summary>Fires on every hit with (damageTaken, currentHP, maxHP)</summary>
-    public event Action<float, float, float, bool> OnDamaged;
+    /// <summary>Fires on every hit with (damageTaken, currentHP, maxHP, isCrit, effectColor, isEffect)</summary>
+    public event Action<float, float, float, bool, Color, bool> OnDamaged;
 
     /// <summary>Fires once when HP reaches 0.</summary>
     public event Action<HealthComponent> OnDestroyed;
+
+    // Cached reference
+    private StatusEffectHandler handler;
 
     private void Awake()
     {
         currentHealth = maxHealth;
 
         // Auto-add and init the StatusEffectHandler
-        StatusEffectHandler handler = gameObject.AddComponent<StatusEffectHandler>();
-        handler.Init(this);
+        this.handler = gameObject.AddComponent<StatusEffectHandler>();
+        this.handler.Init(this);
     }
 
     // IDamageable implementation
@@ -66,12 +69,12 @@ public class HealthComponent : MonoBehaviour, IDamageable
 
         float damage = shell.GetFinalDamage(armorType, this);
 
-        TakeDamage(damage, shell.IsCrit());
+        TakeDamage(damage, shell.GetEffectColor(), shell.IsCrit());
 
         // Apply status effects
-        if (shell.GetTypeEffect() != TypeEffect.NONE)
+        if (shell.GetTypeEffect() != TypeEffect.NONE && shell.GetEffectData() != null)
         {
-            ApplyEffect(shell);
+            this.handler?.Apply(shell.GetTypeEffect(), shell.GetTeam(), shell.GetEffectData());
         }
 
         if(shell.GetTeam() == Team.Player)
@@ -83,7 +86,7 @@ public class HealthComponent : MonoBehaviour, IDamageable
         }
     }
 
-    public void TakeDamage(float damage, bool isCrit = false)
+    public void TakeDamage(float damage, Color effectColor, bool isEffect, bool isCrit = false)
     {
         if(currentHealth <= 0) return; // Already destroyed
 
@@ -96,7 +99,7 @@ public class HealthComponent : MonoBehaviour, IDamageable
                 $" {currentHealth:0.#}/{maxHealth} HP");
         }
 
-        OnDamaged?.Invoke(actualDamage, currentHealth, maxHealth, isCrit);
+        OnDamaged?.Invoke(actualDamage, currentHealth, maxHealth, isCrit, effectColor, isEffect);
 
         if(currentHealth <= 0)
         {
@@ -114,20 +117,6 @@ public class HealthComponent : MonoBehaviour, IDamageable
         if(isDestructible)
         {
             gameObject.SetActive(false);
-        }
-    }
-
-    // Effects
-    private void ApplyEffect(Shell shell)
-    {
-        TypeEffect effect = shell.GetTypeEffect();
-
-        // Delegate to the handler - it manages active effects and their lifecycle
-        StatusEffectHandler handler = GetComponent<StatusEffectHandler>();
-
-        if(handler != null)
-        {
-            handler.Apply(effect, shell.GetTeam());
         }
     }
 
