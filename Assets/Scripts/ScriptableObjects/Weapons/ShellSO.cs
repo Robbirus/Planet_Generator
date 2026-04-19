@@ -24,5 +24,11 @@ public class ShellSO : ScriptableObject
 
     [Header("Status Effects")]
     [Tooltip("Special effect applied on hit.")]
-    public TypeEffect typeEffect = TypeEffect.NONE;
+    public StatusEffectSO effectData;
+
+    /// <summary>Convenience - returns NONE if no effectData assigned</summary>
+    public TypeEffect GetTypeEffect()
+    {
+        return effectData != null ? effectData.effectType : TypeEffect.NONE;
+    }
 }
