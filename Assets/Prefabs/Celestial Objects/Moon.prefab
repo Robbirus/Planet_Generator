@@ -159,3 +159,5 @@ MonoBehaviour:
   resourceDistribution: []
   planetRenderer: {fileID: 1214707500293407379}
   rotationSpeed: 10
+  ringPrefab: {fileID: 0}
+  debug: 1
