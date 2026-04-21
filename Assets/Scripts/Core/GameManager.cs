@@ -10,6 +10,7 @@ public class GameManager : MonoBehaviour
     [Space(5)]
 
     [Header("State debug")]
+    [SerializeField] private bool debug = false;
     [SerializeField] private GameState currentState;
 
     public static GameManager instance = null;
@@ -54,7 +55,8 @@ public class GameManager : MonoBehaviour
 
     public void ChangeState(GameState newState)
     {
-        Debug.Log($"STATE CHANGE: {currentState} -> {newState}");
+        if(debug)
+            Debug.Log($"STATE CHANGE: {currentState} -> {newState}");
         currentState = newState;
         OnStateChanged?.Invoke(currentState);
         HandleStateChanged();
