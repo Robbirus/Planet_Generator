@@ -23,7 +23,7 @@ MonoBehaviour:
   - Castor
   - Kuper
   - Sigma
-  numberRange: {x: 0, y: 8}
+  numberRange: {x: 0, y: 0}
   distanceRange: {x: 800, y: 1800}
   orbitalSpeedRange: {x: 100, y: 1000}
   rotationSpeedRange: {x: 0.1, y: 2.5}
