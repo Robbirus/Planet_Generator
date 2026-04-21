@@ -13,6 +13,6 @@ MonoBehaviour:
   m_Name: MinMoonRuleData
   m_EditorClassIdentifier: Assembly-CSharp::PlanetResourceRuleSO
   condition: 1
-  threshold: 4
+  threshold: 2
   boostedResources: 08000000
   weightMultiplier: 2
