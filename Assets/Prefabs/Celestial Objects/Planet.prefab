@@ -160,4 +160,4 @@ MonoBehaviour:
   planetRenderer: {fileID: 1214707500293407379}
   rotationSpeed: 10
   ringPrefab: {fileID: 2352388286952015859, guid: d68a751ae44598c419dac7faec7f6b3a, type: 3}
-  debug: 1
+  debug: 0
