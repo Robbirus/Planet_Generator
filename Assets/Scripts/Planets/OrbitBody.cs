@@ -24,7 +24,7 @@ public class OrbitBody : MonoBehaviour
 
     private void Start()
     {
-        angle = Range(0f, Mathf.PI * 2f);
+        angle = SeedManager.Range(0f, Mathf.PI * 2f, orbitRNG);
     }
 
     private void Update()
@@ -135,10 +135,4 @@ public class OrbitBody : MonoBehaviour
     {
         orbitColor = c;
     }
-
-    private float Range(float min, float max)
-    {
-        return (float)(orbitRNG.NextDouble() * (max - min) + min);
-    }
-
 }
