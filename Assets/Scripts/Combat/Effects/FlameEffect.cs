@@ -33,7 +33,7 @@ public class FlameEffect : StatusEffect
 
     protected override void Tick(HealthComponent target)
     {
-        if (target == null || target.IsDead()) return;
+        if (target == null || target.IsDead() || target.GetArmorType() == ArmorType.INDESTRUCTIBLE) return;
 
         target.TakeDamage(damagePerTick, color, true);
 
