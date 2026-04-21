@@ -16,12 +16,14 @@ using System.Collections.Generic;
 public static class SeedManager
 {
     private static int currentSeed = 0;
+    private static bool debug = false;
     private static Dictionary<string, System.Random> rngCache = new();
 
     /// <summary>Sets the master seed explicitly.</summary>
-    public static void SetSeed(int seed)
+    public static void SetSeed(int seed, bool dbg = false)
     {
         currentSeed = seed;
+        debug = dbg;
         UnityEngine.Debug.Log($"[SeedManager] Seed set to {currentSeed}");
     }
 
@@ -48,10 +50,10 @@ public static class SeedManager
     }
 
     /// <summary>Generates and stores a new random seed.</summary>
-    public static void Randomize(bool isDebugMode = false)
+    public static void Randomize()
     {
         currentSeed = UnityEngine.Random.Range(int.MinValue, int.MaxValue);
-        if (isDebugMode)
+        if (debug)
         {
             UnityEngine.Debug.Log($"[SeedManager] Random seed generated: {currentSeed}");
         }
