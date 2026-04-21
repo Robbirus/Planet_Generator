@@ -31,7 +31,7 @@ public class GameManager : MonoBehaviour
         DontDestroyOnLoad(gameObject);
 
         // Set the seed for the game
-        SeedManager.SetSeed(seed);
+        SeedManager.SetSeed(seed, debug);
     }
 
     private void Start()
