@@ -43,6 +43,12 @@ public class SolarSystemGenerator : MonoBehaviour
     [SerializeField] private float planetSafetyMargin = 100f;
     [Space(10)]
 
+    [Header("Ring property")]
+    [Tooltip("Chance (0-1) that a planet with zero moon generate a ring.")]
+    [Range(0f, 1f)]
+    [SerializeField] private float ringChance = 0.4f;
+    [Space(10)]
+
     [Header("Moons Properties")]
     private int minMoons = 3;
     private int maxMoons = 8;
@@ -74,7 +80,10 @@ public class SolarSystemGenerator : MonoBehaviour
     [Header("Data")]
     [SerializeField] private CelestialObjectDataSO planetData;
     [SerializeField] private CelestialObjectDataSO moonData;
+    [Space(10)]
 
+    [Header("Debug")]
+    [SerializeField] private bool debug = false;
 
     // For each planet: orbital distance + total influence (body radius + moonDistanceMax)
     private readonly List<(float distance, float footprint)> usedPlanetOrbits = new();
@@ -170,7 +179,7 @@ public class SolarSystemGenerator : MonoBehaviour
     /// </summary>
     private void GenerateStars()
     {
-        distantStars.GenerateStars();
+        distantStars?.GenerateStars();
     }
 
     /// <summary>
@@ -182,28 +191,29 @@ public class SolarSystemGenerator : MonoBehaviour
     private void GeneratePlanets()
     {
         int count = stellarRNG.Next(minPlanets, maxPlanets);
-        // Debug.Log("nb of planet : " + count);
+        if(debug)
+            Debug.Log($"[SolarSystemGenerator] Generating {count} planets.");
 
         for (int i = 0; i < count; i++)
         {
             // Set physical properties first to compute radius for spacing
-            float mass              = Range(minPlanetMass, maxPlanetMass, planetaryRNG);
-            float density           = Range(minPlanetDensity, maxPlanetDensity, planetaryRNG);
+            float mass              = SeedManager.Range(minPlanetMass, maxPlanetMass, planetaryRNG);
+            float density           = SeedManager.Range(minPlanetDensity, maxPlanetDensity, planetaryRNG);
             float visualRadius      = CelestialBody.ComputeRadius(mass, density, planetScale);
             float footprint         = visualRadius + maxMoonDistance; // worst case moon orbit
-            float rotationSpeed     = Range(minRotationSpeed, maxRotationSpeed, planetaryRNG); 
+            float rotationSpeed     = SeedManager.Range(minRotationSpeed, maxRotationSpeed, planetaryRNG); 
 
             float distance = FindSafePlanetDistance(footprint);
-            if (distance < 0)
+            if (distance < 0f)
             {
                 // Debug.LogWarning($"Cannot place planet {i} : Not enough space");
                 continue;
             }
 
             // Random angle around the sun
-            float angle     = Range(0f, Mathf.PI * 2f, planetaryRNG);
+            float angle     = SeedManager.Range(0f, Mathf.PI * 2f, planetaryRNG);
             // Inclination with respect to the ecliptic plane, to avoid all bodies being aligned
-            float incline   = Range(-3f, 3f, planetaryRNG);
+            float incline   = SeedManager.Range(-3f, 3f, planetaryRNG);
 
             // Position based on the distance from the sun
             Vector3 pos = sun.position + new Vector3(
@@ -214,9 +224,9 @@ public class SolarSystemGenerator : MonoBehaviour
 
             // Slight incline on itself
             Vector3 rot = new Vector3(
-                Range(-10f, 10f, planetaryRNG),
+                SeedManager.Range(-10f, 10f, planetaryRNG),
                 0f,
-                Range(-10, 10, planetaryRNG)
+                SeedManager.Range(-10, 10, planetaryRNG)
             );
 
             GameObject planet = Instantiate(planetPrefab, pos, Quaternion.Euler(rot));
@@ -231,13 +241,28 @@ public class SolarSystemGenerator : MonoBehaviour
             body.SetDensity(density);
             body.SetRotationSpeed(rotationSpeed);
             body.SetName(name);
-            body.RandomizeResource(planetaryRNG);
+
             body.ApplyScale(planetScale);
             body.ApplyColor(maxPlanetDensity);
 
+            // pre-roll moons count so the context is complet before gen.
+            int moonCount = (int)SeedManager.Range(minMoons, maxMoons, lunarRNG);
+
+            // Ring : Only if no moon, random chance to have it.
+            bool hasRing = false;
+            if(moonCount == 0 && SeedManager.Range(0f, 1, planetaryRNG) < ringChance)
+            {
+                body.SpawnRing();
+                hasRing = true;
+            }
+
+            // Build context  and randomise resources
+            PlanetContext ctx = new PlanetContext(moonCount, density, hasRing);
+            body.RandomizeResource(planetaryRNG, ctx);
+
             // Orbital properties
-            float orbitSpeed    = Range(minOrbitalSpeed, maxOrbitalSpeed, planetaryRNG) / distance;
-            float inclination   = Range(-10f, 10f, planetaryRNG);
+            float orbitSpeed    = SeedManager.Range(minOrbitalSpeed, maxOrbitalSpeed, planetaryRNG) / distance;
+            float inclination   = SeedManager.Range(-10f, 10f, planetaryRNG);
 
             // Orbit
             OrbitBody orbit = planet.AddComponent<OrbitBody>();
@@ -251,7 +276,7 @@ public class SolarSystemGenerator : MonoBehaviour
             // Save influence footprint before generating moons
             usedPlanetOrbits.Add((distance, footprint));
 
-            GenerateMoons(planet);
+            GenerateMoons(planet, count);
         }
     }
 
@@ -260,21 +285,13 @@ public class SolarSystemGenerator : MonoBehaviour
     /// orbital properties to each moon.
     /// </summary>
     /// <param name="planet">The planet GameObject around which moons are generated.</param>
-    private void GenerateMoons(GameObject planet)
+    private void GenerateMoons(GameObject planet, int moonCount)
     {
         // Store the orbital radius of each moon already placed around this planet
         List<(float orbit, float radius)> usedMoonOrbits = new();
 
-        int moonCount = lunarRNG.Next(minMoons, maxMoons + 1);
-        // Debug.Log("nb of moons : " + moonCount + " for : " + planet.name);
-
-        if(moonCount == 0)
-        {
-            // TODO : Generate rings around the planet
-            // Compute if there's enough room to generate the rings
-            // Compute the probability of generating the rings
-            // Finally generates the rings
-        }
+        if(debug)
+            Debug.Log($"[SolarSystemGenerator] Generating {moonCount} moons for {planet.name}.");
 
         CelestialBody planetBody = planet.GetComponent<CelestialBody>();
         if(planetBody == null)
@@ -286,10 +303,10 @@ public class SolarSystemGenerator : MonoBehaviour
 
         for (int i = 0; i < moonCount; i++)
         {
-            float mass              = Range(minMoonMass, maxMoonMass, lunarRNG);
-            float density           = Range(minMoonDensity, maxMoonDensity, lunarRNG);
+            float mass              = SeedManager.Range(minMoonMass, maxMoonMass, lunarRNG);
+            float density           = SeedManager.Range(minMoonDensity, maxMoonDensity, lunarRNG);
             float visualRadius      = CelestialBody.ComputeRadius(mass, density, moonScale);
-            float rotationSpeed     = Range(minMoonRotationSpeed, maxMoonRotationSpeed, lunarRNG);
+            float rotationSpeed     = SeedManager.Range(minMoonRotationSpeed, maxMoonRotationSpeed, lunarRNG);
 
             // Minimum gap between two orbits : sum of the radii + margin
             float distance = FindSafeMoonOrbit(planetVisualRadius, visualRadius, usedMoonOrbits);
@@ -299,8 +316,8 @@ public class SolarSystemGenerator : MonoBehaviour
                 continue;
             }
 
-            float angle = Range(0f, Mathf.PI * 2f, lunarRNG);
-            float incline = Range(-10f, 10f, lunarRNG);
+            float angle = SeedManager.Range(0f, Mathf.PI * 2f, lunarRNG);
+            float incline = SeedManager.Range(-10f, 10f, lunarRNG);
 
             Vector3 pos = planet.transform.position + new Vector3(
                 Mathf.Cos(angle) * distance,
@@ -323,15 +340,18 @@ public class SolarSystemGenerator : MonoBehaviour
             body.ApplyScale(moonScale);
             body.ApplyColor(maxMoonDensity);
 
-            float orbitSpeed = Range(minMoonOrbitalSpeed, maxMoonOrbitalSpeed, lunarRNG) / distance;
-            float inclination = Range(-20f, 20f, lunarRNG);
+            // Moon get a neutral context  - no ring of their own 
+            body.RandomizeResource(lunarRNG, new PlanetContext(0, density, false));
+
+            float orbitalSpeed = SeedManager.Range(minMoonOrbitalSpeed, maxMoonOrbitalSpeed, lunarRNG) / distance;
+            float inclination = SeedManager.Range(-20f, 20f, lunarRNG);
 
             OrbitBody orbit = moon.AddComponent<OrbitBody>();
             orbit.SetCenter(planet.transform);
             orbit.SetSeed(stellarRNG);
             orbit.SetOrbitColor(moonOrbitColor);
             orbit.SetOrbitRadius(distance);
-            orbit.SetOrbitSpeed(orbitSpeed);
+            orbit.SetOrbitSpeed(orbitalSpeed);
             orbit.SetOrbitInclination(inclination);
 
             usedMoonOrbits.Add((distance, visualRadius));
@@ -348,7 +368,7 @@ public class SolarSystemGenerator : MonoBehaviour
     {
         for(int attempt = 0; attempt < maxAttempts; attempt++)
         {
-            float candidate = Range(minDistance, maxDistance, stellarRNG);
+            float candidate = SeedManager.Range(minDistance, maxDistance, stellarRNG);
             bool valid = true;
 
             foreach(var (existingDist, existingFootprint) in usedPlanetOrbits)
@@ -384,7 +404,7 @@ public class SolarSystemGenerator : MonoBehaviour
     {
         for(int attempts = 0; attempts < maxAttempts; attempts++)
         {
-            float candidate = planetRadius + Range(minMoonDistance, maxMoonDistance, lunarRNG);
+            float candidate = planetRadius + SeedManager.Range(minMoonDistance, maxMoonDistance, lunarRNG);
             bool valid = true;
 
             foreach(var (existingOrbit, existingRadius) in usedOrbits)
@@ -455,17 +475,4 @@ public class SolarSystemGenerator : MonoBehaviour
         usedNames.Add(chosen);
         return chosen;
     }
-
-    /// <summary>
-    /// Generates a random float value within the specified range using the provided random number generator.
-    /// </summary>
-    /// <param name="min">The minimum value</param>
-    /// <param name="max">The maximum value</param>
-    /// <param name="rng">The random number generator</param>
-    /// <returns></returns>
-    private float Range(float min, float max, System.Random rng)
-    {
-        return (float)(rng.NextDouble() * (max - min) + min);
-    }
-
 }

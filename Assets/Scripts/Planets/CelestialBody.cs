@@ -1,4 +1,5 @@
-﻿using System.Collections.Generic;
+﻿using System;
+using System.Collections.Generic;
 using System.Linq;
 using UnityEngine;
 
@@ -18,6 +19,13 @@ public class CelestialBody : MonoBehaviour
 
     [Header("Rotation")]
     [SerializeField] private float rotationSpeed = 10f;
+
+    [Header("Rings")]
+    [SerializeField] private GameObject ringPrefab;
+    private bool hasRing = false;
+
+    [Header("Debug")]
+    [SerializeField] private bool debug = false;
 
     private readonly HashSet<ResourceType> usedResources = new HashSet<ResourceType>();
 
@@ -48,7 +56,7 @@ public class CelestialBody : MonoBehaviour
     /// Does nothing if no ResourceSO is assigned.
     /// </summary>
     /// <param name="rng">Rng used for the random generation.</param>
-    public void RandomizeResource(System.Random rng)
+    public void RandomizeResource(System.Random rng, PlanetContext ctx)
     {
         if (resourceSO == null || resourceSO.availableResources.Count == 0)
             return;
@@ -70,11 +78,8 @@ public class CelestialBody : MonoBehaviour
 
         // Takes the first 'numberOfResources' from the shuffled
         List<ResourceType> chosenResources = new List<ResourceType>();
-        for(int i = 0; i < shuffled.Count; i++)
+        for(int i = 0; i < shuffled.Count && chosenResources.Count < numberOfRessources; i++)
         {
-            if (chosenResources.Count >= numberOfRessources)
-                break;
-
             ResourceType type = shuffled[i];
             if (!usedResources.Contains(type))
             {
@@ -88,44 +93,76 @@ public class CelestialBody : MonoBehaviour
             return;
         }
 
-        // Give each resource a random weight, then convert to percentages summing to 100
-        List<int> percentages = BuildPercentages(chosenResources, rng);
+        // Compute weight multiplier
+        Dictionary<ResourceType, float> multipliers = BuildMultipliers(ctx, chosenResources);
 
-        // Store the final distribution
-        resourceDistribution = chosenResources
-            .Select((type, i) => new ResourceDistribution(type, percentages[i]))
-            .ToList();
+        // Assign weight (x1 - x9) multipliers
+        List<float> weights = new();
+        foreach(ResourceType type in chosenResources)
+        {
+            float baseWeight = (float)SeedManager.Range(1, 9, rng);
+            float multiplier = multipliers.TryGetValue(type, out float m) ? m : 1f;
+            weights.Add(multiplier * baseWeight);
+        }
 
-        // LogDistribution();
+        // Normalise to percentage summing to 100
+        float total = weights.Sum();
+        List<int> percentages = weights.Select(w => Mathf.RoundToInt(w / total * 100f)).ToList();
+
+        // Absorb rounding drift into last entry
+        int drift = 100 - percentages.Sum();
+        percentages[^1] += drift;
+
+        resourceDistribution = chosenResources.Select((t, i ) => new ResourceDistribution(t, percentages[i])).ToList();
+
+        if (debug) { LogDistribution(); }
     }
 
     /// <summary>
-    /// Assigns random float weights to each resource and converts them
-    /// to integer percentages that sum to exactly 100.
+    /// Evaluates all the rules against the context and accumulates multipliers
+    /// for each boosted resource. Multiple rule stack additively.
     /// </summary>
-    private List<int> BuildPercentages(List<ResourceType> chosen, System.Random rng)
+    private Dictionary<ResourceType, float> BuildMultipliers(PlanetContext ctx, List<ResourceType> chosen)
     {
-        // Random weight between 1 and 10 per resource
-        List<float> weights = new List<float>();
-        for(int i = 0; i < chosen.Count; i++)
+        Dictionary<ResourceType, float> multipliers = new Dictionary<ResourceType, float>();
+
+        if(resourceSO.rules == null) { return multipliers; }
+
+        foreach(PlanetResourceRuleSO rule in  resourceSO.rules)
         {
-            weights.Add((float) rng.NextDouble() * 9f + 1f);
-        }
-        float total = weights.Sum();
+            if(rule == null || !rule.Evaluate(ctx)) continue;
+            
+            foreach(ResourceType boosted in rule.boostedResources)
+            {
+                // Only boost resources that are actually present on this planet
+                if(!chosen.Contains(boosted)) continue;
 
-        // Normalise to integers
-        List<int> percentages = new List<int>();
-        for(int i = 0; i < chosen.Count; i++)
+                if(multipliers.TryGetValue(boosted, out float existing)) 
+                {
+                    // Additive stacking following this rule (a + b - 1) to avoid exponential growth
+                    multipliers[boosted] = existing + (rule.weightMultiplier - 1);
+                }
+                else
+                {
+                    multipliers[boosted] = rule.weightMultiplier;
+                }
+            }
+        }
+
+        return multipliers;
+    }
+
+    /// <summary>Spawns a ring visual and marks the planet as having a ring.</summary>
+    public void SpawnRing()
+    {
+        if(ringPrefab == null)
         {
-            percentages.Add(Mathf.RoundToInt(weights[i] / total * 100f));
+            Debug.LogWarning($"[CelestialBody] {gameObject.name} : ringPrefab not assigned.", this);
+            return;
         }
 
-        // Absorb rounding drift into the last entry so the total stays at exactly 100
-        int drift = 100 - percentages.Sum();
-        // 1 from the end
-        percentages[^1] += drift;
-
-        return percentages;
+        Instantiate(ringPrefab, transform.position, transform.rotation, transform);
+        hasRing = true;
     }
 
     /// <summary>
@@ -149,6 +186,8 @@ public class CelestialBody : MonoBehaviour
     {
         return Mathf.Pow((3f * mass) / (4f * Mathf.PI * density), 1f / 3f) * VISUAL_SCALE * scale;
     }
+
+    public bool HasRing() {  return hasRing; }
 
     public float GetRadius(float scale)
     {
