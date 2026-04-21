@@ -206,7 +206,8 @@ public class SolarSystemGenerator : MonoBehaviour
             float distance = FindSafePlanetDistance(footprint);
             if (distance < 0f)
             {
-                // Debug.LogWarning($"Cannot place planet {i} : Not enough space");
+                if(debug)
+                    Debug.LogWarning($"Cannot place planet {i} : Not enough space");
                 continue;
             }
 
@@ -276,7 +277,7 @@ public class SolarSystemGenerator : MonoBehaviour
             // Save influence footprint before generating moons
             usedPlanetOrbits.Add((distance, footprint));
 
-            GenerateMoons(planet, count);
+            GenerateMoons(planet, moonCount);
         }
     }
 
