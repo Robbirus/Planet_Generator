@@ -33,11 +33,21 @@ public class FlameEffect : StatusEffect
 
     protected override void Tick(HealthComponent target)
     {
-        if (target == null || target.IsDead() || target.GetArmorType() == ArmorType.INDESTRUCTIBLE) return;
+        if (CannotDamage(target)) return;
 
         target.TakeDamage(damagePerTick, color, true);
 
         Debug.Log($"[FlameEffect] Burn tick on {target.gameObject.name}: -{damagePerTick} HP");
+    }
+
+    /// <summary>
+    /// Returns true if the target cannot be damaged
+    /// </summary>
+    /// <param name="target"></param>
+    /// <returns>False if target can be damaged, true otherwise</returns>
+    private bool CannotDamage(HealthComponent target)
+    {
+        return target == null || target.IsDead() || target.GetArmorType() == ArmorType.INDESTRUCTIBLE;
     }
 
     public override void OnExpire(HealthComponent target)

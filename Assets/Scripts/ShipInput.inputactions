@@ -95,6 +95,15 @@
                     "processors": "",
                     "interactions": "",
                     "initialStateCheck": false
+                },
+                {
+                    "name": "OpenMap",
+                    "type": "Button",
+                    "id": "626ff875-7141-4e37-82dd-b567f16fa411",
+                    "expectedControlType": "",
+                    "processors": "",
+                    "interactions": "",
+                    "initialStateCheck": false
                 }
             ],
             "bindings": [
@@ -315,6 +324,17 @@
                     "processors": "",
                     "groups": "",
                     "action": "FourthWeaponSlot",
+                    "isComposite": false,
+                    "isPartOfComposite": false
+                },
+                {
+                    "name": "",
+                    "id": "866b3229-05ba-4f6c-8d9f-b261470229f3",
+                    "path": "<Keyboard>/semicolon",
+                    "interactions": "",
+                    "processors": "",
+                    "groups": "",
+                    "action": "OpenMap",
                     "isComposite": false,
                     "isPartOfComposite": false
                 }
