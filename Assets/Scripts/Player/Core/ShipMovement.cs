@@ -8,8 +8,7 @@ using UnityEngine.InputSystem;
 [RequireComponent(typeof(SpaceshipController))]
 public class SpaceshipMovement : MonoBehaviour
 {
-    // ── Stats (set from SpaceshipSO via SetStats or SetMovementData) ──────────
-
+    // Stats
     [Header("Free Movement")]
     [SerializeField] private float forwardSpeed = 25f;
     [SerializeField] private float strafSpeed = 7.5f;
@@ -43,15 +42,13 @@ public class SpaceshipMovement : MonoBehaviour
     [Header("Dead Zone")]
     [SerializeField] private float deadZoneRadius = 50f;
 
-    // ── Input ─────────────────────────────────────────────────────────────────
-
+    // InpuT
     [Header("Input")]
     [SerializeField] private InputActionReference movementActionReference;
     [SerializeField] private InputActionReference rollActionReference;
     [SerializeField] private InputActionReference boostActionReference;
 
-    // ── Debug / runtime state ─────────────────────────────────────────────────
-
+    // Debug / runtime state
     [Header("Debug — Current Speeds")]
     [SerializeField] private float activeForwardSpeed;
     [SerializeField] private float activeStrafSpeed;
@@ -62,11 +59,9 @@ public class SpaceshipMovement : MonoBehaviour
     [SerializeField] private float boostTimeToAdd;
     [SerializeField] private float activeBoostMultiplier = 1f;
 
-    // ── Reference ──────────────────────────────────────────────────────────────
+    // Reference 
     [Header("References")]
     [SerializeField] private PlanetLockSystem planetLockSystem;
-
-    // ── Internal ──────────────────────────────────────────────────────────────
 
     private Vector2 screenCenter;
     private Vector2 mouseDistance;
@@ -79,11 +74,12 @@ public class SpaceshipMovement : MonoBehaviour
 
     private float timeSinceLastBoost;
     private bool lockedMode;
+    private bool isFrozen = false;
 
-    // ── Unity ─────────────────────────────────────────────────────────────────
-
+    
     private void Awake()
     {
+        // Lazy loading
         if (planetLockSystem == null)
         {
             planetLockSystem = GetComponent<PlanetLockSystem>();
@@ -113,6 +109,8 @@ public class SpaceshipMovement : MonoBehaviour
 
     private void Update()
     {
+        if (isFrozen) return;
+
         // Input is always read so PlanetLockSystem gets mouseDistance even in orbital mode
         DetectInput();
 
@@ -122,8 +120,7 @@ public class SpaceshipMovement : MonoBehaviour
             UpdateFreeMovement();
     }
 
-    // ── Movement ──────────────────────────────────────────────────────────────
-
+   
     private void UpdateFreeMovement()
     {
         HandleRoll();
@@ -193,8 +190,6 @@ public class SpaceshipMovement : MonoBehaviour
         UpdateBoostTimer();
     }
 
-    // ── Input ─────────────────────────────────────────────────────────────────
-
     private void DetectInput()
     {
         if (Mouse.current == null) return;
@@ -230,8 +225,6 @@ public class SpaceshipMovement : MonoBehaviour
         forwardInput = movement.z;
     }
 
-    // ── Boost timer ───────────────────────────────────────────────────────────
-
     private void UpdateBoostTimer()
     {
         if (boostActionReference.action.IsPressed() && boostTimeRemaining > 0f)
@@ -255,8 +248,6 @@ public class SpaceshipMovement : MonoBehaviour
             boostTimeToAdd -= addThisFrame;
         }
     }
-
-    // ── Public API ────────────────────────────────────────────────────────────
 
     /// <summary>Switches between free-flight and orbital movement mode.</summary>
     public void SetLockedMode(bool locked)
@@ -318,7 +309,25 @@ public class SpaceshipMovement : MonoBehaviour
         boostTimeToAdd += time;
     }
 
-    // ── Getters (consumed by SpaceshipController -> UIShip / ShipCamera) ───────
+    public void SetFrozen(bool frozen)
+    {
+        isFrozen = frozen;
+
+        if (frozen)
+        {
+            // Kill all active velocities so the ship stops instantly
+            activeForwardSpeed = 0f;
+            activeStrafSpeed = 0f;
+            activeHoverSpeed = 0f;
+            rollInput = 0f;
+            activeBoostMultiplier = 1f;
+        }
+    }
+
+    public bool IsFrozen()
+    {
+        return isFrozen;
+    }
 
     public float GetForwardSpeedRatio()
     {
