@@ -5,7 +5,7 @@ using UnityEngine;
 public class ShapeGenerator
 {
     ShapeSettings settings;
-    SimpleNoiseFilter[] noiseFilters;
+    INoiseFilter[] noiseFilters;
 
     public ShapeGenerator(ShapeSettings settings)
     {
@@ -13,7 +13,7 @@ public class ShapeGenerator
         noiseFilters = new SimpleNoiseFilter[settings.noiseLayers.Length];
         for (int i = 0; i < noiseFilters.Length; i++)
         {
-            noiseFilters[i] = new SimpleNoiseFilter(settings.noiseLayers[i].noiseSettings);
+            noiseFilters[i] = NoiseFilterFactory.CreateNoiseFilter(settings.noiseLayers[i].noiseSettings);
         }
     }
 

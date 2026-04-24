@@ -3,7 +3,7 @@ using System.Collections.Generic;
 using UnityEngine;
 
 // Noise to create ridge-like terrain
-public class RigidNoiseFilter
+public class RigidNoiseFilter : INoiseFilter
 {
     NoiseSettings settings;
     Noise noise = new Noise();
