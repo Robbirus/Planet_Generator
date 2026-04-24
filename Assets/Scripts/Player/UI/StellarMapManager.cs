@@ -1,3 +1,4 @@
+using System;
 using UnityEngine;
 using UnityEngine.InputSystem;
 
@@ -10,6 +11,7 @@ public class StellarMapManager : MonoBehaviour
     [Header("Ship References")]
     [SerializeField] private SpaceshipController controller;
     [SerializeField] private SpaceshipMovement movement;
+    [SerializeField] private WeaponManager weaponManager;
     [SerializeField] private Camera cam;
     [Space(10)]
 
@@ -38,14 +40,37 @@ public class StellarMapManager : MonoBehaviour
     private void Awake()
     {
         // Ensure map camera starts disabled 
-        if(mapCamera != null)
+        if (mapCamera != null)
         {
-            mapCamera.GetCamera().enabled = false;
+            mapCamera.gameObject.SetActive(false);
+            mapCamera.enabled = true;
+            Vector3 focusPoint = sun != null ? sun.position : Vector3.zero;
+            mapCamera.FocusOn(focusPoint, orthoSize);
         }
 
         if (mapPanel != null)
         {
             mapPanel.gameObject.SetActive(false);
+        }
+
+        LazyLoading();
+    }
+
+    private void LazyLoading()
+    {
+        if(controller == null)
+        {
+            controller = GetComponent<SpaceshipController>();
+        }
+
+        if(movement == null)
+        {
+            movement = GetComponent<SpaceshipMovement>();
+        }
+
+        if(weaponManager == null)
+        {
+            weaponManager = GetComponent<WeaponManager>();
         }
     }
 
@@ -75,16 +100,17 @@ public class StellarMapManager : MonoBehaviour
         isMapOpen = true;
 
         // Freeze the ship. No movement, no rotation
-        if (movement != null)            
-            movement.SetFrozen(true);
+        if (movement != null) movement.SetFrozen(true);
+
+        // Freeze weapons
+        if (weaponManager != null) weaponManager.enabled = false;
 
         // Swap cameras
-        if (cam != null)            
-            cam.enabled = false;
+        if (cam != null) cam.enabled = false;
 
         if (mapCamera != null)
         {
-            mapCamera.GetCamera().enabled = true;
+            mapCamera.gameObject.SetActive(true);
             Vector3 focusPoint = sun != null ? sun.position : Vector3.zero;
             mapCamera.FocusOn(focusPoint, orthoSize);
         }
@@ -107,15 +133,15 @@ public class StellarMapManager : MonoBehaviour
         isMapOpen = false;
 
         // Unfreeze the ship
-        if (movement != null)
-            movement.SetFrozen(false);
+        if (movement != null) movement.SetFrozen(false);
+
+        // Unfreeze weapon
+        if (weaponManager != null) weaponManager.enabled = true;
 
         // Swap cameras back
-        if (mapCamera != null)
-            mapCamera.GetCamera().enabled = false;
+        if (mapCamera != null) mapCamera.gameObject.SetActive(false);
 
-        if (cam != null)
-            cam.enabled = true;
+        if (cam != null) cam.enabled = true;
 
         // Toggle UI
         if (mapPanel != null) mapPanel.SetActive(false);

@@ -15,7 +15,7 @@ public class StellarCamera : MonoBehaviour
 
     [Header("Height")]
     [Tooltip("Y position of the map camera.")]
-    [SerializeField] private float height = 800f;
+    [SerializeField] private float height = 15000f;
     [Space(10)]
 
     [Header("Pan")]
@@ -127,10 +127,5 @@ public class StellarCamera : MonoBehaviour
 
         targetOrthoSize = Mathf.Clamp(initialOrthoSize, minOrthoSize, maxOrthoSize);
         cam.orthographicSize = targetOrthoSize;
-    }
-
-    public Camera GetCamera()
-    {
-        return this.cam;
     }
 }
