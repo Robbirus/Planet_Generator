@@ -5,10 +5,10 @@ using UnityEngine;
 // Noise to create ridge-like terrain
 public class RigidNoiseFilter : INoiseFilter
 {
-    NoiseSettings settings;
+    NoiseSettings.RigidNoiseSettings settings;
     Noise noise = new Noise();
 
-    public RigidNoiseFilter(NoiseSettings settings)
+    public RigidNoiseFilter(NoiseSettings.RigidNoiseSettings settings)
     {
         this.settings = settings;
     }
@@ -24,7 +24,7 @@ public class RigidNoiseFilter : INoiseFilter
             float value = 1 - Mathf.Abs(noise.Evaluate(point * frequency + settings.centre));
             value *= value;
             value *= weight;
-            weight = value; // allows the noise to become more detailed as the elevation increases
+            weight = Mathf.Clamp01(value * settings.weightMultiplier); // allows the noise to become more detailed as the elevation increases
 
             noiseValue += value * amplitude;
             frequency *= settings.roughness;
