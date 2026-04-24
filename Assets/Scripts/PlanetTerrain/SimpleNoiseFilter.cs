@@ -3,7 +3,7 @@ using System.Collections.Generic;
 using UnityEngine;
 
 // Class for processing the noise
-public class SimpleNoiseFilter
+public class SimpleNoiseFilter : INoiseFilter
 {
     NoiseSettings settings;
     Noise noise = new Noise();
