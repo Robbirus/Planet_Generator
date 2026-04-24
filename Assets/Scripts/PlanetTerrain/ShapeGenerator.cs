@@ -10,7 +10,7 @@ public class ShapeGenerator
     public ShapeGenerator(ShapeSettings settings)
     {
         this.settings = settings;
-        noiseFilters = new SimpleNoiseFilter[settings.noiseLayers.Length];
+        noiseFilters = new INoiseFilter[settings.noiseLayers.Length];
         for (int i = 0; i < noiseFilters.Length; i++)
         {
             noiseFilters[i] = NoiseFilterFactory.CreateNoiseFilter(settings.noiseLayers[i].noiseSettings);
