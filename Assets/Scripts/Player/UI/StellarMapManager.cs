@@ -1,4 +1,5 @@
 using System;
+using TMPro;
 using UnityEngine;
 using UnityEngine.InputSystem;
 
@@ -31,6 +32,11 @@ public class StellarMapManager : MonoBehaviour
     [SerializeField] private GameObject mapPanel;
     [Tooltip("HUD that should be hidden while the map is open.")]
     [SerializeField] private GameObject hudContainer;
+    [Space(10)]
+
+    [Header("Labels Configuration")]
+    [SerializeField] private TextMeshProUGUI labelPrefab;
+    [SerializeField] private Transform labelContainer;
     [Space(10)]
 
     [Header("Debug")]
@@ -71,6 +77,16 @@ public class StellarMapManager : MonoBehaviour
         if(weaponManager == null)
         {
             weaponManager = GetComponent<WeaponManager>();
+        }
+    }
+
+
+    private void Start()
+    {
+        StellarLabel[] allLabels = GameObject.FindObjectsByType<StellarLabel>(FindObjectsSortMode.None);
+        foreach (StellarLabel label in allLabels)
+        {
+            label.Setup(labelPrefab, labelContainer, mapCamera.GetComponent<Camera>());
         }
     }
 

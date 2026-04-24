@@ -26,9 +26,9 @@ public class StellarCamera : MonoBehaviour
     [Space(10)]
 
     [Header("Zoom")]
-    [SerializeField] private float minOrthoSize = 50f;
-    [SerializeField] private float maxOrthoSize = 600f;
-    [SerializeField] private float zoomSpeed    = 20f;
+    [SerializeField] private float minOrthoSize = 30000f;
+    [SerializeField] private float maxOrthoSize = 60000f;
+    [SerializeField] private float zoomSpeed    = 500f;
     [SerializeField] private float zoomSmoothing = 8f;
     [Space(10)]
 
@@ -55,7 +55,7 @@ public class StellarCamera : MonoBehaviour
     }
 
     private void Update()
-    {
+    {   
         HandlePan();
         HandleZoom();
         ApplyMovement();
