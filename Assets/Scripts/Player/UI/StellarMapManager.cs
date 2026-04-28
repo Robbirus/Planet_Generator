@@ -13,7 +13,7 @@ public class StellarMapManager : MonoBehaviour
     [SerializeField] private SpaceshipController controller;
     [SerializeField] private SpaceshipMovement movement;
     [SerializeField] private WeaponManager weaponManager;
-    [SerializeField] private Camera cam;
+    [SerializeField] private Camera playerCam;
     [Space(10)]
 
     [Header("Map camera")]
@@ -43,6 +43,8 @@ public class StellarMapManager : MonoBehaviour
     [SerializeField] private bool isMapOpen = false;
     [SerializeField] private bool debug = true;
 
+    public event Action<bool> OnMapChanged;
+
     private void Awake()
     {
         // Ensure map camera starts disabled 
@@ -66,20 +68,24 @@ public class StellarMapManager : MonoBehaviour
     {
         if(controller == null)
         {
-            controller = GetComponent<SpaceshipController>();
+            controller = GameManager.instance.GetSpaceshipController();
         }
 
         if(movement == null)
         {
-            movement = GetComponent<SpaceshipMovement>();
+            movement = controller.GetMovement();
         }
 
         if(weaponManager == null)
         {
-            weaponManager = GetComponent<WeaponManager>();
+            weaponManager = controller.GetWeaponManager();
+        }
+
+        if(playerCam == null)
+        {
+            playerCam = controller.GetPlayerCamera();
         }
     }
-
 
     private void Start()
     {
@@ -108,6 +114,7 @@ public class StellarMapManager : MonoBehaviour
     {
         if (isMapOpen) CloseMap();
         else OpenMap();
+        OnMapChanged?.Invoke(isMapOpen);
     }
 
     private void OpenMap()
@@ -122,7 +129,7 @@ public class StellarMapManager : MonoBehaviour
         if (weaponManager != null) weaponManager.enabled = false;
 
         // Swap cameras
-        if (cam != null) cam.enabled = false;
+        if (playerCam != null) playerCam.enabled = false;
 
         if (mapCamera != null)
         {
@@ -138,6 +145,11 @@ public class StellarMapManager : MonoBehaviour
         // Free the cursor for panning
         Cursor.lockState = CursorLockMode.Confined;
         Cursor.visible = true;
+
+        foreach(OrbitDrawer drawer in FindObjectsByType<OrbitDrawer>(FindObjectsSortMode.None))
+        {
+            drawer.SetAdaptiveCamera(mapCamera.GetCamera());
+        }
 
         if (debug)
             Debug.Log("[StellarMapManager] Map Opened", this);
@@ -157,7 +169,7 @@ public class StellarMapManager : MonoBehaviour
         // Swap cameras back
         if (mapCamera != null) mapCamera.gameObject.SetActive(false);
 
-        if (cam != null) cam.enabled = true;
+        if (playerCam != null) playerCam.enabled = true;
 
         // Toggle UI
         if (mapPanel != null) mapPanel.SetActive(false);
