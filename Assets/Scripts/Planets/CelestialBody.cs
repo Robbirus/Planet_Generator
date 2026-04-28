@@ -28,6 +28,7 @@ public class CelestialBody : MonoBehaviour
     [SerializeField] private bool debug = false;
 
     private readonly HashSet<ResourceType> usedResources = new HashSet<ResourceType>();
+    private Transform centerTransform;
 
     /// <summary>
     /// Returns the full resources of the planet
@@ -251,5 +252,15 @@ public class CelestialBody : MonoBehaviour
     {
         // Rotation on itself
         transform.Rotate(Vector3.up * rotationSpeed * Time.deltaTime);
+    }
+
+    public void SetCenter(Transform centerTransform)
+    {
+        this.centerTransform = centerTransform;
+    }
+
+    public Transform GetCenter()
+    {
+        return this.centerTransform;
     }
 }
