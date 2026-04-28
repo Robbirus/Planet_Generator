@@ -16,6 +16,7 @@ public class SpaceshipController : MonoBehaviour
     [SerializeField] private ShipInventory inventory;
     [SerializeField] private ResourceHarvester harvester;
     [SerializeField] private WeaponManager weaponManager;
+    [SerializeField] private Camera playerCamera;
 
     private void Awake()
     {
@@ -84,4 +85,5 @@ public class SpaceshipController : MonoBehaviour
     public PlanetLockSystem GetPlanetLock() { return planetLockSystem; }
     public SpaceshipMovement GetMovement() { return movement; }
     public WeaponManager GetWeaponManager() { return weaponManager; }
+    public Camera GetPlayerCamera() {  return playerCamera; }
 }
