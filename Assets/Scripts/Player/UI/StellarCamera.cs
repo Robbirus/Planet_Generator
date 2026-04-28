@@ -128,4 +128,9 @@ public class StellarCamera : MonoBehaviour
         targetOrthoSize = Mathf.Clamp(initialOrthoSize, minOrthoSize, maxOrthoSize);
         cam.orthographicSize = targetOrthoSize;
     }
+
+    public Camera GetCamera()
+    {
+        return cam;
+    }
 }
