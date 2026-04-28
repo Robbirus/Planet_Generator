@@ -155,8 +155,12 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 77936a2072604364db49e5c55ee95dc8, type: 3}
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::OrbitDrawer
-  segments: 100
+  body: {fileID: -6737950574561051602}
   radius: 5000
+  inclination: 0
+  color: {r: 0, g: 1, b: 0.93225074, a: 1}
+  baseWidth: 50
+  segments: 100
 --- !u!1 &4984548254132639815
 GameObject:
   m_ObjectHideFlags: 0
