@@ -82,6 +82,10 @@ public class SolarSystemGenerator : MonoBehaviour
     [SerializeField] private CelestialObjectDataSO moonData;
     [Space(10)]
 
+    [Header("References")]
+    [SerializeField] private StellarMapManager stellarMapManager;
+    [Space(10)]
+
     [Header("Debug")]
     [SerializeField] private bool debug = false;
 
@@ -98,6 +102,11 @@ public class SolarSystemGenerator : MonoBehaviour
             Debug.LogError("[SolarSystemGenerator] 'sun' reference is not set.", this);
             enabled = false;
             return;
+        }
+
+        if(stellarMapManager == null)
+        {
+            stellarMapManager = GetComponent<StellarMapManager>();
         }
 
         GenerateSeeds();
@@ -232,6 +241,7 @@ public class SolarSystemGenerator : MonoBehaviour
 
             GameObject planet = Instantiate(planetPrefab, pos, Quaternion.Euler(rot));
             CelestialBody body = planet.GetComponent<CelestialBody>();
+            OrbitDrawer orbitDrawer = planet.GetComponentInChildren<OrbitDrawer>();
             
             string name = planetData != null 
                 ? GetUniqueName(planetData, planetaryRNG, $"Planet_{i}")
@@ -273,6 +283,13 @@ public class SolarSystemGenerator : MonoBehaviour
             orbit.SetOrbitRadius(distance);
             orbit.SetOrbitSpeed(orbitSpeed);
             orbit.SetOrbitInclination(inclination);
+
+            // Orbit drawer
+            body.SetCenter(sun);
+            if(orbitDrawer != null)
+            {
+                orbitDrawer.Setup(distance, inclination, planetOrbitColor, stellarMapManager);
+            }
 
             // Save influence footprint before generating moons
             usedPlanetOrbits.Add((distance, footprint));
@@ -328,6 +345,7 @@ public class SolarSystemGenerator : MonoBehaviour
 
             GameObject moon = Instantiate(moonPrefab, pos, Quaternion.identity);
             CelestialBody body = moon.GetComponent<CelestialBody>();
+            OrbitDrawer moonDrawer = moon.GetComponentInChildren<OrbitDrawer>();
 
             string name = moonData != null
                 ? GetUniqueName(moonData, lunarRNG, $"Moon_{i}")
@@ -347,6 +365,7 @@ public class SolarSystemGenerator : MonoBehaviour
             float orbitalSpeed = SeedManager.Range(minMoonOrbitalSpeed, maxMoonOrbitalSpeed, lunarRNG) / distance;
             float inclination = SeedManager.Range(-20f, 20f, lunarRNG);
 
+            // Orbit
             OrbitBody orbit = moon.AddComponent<OrbitBody>();
             orbit.SetCenter(planet.transform);
             orbit.SetSeed(stellarRNG);
@@ -354,6 +373,13 @@ public class SolarSystemGenerator : MonoBehaviour
             orbit.SetOrbitRadius(distance);
             orbit.SetOrbitSpeed(orbitalSpeed);
             orbit.SetOrbitInclination(inclination);
+
+            // Orbit Drawer
+            body.SetCenter(planet.transform);
+            if(moonDrawer != null)
+            {
+                moonDrawer.Setup(distance, inclination, moonOrbitColor, stellarMapManager);
+            }
 
             usedMoonOrbits.Add((distance, visualRadius));
         }
