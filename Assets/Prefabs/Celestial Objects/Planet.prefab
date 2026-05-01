@@ -161,6 +161,7 @@ MonoBehaviour:
   color: {r: 0.14631534, g: 1, b: 0, a: 1}
   baseWidth: 50
   segments: 100
+  debug: 0
 --- !u!1 &4984548254132639815
 GameObject:
   m_ObjectHideFlags: 0
@@ -336,6 +337,8 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 7697d6a2d2f6fae40b0ddf8efc276155, type: 3}
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::StellarLabel
-  displayName: 
   isMoon: 0
-  showMoonThreshold: 40000
+  showMoonThreshold: 30000
+  verticalOffset: 15
+  solarScale: 0.1
+  fontSize: 8
