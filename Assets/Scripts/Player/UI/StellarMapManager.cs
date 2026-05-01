@@ -92,7 +92,7 @@ public class StellarMapManager : MonoBehaviour
         StellarLabel[] allLabels = GameObject.FindObjectsByType<StellarLabel>(FindObjectsSortMode.None);
         foreach (StellarLabel label in allLabels)
         {
-            label.Setup(labelPrefab, labelContainer, mapCamera.GetComponent<Camera>());
+            label.Setup(labelPrefab, mapCamera.GetComponent<Camera>(), this);
         }
     }
 
