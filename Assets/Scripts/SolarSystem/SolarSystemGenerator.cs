@@ -1,4 +1,6 @@
-﻿using System.Collections.Generic;
+﻿using System;
+using System.Collections.Generic;
+using Unity.VisualScripting;
 using UnityEngine;
 
 public class SolarSystemGenerator : MonoBehaviour
@@ -6,6 +8,7 @@ public class SolarSystemGenerator : MonoBehaviour
     [Header("Prefabs")]
     [SerializeField] private GameObject planetPrefab;
     [SerializeField] private GameObject moonPrefab;
+    [SerializeField] private GameObject cometPrefab;
     [SerializeField] private Transform sun;
     [Space(10)]
 
@@ -14,72 +17,35 @@ public class SolarSystemGenerator : MonoBehaviour
     private System.Random stellarRNG;
     private System.Random planetaryRNG;
     private System.Random lunarRNG;
-    [Space(10)]
-
-    [Header("Planets")]
-    private int minPlanets = 3;
-    private int maxPlanets = 8;
-
-    private float minDistance = 20f;
-    private float maxDistance = 120f;
-
-    private float minOrbitalSpeed = 10f; 
-    private float maxOrbitalSpeed = 100f;
-
-    private float minRotationSpeed = 10f;
-    private float maxRotationSpeed = 100f;    
-
-    [Header("Planet Properties")]
-    private float minPlanetMass = 5f;
-    private float maxPlanetMass = 50f;
-    private float minPlanetDensity = 0.5f;
-    private float maxPlanetDensity = 2f;
-    private float planetScale = 1;
-    [SerializeField] private Color planetOrbitColor = Color.blue;
-    [Space(5)]
-
-    [Header("Planet Spacing")]
-    [Tooltip("Additional safety margin between two planetary paths")]
-    [SerializeField] private float planetSafetyMargin = 100f;
-    [Space(10)]
-
-    [Header("Ring property")]
-    [Tooltip("Chance (0-1) that a planet with zero moon generate a ring.")]
-    [Range(0f, 1f)]
-    [SerializeField] private float ringChance = 0.4f;
-    [Space(10)]
-
-    [Header("Moons Properties")]
-    private int minMoons = 3;
-    private int maxMoons = 8;
-
-    private float minMoonDistance = 3f;
-    private float maxMoonDistance = 12f;
-
-    private float minMoonOrbitalSpeed = 10f;
-    private float maxMoonOrbitalSpeed = 100f;
-
-    private float minMoonRotationSpeed = 10f;
-    private float maxMoonRotationSpeed = 100f;
-
-    private float minMoonMass = 0.05f;
-    private float maxMoonMass = 1f;
-    private float minMoonDensity = 0.5f;
-    private float maxMoonDensity = 2f;
-
-    private float moonScale = 1;
-
-    [SerializeField] private Color moonOrbitColor = Color.cyan;
-    [Space(10)]
-
-    [Header("Moon Spacing")]
-    [Tooltip("Minimum margin between two moon orbits")]
-    [SerializeField] private float moonOrbitGap = 1.5f;
+    private System.Random cometRNG;
     [Space(10)]
 
     [Header("Data")]
     [SerializeField] private CelestialObjectDataSO planetData;
     [SerializeField] private CelestialObjectDataSO moonData;
+    [SerializeField] private CelestialObjectDataSO cometData;
+    [Space(10)]
+
+    [Header("Comets")]
+    [SerializeField] private Vector2Int cometCountRange = new Vector2Int(1, 4);
+
+    [Header("Orbit colors")]
+    [SerializeField] private Color planetOrbitColor = Color.blue;
+    [SerializeField] private Color moonOrbitColor = Color.cyan;
+    [SerializeField] private Color cometOrbitColor = new Color(1f, 0.6f, 0f);
+    [Space(10)]
+
+    [Header("Spacing")]
+    [Tooltip("Additional safety margin between two planetary paths")]
+    [SerializeField] private float planetSafetyMargin   = 100f;
+    [Tooltip("Minimum margin between two moon orbits")]
+    [SerializeField] private float moonOrbitGap         = 1.5f;
+    [Space(10)]
+
+    [Header("Ring")]
+    [Tooltip("Chance (0-1) that a planet with zero moon generate a ring.")]
+    [Range(0f, 1f)]
+    [SerializeField] private float ringChance = 0.4f;
     [Space(10)]
 
     [Header("References")]
@@ -110,10 +76,9 @@ public class SolarSystemGenerator : MonoBehaviour
         }
 
         GenerateSeeds();
-        SetPlanetData(planetData);
-        SetMoonData(moonData);
         GenerateStars();
         GeneratePlanets();
+        GenerateComets();
     }
 
     private void GenerateSeeds()
@@ -121,71 +86,10 @@ public class SolarSystemGenerator : MonoBehaviour
         stellarRNG = SeedManager.GetRNG("stellar");
         planetaryRNG = SeedManager.GetRNG("planetary");
         lunarRNG = SeedManager.GetRNG("lunar");
+        cometRNG = SeedManager.GetRNG("comet");
     }
 
-    private void SetPlanetData(CelestialObjectDataSO planetData)
-    {
-        if(planetData != null)
-        {
-            minPlanets = (int)planetData.numberRange.x;
-            maxPlanets = (int)planetData.numberRange.y;
-
-            minDistance = planetData.distanceRange.x;
-            maxDistance = planetData.distanceRange.y;
-
-            minOrbitalSpeed = planetData.orbitalSpeedRange.x;
-            maxOrbitalSpeed = planetData.orbitalSpeedRange.y;
-
-            minRotationSpeed = planetData.rotationSpeedRange.x;
-            maxRotationSpeed = planetData.rotationSpeedRange.y;
-
-            minPlanetMass = planetData.massRange.x;
-            maxPlanetMass = planetData.massRange.y;
-
-            minPlanetDensity = planetData.densityRange.x;
-            maxPlanetDensity = planetData.densityRange.y;
-
-            planetScale = planetData.visualScale;
-        }
-        else
-        {
-            Debug.LogWarning("Planet data is not set. Using default values.");
-        }
-    }
-
-    private void SetMoonData(CelestialObjectDataSO moonData)
-    {
-        if(moonData != null)
-        {
-            minMoons = (int)moonData.numberRange.x;
-            maxMoons = (int)moonData.numberRange.y;
-
-            minMoonDistance = moonData.distanceRange.x;
-            maxMoonDistance = moonData.distanceRange.y;
-
-            minMoonOrbitalSpeed = moonData.orbitalSpeedRange.x;
-            maxMoonOrbitalSpeed = moonData.orbitalSpeedRange.y;
-
-            minMoonRotationSpeed = moonData.rotationSpeedRange.x;
-            maxMoonRotationSpeed = moonData.rotationSpeedRange.y;
-
-            minMoonMass = moonData.massRange.x;
-            maxMoonMass = moonData.massRange.y;
-
-            minMoonDensity = moonData.densityRange.x;
-            maxMoonDensity = moonData.densityRange.y;
-
-            moonScale = moonData.visualScale;
-        }
-        else
-        {
-            Debug.LogWarning("Moon data is not set. Using default values.");
-        }
-    }
-
-    /// <summary>
-    /// Generate stars
-    /// </summary>
+    /// <summary>Generate stars</summary>
     private void GenerateStars()
     {
         distantStars?.GenerateStars();
@@ -199,189 +103,287 @@ public class SolarSystemGenerator : MonoBehaviour
     /// due to insufficient space.</remarks>
     private void GeneratePlanets()
     {
-        int count = stellarRNG.Next(minPlanets, maxPlanets);
-        if(debug)
-            Debug.Log($"[SolarSystemGenerator] Generating {count} planets.");
+        if(planetData == null) { Debug.LogWarning("[Generator] planetData is not assigned.", this); return; }
 
-        for (int i = 0; i < count; i++)
+        int count = planetaryRNG.Next((int)planetData.numberRange.x, (int)planetData.numberRange.y);
+        if (debug) Debug.Log($"[Generator] Spawning {count} planets.", this);
+
+        for(int i = 0; i < count; i++)
         {
-            // Set physical properties first to compute radius for spacing
-            float mass              = SeedManager.Range(minPlanetMass, maxPlanetMass, planetaryRNG);
-            float density           = SeedManager.Range(minPlanetDensity, maxPlanetDensity, planetaryRNG);
-            float visualRadius      = CelestialBody.ComputeRadius(mass, density, planetScale);
-            float footprint         = visualRadius + maxMoonDistance; // worst case moon orbit
-            float rotationSpeed     = SeedManager.Range(minRotationSpeed, maxRotationSpeed, planetaryRNG); 
-
-            float distance = FindSafePlanetDistance(footprint);
-            if (distance < 0f)
-            {
-                if(debug)
-                    Debug.LogWarning($"Cannot place planet {i} : Not enough space");
-                continue;
-            }
-
-            // Random angle around the sun
-            float angle     = SeedManager.Range(0f, Mathf.PI * 2f, planetaryRNG);
-            // Inclination with respect to the ecliptic plane, to avoid all bodies being aligned
-            float incline   = SeedManager.Range(-3f, 3f, planetaryRNG);
-
-            // Position based on the distance from the sun
-            Vector3 pos = sun.position + new Vector3(
-                Mathf.Cos(angle) * distance,
-                incline,
-                Mathf.Sin(angle) * distance
-            );
-
-            // Slight incline on itself
-            Vector3 rot = new Vector3(
-                SeedManager.Range(-10f, 10f, planetaryRNG),
-                0f,
-                SeedManager.Range(-10, 10, planetaryRNG)
-            );
-
-            GameObject planet = Instantiate(planetPrefab, pos, Quaternion.Euler(rot));
-            CelestialBody body = planet.GetComponent<CelestialBody>();
-            OrbitDrawer orbitDrawer = planet.GetComponentInChildren<OrbitDrawer>();
-            
-            string name = planetData != null 
-                ? GetUniqueName(planetData, planetaryRNG, $"Planet_{i}")
-                : $"Planet_{i}";
-
-            // Body
-            body.SetMass(mass);
-            body.SetDensity(density);
-            body.SetRotationSpeed(rotationSpeed);
-            body.SetName(name);
-
-            body.ApplyScale(planetScale);
-            body.ApplyColor(maxPlanetDensity);
-
-            // pre-roll moons count so the context is complet before gen.
-            int moonCount = (int)SeedManager.Range(minMoons, maxMoons, lunarRNG);
-
-            // Ring : Only if no moon, random chance to have it.
-            bool hasRing = false;
-            if(moonCount == 0 && SeedManager.Range(0f, 1, planetaryRNG) < ringChance)
-            {
-                body.SpawnRing();
-                hasRing = true;
-            }
-
-            // Build context  and randomise resources
-            PlanetContext ctx = new PlanetContext(moonCount, density, hasRing);
-            body.RandomizeResource(planetaryRNG, ctx);
-
-            // Orbital properties
-            float orbitSpeed    = SeedManager.Range(minOrbitalSpeed, maxOrbitalSpeed, planetaryRNG) / distance;
-            float inclination   = SeedManager.Range(-10f, 10f, planetaryRNG);
-
-            // Orbit
-            OrbitBody orbit = planet.AddComponent<OrbitBody>();
-            orbit.SetCenter(sun);
-            orbit.SetSeed(stellarRNG);
-            orbit.SetOrbitColor(planetOrbitColor);
-            orbit.SetOrbitRadius(distance);
-            orbit.SetOrbitSpeed(orbitSpeed);
-            orbit.SetOrbitInclination(inclination);
-
-            // Orbit drawer
-            body.SetCenter(sun);
-            if(orbitDrawer != null)
-            {
-                orbitDrawer.Setup(distance, inclination, planetOrbitColor, stellarMapManager);
-            }
-
-            // Save influence footprint before generating moons
-            usedPlanetOrbits.Add((distance, footprint));
-
-            GenerateMoons(planet, moonCount);
+            TrySpawnPlanet(i);
         }
     }
 
-    /// <summary>
-    /// Generates and places a random number of moons in orbit around the specified planet, assigning physical and
-    /// orbital properties to each moon.
-    /// </summary>
-    /// <param name="planet">The planet GameObject around which moons are generated.</param>
-    private void GenerateMoons(GameObject planet, int moonCount)
-    {
-        // Store the orbital radius of each moon already placed around this planet
-        List<(float orbit, float radius)> usedMoonOrbits = new();
-
-        if(debug)
-            Debug.Log($"[SolarSystemGenerator] Generating {moonCount} moons for {planet.name}.");
-
-        CelestialBody planetBody = planet.GetComponent<CelestialBody>();
-        if(planetBody == null)
+    private void TrySpawnPlanet(int index)
+    {            
+        // Set physical properties first to compute radius for spacing
+        float mass = SeedManager.Range(planetData.massRange.x, planetData.massRange.y, planetaryRNG);
+        float density = SeedManager.Range(planetData.densityRange.x, planetData.densityRange.y, planetaryRNG);
+        float visualRadius = CelestialBody.ComputeRadius(mass, density, planetData.visualScale);
+        float footprint = visualRadius + moonData.distanceRange.y; // worst case moon orbit
+        
+        float distance = FindSafePlanetDistance(footprint);
+        if (distance < 0f)
         {
-            Debug.LogError($"Planet {planet.name} does not have a CelestialBody component.");
+            if (debug)
+                Debug.LogWarning($"[Generator] Cannot place planet {index} : Not enough space");
             return;
         }
-        float planetVisualRadius = planetBody.GetRadius(planetScale);
 
-        for (int i = 0; i < moonCount; i++)
+        float rotationSpeed = SeedManager.Range(planetData.rotationSpeedRange.x, planetData.rotationSpeedRange.y, planetaryRNG);
+        float orbitalSpeed  = SeedManager.Range(planetData.orbitalSpeedRange.x, planetData.orbitalSpeedRange.y, planetaryRNG) / distance;
+        float inclination   = SeedManager.Range(planetData.inclinationRange.x, planetData.inclinationRange.y, planetaryRNG);
+        float angle         = SeedManager.Range(0f, Mathf.PI * 2f, planetaryRNG);
+        float incline       = SeedManager.Range(planetData.inclinationRange.x, planetData.inclinationRange.y, planetaryRNG);
+
+        Vector3 position = sun.position + new Vector3(Mathf.Cos(angle) * distance, incline, Mathf.Sin(angle) * distance);
+        Vector3 rotation = new Vector3(
+            SeedManager.Range(-10f, 10f, planetaryRNG),
+            0f,
+            SeedManager.Range(-10f, 10f, planetaryRNG));
+
+        string name = GetUniqueName(planetData, planetaryRNG, $"Planet_{index}");
+
+        // Pre roll moon count so context is ready before resource gen
+        int moonCount = moonData != null
+            ? lunarRNG.Next((int)moonData.numberRange.x, (int)moonData.numberRange.y + 1)
+            : 0;
+
+        GameObject planet = SpawnBody(planetPrefab, position, Quaternion.Euler(rotation),
+            mass, density, rotationSpeed, name,
+            planetData.visualScale, planetData.densityRange.y);
+
+        CelestialBody body = planet.GetComponent<CelestialBody>();
+        OrbitDrawer drawer = planet.GetComponentInChildren<OrbitDrawer>();
+
+        // Ring : Only if no moon
+        bool hasRing = false;
+        if(moonCount == 0 && SeedManager.Range(0f, 1f, planetaryRNG) < ringChance)
         {
-            float mass              = SeedManager.Range(minMoonMass, maxMoonMass, lunarRNG);
-            float density           = SeedManager.Range(minMoonDensity, maxMoonDensity, lunarRNG);
-            float visualRadius      = CelestialBody.ComputeRadius(mass, density, moonScale);
-            float rotationSpeed     = SeedManager.Range(minMoonRotationSpeed, maxMoonRotationSpeed, lunarRNG);
+            body.SpawnRing();
+            hasRing = true;
+        }
 
-            // Minimum gap between two orbits : sum of the radii + margin
-            float distance = FindSafeMoonOrbit(planetVisualRadius, visualRadius, usedMoonOrbits);
-            if(distance < 0f)
-            {
-                // Debug.LogWarning($"Cannot place the moon_{i} around {planet.name}.");
-                continue;
-            }
+        body.SetCenter(sun);
+        body.RandomizeResource(planetaryRNG, new PlanetContext(moonCount, density, hasRing));
 
-            float angle = SeedManager.Range(0f, Mathf.PI * 2f, lunarRNG);
-            float incline = SeedManager.Range(-10f, 10f, lunarRNG);
+        AddOrbitBody(planet, sun, distance, orbitalSpeed, inclination);
+        drawer?.Setup(distance, inclination, planetOrbitColor, stellarMapManager, sun);
 
-            Vector3 pos = planet.transform.position + new Vector3(
+        usedPlanetOrbits.Add((distance, footprint));
+
+        // Binary : Only if no moon, random chance
+        bool isBinary = moonCount == 0 && SeedManager.Range(0f, 1f, planetaryRNG) < planetData.binaryChance;
+
+        if(isBinary)
+        {
+            GenerateBinary(planet, distance, inclination, orbitalSpeed);
+        }
+        else
+        {
+            GenerateMoons(planet, body, moonCount);
+        }
+    }
+
+    private void GenerateBinary(GameObject primary, float solarOrbitDistance, float inclination, float solarOrbitSpeed)
+    {
+        float separation  = SeedManager.Range(planetData.binarySeparationRange.x, planetData.binarySeparationRange.y, planetaryRNG);
+        float binarySpeed = SeedManager.Range(planetData.binaryOrbitSpeedRange.x, planetData.binaryOrbitSpeedRange.y, planetaryRNG);
+        float massRatioA  = SeedManager.Range(0.35f, 0.65f, planetaryRNG);
+
+        // Barycenter orbits the Sun
+        GameObject barycenter = new GameObject($"{primary.name}_Barycenter");
+        barycenter.transform.position = primary.transform.position;
+
+        //CelestialBody baryBody = barycenter.GetComponent<CelestialBody>();
+        //baryBody.SetCenter(sun);
+
+        OrbitBody baryOrbit = barycenter.AddComponent<OrbitBody>();
+        baryOrbit.SetCenter(sun);
+        baryOrbit.SetSeed(stellarRNG);
+        baryOrbit.SetOrbitRadius(solarOrbitDistance);
+        baryOrbit.SetOrbitSpeed(solarOrbitSpeed);
+        baryOrbit.SetOrbitInclination(inclination);
+        baryOrbit.SetOrbitColor(planetOrbitColor);
+
+        // Companion Planet
+        float compMass    = SeedManager.Range(planetData.massRange.x, planetData.massRange.y, planetaryRNG);
+        float compDensity = SeedManager.Range(planetData.densityRange.x, planetData.densityRange.y, planetaryRNG);
+        float compRot     = SeedManager.Range(planetData.rotationSpeedRange.x, planetData.rotationSpeedRange.y, planetaryRNG);
+        string compName   = GetUniqueName(planetData, planetaryRNG, $"{primary.name}_B");
+
+        GameObject companion = SpawnBody(planetPrefab, primary.transform.position, Quaternion.identity,
+            compMass, compDensity, compRot, compName,
+            planetData.visualScale, planetData.densityRange.y);
+
+        companion.GetComponent<CelestialBody>()
+            .RandomizeResource(planetaryRNG, new PlanetContext(0, compDensity, false));
+
+        // Re-parent both under barycenter
+        primary.transform.SetParent(barycenter.transform, true);
+        companion.transform.SetParent(barycenter.transform, true);
+
+        DisableOrbitDrawer(primary);
+        DisableOrbitDrawer(companion);
+
+        GameObject orbitLine = new GameObject("Orbit Line");
+        orbitLine.transform.SetParent (barycenter.transform, false);
+        
+        if(!orbitLine.TryGetComponent<LineRenderer>(out _))
+        {
+            orbitLine.AddComponent<LineRenderer>();
+        }
+
+        OrbitDrawer baryDrawer = orbitLine.AddComponent<OrbitDrawer>();
+        baryDrawer.Setup(solarOrbitDistance, inclination, planetOrbitColor, stellarMapManager, sun);
+
+        BinaryOrbitBody binary = barycenter.AddComponent<BinaryOrbitBody>();
+        binary.Setup(primary.transform, companion.transform,
+            separation, binarySpeed, massRatioA, inclination);
+
+        if(debug)
+            Debug.Log($"[Generator] Binary: {primary.name} + {compName} sep={separation:0.0}, speed={binarySpeed:0.0}°/s");
+    }
+
+    private void GenerateMoons(GameObject planet, CelestialBody planetBody, int moonCount)
+    {
+        if(moonData == null || moonCount == 0) return;
+
+        List<(float, float)> used = new();
+        float planetRadius = planetBody.GetRadius(planetData.visualScale);
+
+        for(int i = 0; i < moonCount; i++)
+        {
+            float mass          = SeedManager.Range(moonData.massRange.x, moonData.massRange.y, lunarRNG);
+            float density       = SeedManager.Range(moonData.densityRange.x, moonData.densityRange.y, lunarRNG);
+            float visualRadius  = CelestialBody.ComputeRadius(mass, density, moonData.visualScale);
+            float rotationSpeed = SeedManager.Range(moonData.rotationSpeedRange.x, moonData.rotationSpeedRange.y, lunarRNG);
+
+            float distance = FindSafeMoonOrbit(planetRadius, visualRadius, used);
+            if (distance < 0f) continue;
+
+            float angle         = SeedManager.Range(0f, Mathf.PI * 2f, lunarRNG);
+            float incline       = SeedManager.Range(-10f, 10f, lunarRNG);
+            float orbitSpeed    = SeedManager.Range(moonData.orbitalSpeedRange.x, moonData.orbitalSpeedRange.y, lunarRNG) / distance;
+            float inclination   = SeedManager.Range(-20f, 20f, lunarRNG);
+
+            Vector3 position = planet.transform.position + new Vector3(
                 Mathf.Cos(angle) * distance,
                 incline,
-                Mathf.Sin(angle) * distance
-            );
+                Mathf.Sin(angle) * distance);
 
-            GameObject moon = Instantiate(moonPrefab, pos, Quaternion.identity);
+            string name = GetUniqueName(moonData, lunarRNG, $"Moon_{i}");
+            GameObject moon = SpawnBody(moonPrefab, position, Quaternion.identity,
+                mass, density, rotationSpeed, name,
+                moonData.visualScale, moonData.densityRange.y);
+
             CelestialBody body = moon.GetComponent<CelestialBody>();
-            OrbitDrawer moonDrawer = moon.GetComponentInChildren<OrbitDrawer>();
+            OrbitDrawer drawer = moon.GetComponentInChildren<OrbitDrawer>();
 
-            string name = moonData != null
-                ? GetUniqueName(moonData, lunarRNG, $"Moon_{i}")
-                : $"Moon_{i}";
-
-            // Body
-            body.SetMass(mass);
-            body.SetDensity(density);
-            body.SetRotationSpeed(rotationSpeed);
-            body.SetName(name);
-            body.ApplyScale(moonScale);
-            body.ApplyColor(maxMoonDensity);
-
-            // Moon get a neutral context  - no ring of their own 
+            body.SetCenter(planet.transform);
             body.RandomizeResource(lunarRNG, new PlanetContext(0, density, false));
 
-            float orbitalSpeed = SeedManager.Range(minMoonOrbitalSpeed, maxMoonOrbitalSpeed, lunarRNG) / distance;
-            float inclination = SeedManager.Range(-20f, 20f, lunarRNG);
+            AddOrbitBody(moon, planet.transform, distance, orbitSpeed, inclination);
+            drawer?.Setup(distance, inclination, moonOrbitColor, stellarMapManager, sun);
 
-            // Orbit
-            OrbitBody orbit = moon.AddComponent<OrbitBody>();
-            orbit.SetCenter(planet.transform);
-            orbit.SetSeed(stellarRNG);
-            orbit.SetOrbitColor(moonOrbitColor);
-            orbit.SetOrbitRadius(distance);
-            orbit.SetOrbitSpeed(orbitalSpeed);
-            orbit.SetOrbitInclination(inclination);
+            used.Add((distance, visualRadius));
+        }
+    }
 
-            // Orbit Drawer
-            body.SetCenter(planet.transform);
-            if(moonDrawer != null)
+    private void GenerateComets()
+    {
+        if(cometData == null || cometPrefab == null) return;
+
+        int count = cometRNG.Next(cometCountRange.x, cometCountRange.y + 1);
+        if (debug) Debug.Log($"[Generator] Spawning {count} comets.", this);
+
+        for(int i =  0; i < count; i++)
+        {
+            float maxOrbit = usedPlanetOrbits.Count > 0
+                ? usedPlanetOrbits[^1].distance * 1.5f : 200f;
+
+            float semiMajorAxis = SeedManager.Range(maxOrbit * 0.3f, maxOrbit, cometRNG);
+            float eccentricity  = SeedManager.Range(cometData.eccentricityRange.x, cometData.eccentricityRange.y, cometRNG);
+            float period        = SeedManager.Range(cometData.periodRange.x, cometData.periodRange.y, cometRNG);
+            float inclination   = SeedManager.Range(cometData.inclinationRange.x, cometData.inclinationRange.y, cometRNG);
+            float argPerihelion = SeedManager.Range(0f, 360f, cometRNG);
+            float startAngle    = SeedManager.Range(0, Mathf.PI * 2f, cometRNG);
+
+            float mass = SeedManager.Range(cometData.massRange.x, cometData.massRange.y, cometRNG);
+            float density = SeedManager.Range(cometData.densityRange.x, cometData.densityRange.y, cometRNG);
+            float rotationSpeed = SeedManager.Range(cometData.rotationSpeedRange.x, cometData.rotationSpeedRange.y, cometRNG);
+
+            string name = GetUniqueName(cometData, cometRNG, $"Comet_{i}");
+
+            GameObject comet = SpawnBody(cometPrefab, sun.position, Quaternion.identity,
+                mass, density, rotationSpeed, name, cometData.visualScale, cometData.densityRange.y);
+            comet.name = name;
+
+            CelestialBody body = comet.GetComponent<CelestialBody>();
+            OrbitDrawer cometDrawer = null;
+
+            body.SetCenter(sun);
+            body.RandomizeResource(cometRNG, new PlanetContext(0, density, false));
+
+            EllipticalOrbit ellipse = comet.AddComponent<EllipticalOrbit>();
+            ellipse.Setup(sun, semiMajorAxis, eccentricity, period,
+                startAngle, inclination, argPerihelion);
+            
+            foreach(Transform child in comet.transform)
             {
-                moonDrawer.Setup(distance, inclination, moonOrbitColor, stellarMapManager);
+                cometDrawer = child.GetComponent<OrbitDrawer>();
+                if (cometDrawer != null) break;
             }
+            cometDrawer.SetEllipse(true);
+            cometDrawer?.SetupEllipse(semiMajorAxis, eccentricity, inclination,
+                                        argPerihelion, sun, cometOrbitColor, stellarMapManager);
 
-            usedMoonOrbits.Add((distance, visualRadius));
+            if (debug)
+            {
+                Debug.Log($"[Generator] Comet '{name}' a={semiMajorAxis:0.0}, e={eccentricity:0.00}, T={period:0.0}s");
+            }
+        }
+    }
+
+    private GameObject SpawnBody(GameObject prefab, Vector3 position, Quaternion rotation,
+                                float mass, float density, float rotationSpeed,
+                                string bodyName, float scale, float maxDensity)
+    {
+        GameObject go = Instantiate(prefab, position, rotation);
+        CelestialBody b = go.GetComponent<CelestialBody>();
+        b.SetMass(mass);
+        b.SetDensity(density);
+        b.SetRotationSpeed(rotationSpeed);
+        b.SetName(bodyName);
+        b.ApplyScale(scale);
+        b.ApplyColor(maxDensity);
+
+        return go;
+    }
+
+    private void AddOrbitBody(GameObject gameObject, Transform center,
+                                float radius, float speed, float inclination)
+    {
+        OrbitBody ob = gameObject.AddComponent<OrbitBody>();
+        ob.SetCenter(center);
+        ob.SetSeed(stellarRNG);
+        ob.SetOrbitRadius(radius);
+        ob.SetOrbitSpeed(speed);
+        ob.SetOrbitInclination(inclination);
+        ob.SetOrbitColor(planetOrbitColor);
+    }
+
+    private void DisableOrbitDrawer(GameObject body)
+    {
+        OrbitDrawer drawer = null;
+        foreach(Transform child in body.transform)
+        {
+            drawer = child.GetComponent<OrbitDrawer>();
+            if(drawer != null)
+            {
+                drawer.gameObject.SetActive(false);
+                break;
+            }
         }
     }
 
@@ -395,7 +397,7 @@ public class SolarSystemGenerator : MonoBehaviour
     {
         for(int attempt = 0; attempt < maxAttempts; attempt++)
         {
-            float candidate = SeedManager.Range(minDistance, maxDistance, stellarRNG);
+            float candidate = SeedManager.Range(planetData.distanceRange.x, planetData.distanceRange.y, stellarRNG);
             bool valid = true;
 
             foreach(var (existingDist, existingFootprint) in usedPlanetOrbits)
@@ -431,7 +433,7 @@ public class SolarSystemGenerator : MonoBehaviour
     {
         for(int attempts = 0; attempts < maxAttempts; attempts++)
         {
-            float candidate = planetRadius + SeedManager.Range(minMoonDistance, maxMoonDistance, lunarRNG);
+            float candidate = planetRadius + SeedManager.Range(moonData.distanceRange.x, moonData.distanceRange.x, lunarRNG);
             bool valid = true;
 
             foreach(var (existingOrbit, existingRadius) in usedOrbits)
@@ -501,5 +503,30 @@ public class SolarSystemGenerator : MonoBehaviour
         string chosen = available[index];
         usedNames.Add(chosen);
         return chosen;
+    }
+
+    public CelestialObjectDataSO GetPlanetData()
+    {
+        return planetData;
+    }
+
+    public CelestialObjectDataSO GetMoonData()
+    {
+        return moonData;
+    }
+
+    public CelestialObjectDataSO GetCometData()
+    {
+        return cometData;
+    }
+
+    public float GetRingChance()
+    {
+        return ringChance;
+    }
+
+    public Vector2Int GetCometCountRange()
+    {
+        return cometCountRange;
     }
 }
