@@ -33,6 +33,15 @@ public class OrbitDrawer : MonoBehaviour
     private Camera adaptiveCamera;
     private StellarMapManager stellarMapManager;
 
+    // Ellipse Fields
+    private bool isEllipse = false;
+    private float aSemiMajor = 0f;
+    private float eEccentricity = 0f;
+    private float wArgPerihelion = 0f;
+    private Transform ellipseFocus = null;
+
+    private Transform centerTransform;
+
     private void OnDestroy()
     {
         if(stellarMapManager != null)
@@ -86,11 +95,49 @@ public class OrbitDrawer : MonoBehaviour
     /// </summary>
     private void BuildOrbitPoint()
     {
-        Vector3 center = body.GetCenter().position;
+        if (isEllipse)  BuildEllipsePoints();
+        else            BuildCirclePoints();
+    }
+
+    private void BuildEllipsePoints()
+    {
+        if (ellipseFocus == null) return;
+
+        float c = aSemiMajor * eEccentricity;
+        float b = aSemiMajor * Mathf.Sqrt(1f - eEccentricity * eEccentricity);
+
+        float cosW = Mathf.Cos(wArgPerihelion * Mathf.Deg2Rad);
+        float sinW = Mathf.Sin(wArgPerihelion * Mathf.Deg2Rad);
+
+        Quaternion tilt = Quaternion.Euler(inclination, 0f, 0f);
+
+        for(int i = 0; i < segments; i++)
+        {
+            // E = eccentric anomaly
+            float E = (i / (float)segments) * Mathf.PI * 2f;
+
+            // Position in the orbital plane
+            float x = aSemiMajor * Mathf.Cos(E) - c; // <- Offset
+            float z = b * Mathf.Sin(E);
+
+            // Rotation by argurment
+            float xR = cosW * x - sinW * z;
+            float zR = sinW * x + cosW * z;
+
+            Vector3 local = tilt * new Vector3(xR, 0f, zR);
+            line.SetPosition(i, ellipseFocus.position + local);
+        }
+    }
+
+    private void BuildCirclePoints()
+    {
+        Vector3 center = centerTransform != null
+            ? centerTransform.position
+            : (body != null ? body.GetCenter().position : Vector3.zero);
 
         Quaternion titl = Quaternion.Euler(inclination, 0f, 0f);
 
-        for(int i = 0; i < segments; i++)
+        for (int i = 0; i < segments; i++)
         {
             float angle = (i / (float)segments) * Mathf.PI * 2f;
             Vector3 local = new Vector3(Mathf.Cos(angle) * radius, 0f, Mathf.Sin(angle) * radius);
@@ -123,12 +170,13 @@ public class OrbitDrawer : MonoBehaviour
     }
 
     /// <summary>Set orbit parameters from SolarSystemGenerator.</summary>
-    public void Setup(float radius, float inclination, Color color, StellarMapManager stellarMapManager)
+    public void Setup(float radius, float inclination, Color color, StellarMapManager stellarMapManager, Transform center = null)
     {
         this.radius = radius;
         this.inclination = inclination;
         this.color = color;
         this.stellarMapManager = stellarMapManager;
+        this.centerTransform = center;
 
         if(line == null) line = GetComponent<LineRenderer>();
 
@@ -148,6 +196,31 @@ public class OrbitDrawer : MonoBehaviour
         BuildOrbitPoint();
     }
 
+    public void SetupEllipse(float semiMajorAxis, float eccentricity,
+                            float inclination, float argPerihelion,
+                            Transform ellipseFocus, Color color, 
+                            StellarMapManager stellarMapManager)
+    {
+        this.inclination = inclination;
+        this.color = color;
+        this.stellarMapManager = stellarMapManager;
+        this.ellipseFocus = ellipseFocus;
+        this.aSemiMajor = semiMajorAxis;
+        this.eEccentricity = eccentricity;
+        this.wArgPerihelion = argPerihelion;
+
+        if(line == null) {  line = GetComponent<LineRenderer>(); }
+
+        line.startColor = color;
+        line.endColor = color;
+
+        if(stellarMapManager != null)
+        {
+            stellarMapManager.OnMapChanged += OnMapChanged;
+            line.enabled = false;
+        }
+    }
+
     /// <summary>
     /// Assigns the camera used for adaptive width.
     /// Call this from StellarMapManager when opening the map so
@@ -163,5 +236,10 @@ public class OrbitDrawer : MonoBehaviour
         line.enabled = isMapOpen;
         if(debug)
             Debug.Log($"map open : {isMapOpen}");
+    }
+
+    public void SetEllipse(bool isEllipse)
+    {
+        this.isEllipse = isEllipse;
     }
 }
