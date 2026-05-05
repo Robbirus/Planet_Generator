@@ -45,7 +45,7 @@ MonoBehaviour:
   massRange: {x: 2000, y: 7000}
   densityRange: {x: 0.5, y: 2}
   visualScale: 1.25
-  binaryChance: 0.15
+  binaryChance: 0.3
   binarySeparationRange: {x: 3000, y: 6000}
   binaryOrbitSpeedRange: {x: 10, y: 45}
   eccentricityRange: {x: 0.7, y: 0.97}
