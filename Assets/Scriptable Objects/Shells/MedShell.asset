@@ -10,14 +10,14 @@ MonoBehaviour:
   m_Enabled: 1
   m_EditorHideFlags: 0
   m_Script: {fileID: 11500000, guid: 13548f94088ebeb48ad4a06c685f96a0, type: 3}
-  m_Name: LightRound
+  m_Name: MedShell
   m_EditorClassIdentifier: Assembly-CSharp::ShellSO
-  color: {r: 1, g: 0.6431373, b: 0, a: 0.6}
+  color: {r: 1, g: 0.6431373, b: 0, a: 1}
   shellImage: {fileID: 0}
   weaponType: 0
-  velocity: 3500
+  velocity: 5000
   lifeTime: 2
-  standardDamage: 23
-  durableDamage: 95
-  armorPen: 2
-  effectData: {fileID: 11400000, guid: 1f6054c44b80bdb4db8785e3542f347f, type: 2}
+  standardDamage: 90
+  durableDamage: 23
+  armorPen: 3
+  effectData: {fileID: 11400000, guid: c5c6bb078edcc4345a80b204cb4e3d71, type: 2}
