@@ -3,5 +3,7 @@ using UnityEngine;
 public enum GameState
 {
     Menu,
-    Playing
+    Playing,
+    Paused,
+    Map
 }

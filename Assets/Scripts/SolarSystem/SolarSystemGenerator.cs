@@ -117,10 +117,10 @@ public class SolarSystemGenerator : MonoBehaviour
     private void TrySpawnPlanet(int index)
     {            
         // Set physical properties first to compute radius for spacing
-        float mass = SeedManager.Range(planetData.massRange.x, planetData.massRange.y, planetaryRNG);
-        float density = SeedManager.Range(planetData.densityRange.x, planetData.densityRange.y, planetaryRNG);
-        float visualRadius = CelestialBody.ComputeRadius(mass, density, planetData.visualScale);
-        float footprint = visualRadius + moonData.distanceRange.y; // worst case moon orbit
+        float mass          = SeedManager.Range(planetData.massRange,    planetaryRNG);
+        float density       = SeedManager.Range(planetData.densityRange, planetaryRNG);
+        float visualRadius  = CelestialBody.ComputeRadius(mass, density, planetData.visualScale);
+        float footprint     = visualRadius + moonData.distanceRange.y; // worst case moon orbit
         
         float distance = FindSafePlanetDistance(footprint);
         if (distance < 0f)
@@ -284,7 +284,7 @@ public class SolarSystemGenerator : MonoBehaviour
             body.RandomizeResource(lunarRNG, new PlanetContext(0, density, false));
 
             AddOrbitBody(moon, planet.transform, distance, orbitSpeed, inclination);
-            drawer?.Setup(distance, inclination, moonOrbitColor, stellarMapManager, sun);
+            drawer?.Setup(distance, inclination, moonOrbitColor, stellarMapManager, planet.transform);
 
             used.Add((distance, visualRadius));
         }

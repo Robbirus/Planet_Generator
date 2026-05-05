@@ -66,13 +66,11 @@ public class GameManager : MonoBehaviour
     {
         switch(currentState)
         {
-            case GameState.Menu:
-                ApplyMenu();
-                break;
-            case GameState.Playing:
-                ApplyPlaying();
-                break;
-            default:
+            case GameState.Menu: ApplyMenu(); break;
+            case GameState.Playing: ApplyPlaying(); break;
+            case GameState.Paused: ApplyPaused(); break;
+            case GameState.Map: ApplyMap(); break;
+            default: 
                 throw new ArgumentOutOfRangeException(nameof(currentState), currentState, null);
         }
     }
@@ -90,10 +88,28 @@ public class GameManager : MonoBehaviour
         Cursor.visible = false;
     }
 
+    private void ApplyPaused()
+    {
+        Time.timeScale = 0f;
+        Cursor.lockState = CursorLockMode.Confined;
+        Cursor.visible = true;
+    }
+
+    private void ApplyMap()
+    {
+        Cursor.lockState = CursorLockMode.Confined;
+        Cursor.visible = true;
+    }
+
     #region Getter / Setter
     public SpaceshipController GetSpaceshipController()
     {
         return this.spaceship;
+    }
+
+    public GameState GetCurrentGameState()
+    {
+        return this.currentState;
     }
     #endregion
 }

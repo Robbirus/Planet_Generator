@@ -119,6 +119,8 @@ public class StellarMapManager : MonoBehaviour
 
     private void OpenMap()
     {
+        GameManager.instance.ChangeState(GameState.Map);
+
         if (isMapOpen) return;
         isMapOpen = true;
 
@@ -157,6 +159,8 @@ public class StellarMapManager : MonoBehaviour
 
     private void CloseMap()
     {
+        GameManager.instance.ChangeState(GameState.Playing);
+
         if (!isMapOpen) return;
         isMapOpen = false;
 

@@ -1,4 +1,3 @@
-using System;
 using System.Collections;
 using TMPro;
 using UnityEngine;
@@ -8,7 +7,7 @@ using UnityEngine.InputSystem;
 public class MenuPause : MonoBehaviour
 {
     [Header("Static Pause Value")]
-    public static bool isGamePaused = false;
+    //public static bool isGamePaused = false;
     [Space(10)]
 
     [Header("UI Containers")]
@@ -76,24 +75,22 @@ public class MenuPause : MonoBehaviour
 
     private void OnPausePressed(InputAction.CallbackContext context)
     {
-        if (isGamePaused)
-        {
-            ResumeGame();
-        }
-        else
-        {
-            PauseGame();
-        }
+        GameState current = GameManager.instance.GetCurrentGameState();
+        if(current == GameState.Map) return;
+
+        if(current == GameState.Paused) ResumeGame();
+        else PauseGame();
     }
 
     public void ResumeGame()
     {
+        GameManager.instance.ChangeState(GameState.Playing);
+
         pauseMenuContainer.SetActive(false);
         hudContainer.SetActive(true);
         resourceContainer.SetActive(true);
 
         Time.timeScale = 1f;
-        isGamePaused = false;
 
         Cursor.lockState = CursorLockMode.Confined;
         Cursor.visible = false;
@@ -101,12 +98,13 @@ public class MenuPause : MonoBehaviour
 
     private void PauseGame()
     {
+        GameManager.instance.ChangeState(GameState.Paused);
+
         pauseMenuContainer.SetActive(true);
         hudContainer.SetActive(false);
         resourceContainer.SetActive(false);
 
         Time.timeScale = 0f;
-        isGamePaused = true;
 
         Cursor.lockState = CursorLockMode.Confined;
         Cursor.visible = true;
@@ -117,7 +115,6 @@ public class MenuPause : MonoBehaviour
     /// </summary>
     public void LoadMenu()
     {
-        isGamePaused = false;
         Time.timeScale = 1f;
 
         Cursor.lockState = CursorLockMode.None;
