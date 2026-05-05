@@ -1,4 +1,5 @@
-﻿using UnityEngine;
+﻿using System;
+using UnityEngine;
 using UnityEngine.InputSystem;
 
 /// <summary>
@@ -73,9 +74,7 @@ public class SpaceshipMovement : MonoBehaviour
     private float hoverInput;
 
     private float timeSinceLastBoost;
-    private bool lockedMode;
-    private bool isFrozen = false;
-
+    private ShipState state = ShipState.FreeFlight;
     
     private void Awake()
     {
@@ -109,17 +108,15 @@ public class SpaceshipMovement : MonoBehaviour
 
     private void Update()
     {
-        if (isFrozen) return;
-
-        // Input is always read so PlanetLockSystem gets mouseDistance even in orbital mode
-        DetectInput();
-
-        if (lockedMode)
-            UpdateOrbitalMovement();
-        else
-            UpdateFreeMovement();
+        switch (state)
+        {
+            case ShipState.FreeFlight: DetectInput(); UpdateFreeMovement(); break;
+            case ShipState.Orbital: DetectInput(); UpdateOrbitalMovement(); break;
+            case ShipState.Frozen:                                          break;
+            default:
+                throw new ArgumentOutOfRangeException(nameof(state), state, null);
+        }
     }
-
    
     private void UpdateFreeMovement()
     {
@@ -249,18 +246,6 @@ public class SpaceshipMovement : MonoBehaviour
         }
     }
 
-    /// <summary>Switches between free-flight and orbital movement mode.</summary>
-    public void SetLockedMode(bool locked)
-    {
-        lockedMode = locked;
-        if (locked)
-        {
-            activeForwardSpeed = 0f;
-            activeStrafSpeed = 0f;
-            activeHoverSpeed = 0f;
-        }
-    }
-
     /// <summary>Applies stat overrides from the SkillTreeManager.</summary>
     public void SetStats(
         float forwardSpeed, float strafeSpeed, float hoverSpeed,
@@ -309,34 +294,31 @@ public class SpaceshipMovement : MonoBehaviour
         boostTimeToAdd += time;
     }
 
-    public void SetFrozen(bool frozen)
-    {
-        isFrozen = frozen;
-
-        if (frozen)
-        {
-            // Kill all active velocities so the ship stops instantly
-            activeForwardSpeed = 0f;
-            activeStrafSpeed = 0f;
-            activeHoverSpeed = 0f;
-            rollInput = 0f;
-            activeBoostMultiplier = 1f;
-        }
-    }
-
-    public bool IsFrozen()
-    {
-        return isFrozen;
-    }
-
     public float GetForwardSpeedRatio()
     {
         return Mathf.Clamp01(Mathf.Abs(activeForwardSpeed) / forwardSpeed);
     }
 
     public float GetActiveForwardSpeed() { return activeForwardSpeed; }
+
     public float GetBoostTimeRatio() { return boostDuration > 0f ? boostTimeRemaining / boostDuration : 0f; }
+
     public bool IsBoosting() { return boostActionReference != null && boostActionReference.action.IsPressed() && boostTimeRemaining > 0f; }
+
     public Vector2 GetMouseDistance() { return mouseDistance; }
+
     public Vector2 GetVirtualCursor() { return virtualMousePos; }
+
+    public void SetState(ShipState newState)
+    {
+        this.state = newState;
+
+        if(newState == ShipState.Frozen || newState == ShipState.FreeFlight)
+        {
+            activeForwardSpeed      = 0f;
+            activeStrafSpeed        = 0f;
+            activeHoverSpeed        = 0f;
+            activeBoostMultiplier   = 1f;
+        }
+    }
 }

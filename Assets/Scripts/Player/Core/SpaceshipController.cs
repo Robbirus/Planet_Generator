@@ -29,11 +29,6 @@ public class SpaceshipController : MonoBehaviour
         GameManager.instance.UnregisterShip(this);
     }
 
-    // Delegation -> SpaceshipMovement 
-
-    /// <summary>Switches between free-flight and orbital mode.</summary>
-    public void SetLockedMode(bool locked) { movement.SetLockedMode(locked); }
-
     /// <summary>Called by SkillTreeManager after an upgrade is purchased.</summary>
     public void SetStats(
         float forwardSpeed, float strafeSpeed, float hoverSpeed,

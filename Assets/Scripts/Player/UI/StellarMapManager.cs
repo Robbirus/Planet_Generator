@@ -125,7 +125,7 @@ public class StellarMapManager : MonoBehaviour
         isMapOpen = true;
 
         // Freeze the ship. No movement, no rotation
-        if (movement != null) movement.SetFrozen(true);
+        if (movement != null) movement.SetState(ShipState.Frozen);
 
         // Freeze weapons
         if (weaponManager != null) weaponManager.enabled = false;
@@ -165,7 +165,7 @@ public class StellarMapManager : MonoBehaviour
         isMapOpen = false;
 
         // Unfreeze the ship
-        if (movement != null) movement.SetFrozen(false);
+        if (movement != null) movement.SetState(ShipState.FreeFlight);
 
         // Unfreeze weapon
         if (weaponManager != null) weaponManager.enabled = true;

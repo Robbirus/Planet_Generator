@@ -169,7 +169,7 @@ public class PlanetLockSystem : MonoBehaviour
         orbitDir = (transform.position - planet.position).normalized;
 
         state = LockState.Locked;
-        shipController.SetLockedMode(true);
+        shipController.GetMovement().SetState(ShipState.Orbital);
         shipCamera.SetCameraOrbitalMode();
     }
 
@@ -180,7 +180,7 @@ public class PlanetLockSystem : MonoBehaviour
     {
         lockedPlanet = null;
         state = LockState.None;
-        shipController.SetLockedMode(false);
+        shipController.GetMovement().SetState(ShipState.FreeFlight);
         shipCamera.SetCameraFreeMode();
     }
 
