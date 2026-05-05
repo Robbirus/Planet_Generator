@@ -3720,7 +3720,7 @@ Transform:
   m_GameObject: {fileID: 1142259385}
   serializedVersion: 2
   m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
-  m_LocalPosition: {x: 37852.15, y: 52432.15, z: 3586.719}
+  m_LocalPosition: {x: 28646.764, y: 6862.8076, z: -27827.686}
   m_LocalScale: {x: 1, y: 1, z: 1}
   m_ConstrainProportionsScale: 0
   m_Children: []
@@ -3740,15 +3740,19 @@ MonoBehaviour:
   m_EditorClassIdentifier: Assembly-CSharp::SolarSystemGenerator
   planetPrefab: {fileID: 4984548254132639815, guid: 8642ac3a7ea6a9340b8a0081a01ab70a, type: 3}
   moonPrefab: {fileID: 4984548254132639815, guid: dc71e47867b54d74f89bddb06c005f41, type: 3}
+  cometPrefab: {fileID: 4984548254132639815, guid: 3a2652ba7807c4b4b88e1ffc3342266b, type: 3}
   sun: {fileID: 1556027975}
   distantStars: {fileID: 1142259389}
-  planetOrbitColor: {r: 0, g: 0, b: 1, a: 1}
-  planetSafetyMargin: 50
-  ringChance: 0.4
-  moonOrbitColor: {r: 0, g: 1, b: 1, a: 1}
-  moonOrbitGap: 45
   planetData: {fileID: 11400000, guid: 6f2f2e339a6b08f4fa46b1833174272a, type: 2}
   moonData: {fileID: 11400000, guid: bbd3560260b36144ca39fec099b20110, type: 2}
+  cometData: {fileID: 11400000, guid: c0969985e004a81488ecf5cacbaa218a, type: 2}
+  cometCountRange: {x: 1, y: 4}
+  planetOrbitColor: {r: 0, g: 0, b: 1, a: 1}
+  moonOrbitColor: {r: 0, g: 1, b: 1, a: 1}
+  cometOrbitColor: {r: 1, g: 0.6, b: 0, a: 1}
+  planetSafetyMargin: 50
+  moonOrbitGap: 45
+  ringChance: 0.45
   stellarMapManager: {fileID: 1142259392}
   debug: 0
 --- !u!114 &1142259389
