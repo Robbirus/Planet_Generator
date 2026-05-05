@@ -1,0 +1,32 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 3cc0284678e6b5d49b48d87f323f7ddc, type: 3}
+  m_Name: CometData
+  m_EditorClassIdentifier: Assembly-CSharp::CelestialObjectDataSO
+  names:
+  - Hercules
+  - Henri
+  - Emiss
+  - Barb
+  numberRange: {x: 0, y: 2}
+  distanceRange: {x: 14000, y: 80000}
+  orbitalSpeedRange: {x: 100, y: 1000}
+  rotationSpeedRange: {x: 5, y: 50}
+  massRange: {x: 100, y: 600}
+  densityRange: {x: 0.5, y: 2}
+  visualScale: 2
+  binaryChance: 0.15
+  binarySeparationRange: {x: 5, y: 20}
+  binaryOrbitSpeedRange: {x: 15, y: 60}
+  eccentricityRange: {x: 0.7, y: 0.97}
+  periodRange: {x: 30, y: 180}
+  inclinationRange: {x: -60, y: 60}
