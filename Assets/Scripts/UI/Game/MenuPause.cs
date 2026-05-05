@@ -6,10 +6,6 @@ using UnityEngine.InputSystem;
 
 public class MenuPause : MonoBehaviour
 {
-    [Header("Static Pause Value")]
-    //public static bool isGamePaused = false;
-    [Space(10)]
-
     [Header("UI Containers")]
     [SerializeField] private GameObject pauseMenuContainer;
     [SerializeField] private GameObject hudContainer;
