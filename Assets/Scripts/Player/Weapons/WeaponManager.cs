@@ -150,7 +150,6 @@ public class WeaponManager : MonoBehaviour
         bool isShooting = shootActionReference != null && shootActionReference.action.IsPressed();
 
         // Tick fire timers for all slots
-        // Tick fire timers for all slots
         for (int i = 0; i < weaponSlots.Length; i++)
         {
             if (weaponSlots[i].fireTimer > 0)
