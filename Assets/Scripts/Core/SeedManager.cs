@@ -1,4 +1,5 @@
 using System.Collections.Generic;
+using UnityEngine;
 
 /// <summary>
 /// Manages the master seed for the current game session.
@@ -89,5 +90,10 @@ public static class SeedManager
     public static float Range(float min, float max, System.Random rng)
     {
         return (float)(rng.NextDouble() * (max - min) + min);
+    }
+
+    public static float Range(Vector2 range, System.Random rng)
+    {
+        return SeedManager.Range(range.x, range.y, rng);
     }
 }
