@@ -38,10 +38,16 @@ MonoBehaviour:
   - Saint Naz
   - Hellmire
   - Puy-en-Velay
-  numberRange: {x: 0, y: 10}
+  numberRange: {x: 0, y: 15}
   distanceRange: {x: 14000, y: 80000}
   orbitalSpeedRange: {x: 100, y: 1000}
   rotationSpeedRange: {x: 5, y: 50}
   massRange: {x: 2000, y: 7000}
   densityRange: {x: 0.5, y: 2}
   visualScale: 1.25
+  binaryChance: 0.15
+  binarySeparationRange: {x: 3000, y: 6000}
+  binaryOrbitSpeedRange: {x: 10, y: 45}
+  eccentricityRange: {x: 0.7, y: 0.97}
+  periodRange: {x: 30, y: 180}
+  inclinationRange: {x: -15, y: 15}

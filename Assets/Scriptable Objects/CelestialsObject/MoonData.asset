@@ -30,3 +30,9 @@ MonoBehaviour:
   massRange: {x: 18, y: 28}
   densityRange: {x: 0.5, y: 2}
   visualScale: 1.5
+  binaryChance: 0.15
+  binarySeparationRange: {x: 5, y: 20}
+  binaryOrbitSpeedRange: {x: 15, y: 60}
+  eccentricityRange: {x: 0.7, y: 0.97}
+  periodRange: {x: 30, y: 180}
+  inclinationRange: {x: -10, y: 10}
