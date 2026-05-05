@@ -10,9 +10,9 @@ MonoBehaviour:
   m_Enabled: 1
   m_EditorHideFlags: 0
   m_Script: {fileID: 11500000, guid: e82d6cc75d4fbfb4d91ab41899348267, type: 3}
-  m_Name: GatlingGun
+  m_Name: M-105
   m_EditorClassIdentifier: Assembly-CSharp::WeaponSO
-  weaponName: Gatling Gun
+  weaponName: Stalwart
   fireSounds:
   - {fileID: 8300000, guid: c72a94a847f23fa479edb9dff2e3d4ac, type: 3}
   - {fileID: 8300000, guid: 7e6a89e81bc46cf49944b136c869d927, type: 3}
@@ -20,10 +20,12 @@ MonoBehaviour:
   - {fileID: 8300000, guid: 110d5837213fffe4c94c4f53c85b35da, type: 3}
   - {fileID: 8300000, guid: 755489b7e3685db46bac9b7b4977df42, type: 3}
   weaponType: 0
-  fireRate: 10
+  fireRate: 15
   hasMagazine: 0
   magazineSize: 10
   reloadTime: 2
+  critChance: 2
+  critCoef: 1.1
   isGuided: 0
   guidedTurnRate: 120
   guidedDetectionRadius: 200
