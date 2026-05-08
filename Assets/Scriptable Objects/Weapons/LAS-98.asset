@@ -10,19 +10,19 @@ MonoBehaviour:
   m_Enabled: 1
   m_EditorHideFlags: 0
   m_Script: {fileID: 11500000, guid: e82d6cc75d4fbfb4d91ab41899348267, type: 3}
-  m_Name: MG-43
+  m_Name: LAS-98
   m_EditorClassIdentifier: Assembly-CSharp::WeaponSO
-  weaponName: Machine Gun
+  weaponName: Laser Canon
   fireSounds: []
-  weaponType: 0
-  laserEffectData: {fileID: 0}
-  fireRate: 13
+  weaponType: 1
+  laserEffectData: {fileID: 11400000, guid: ee2c0782e20169c439cb43313929a7b1, type: 2}
+  fireRate: 1
   hasMagazine: 0
-  magazineSize: 4
+  magazineSize: 10
   reloadTime: 2
   critChance: 2
   critCoef: 1.1
   isGuided: 0
   guidedTurnRate: 120
   guidedDetectionRadius: 200
-  defaultShell: {fileID: 11400000, guid: 2bf500196c7948646b6ab5049fc4d80e, type: 2}
+  defaultShell: {fileID: 0}
