@@ -10,12 +10,9 @@ public class FlameEffect : StatusEffect
         return TypeEffect.FIRE;
     }
 
-    private StatusEffectSO data;
-
     public FlameEffect(Team owner, StatusEffectSO data)
     {
         this.owner          = owner;
-        this.data           = data;
         this.color          = data.color;
         this.duration       = data.duration;
         this.tickInterval   = data.tickInterval;
@@ -35,7 +32,7 @@ public class FlameEffect : StatusEffect
     {
         if (CannotDamage(target)) return;
 
-        target.TakeDamage(damagePerTick, color, true);
+        target.TakeDamage(damagePerTick, color, true, false);
 
         Debug.Log($"[FlameEffect] Burn tick on {target.gameObject.name}: -{damagePerTick} HP");
     }
@@ -45,7 +42,7 @@ public class FlameEffect : StatusEffect
     /// </summary>
     /// <param name="target"></param>
     /// <returns>False if target can be damaged, true otherwise</returns>
-    private bool CannotDamage(HealthComponent target)
+    protected override bool CannotDamage(HealthComponent target)
     {
         return target == null || target.IsDead() || target.GetArmorType() == ArmorType.INDESTRUCTIBLE;
     }
