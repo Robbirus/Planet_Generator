@@ -89,6 +89,48 @@ public class Shell : MonoBehaviour
         transform.position = nextPos;
     }
 
+    /// <summary>
+    /// Called by HealthComponent.HandleHit() after damage is applied.
+    /// Handles EXPLOSION and IMPACT which are immediate, not DoT.
+    /// </summary>
+    public void ApplySplecialEffect(HealthComponent target, RaycastHit hit)
+    {
+        switch (typeEffect)
+        {
+            case TypeEffect.EXPLOSION:  ApplyExplosion(hit.point); break;
+            case TypeEffect.IMPACT:     ApplyImpact(target, hit); break;
+        }
+    }
+
+    private void ApplyExplosion(Vector3 point)
+    {
+        if (effectData == null) return;
+
+        Collider[] cols = Physics.OverlapSphere(point,
+            effectData.explosionRadius, effectData.explosionLayers);
+
+        foreach(Collider col in cols)
+        {
+            IDamageable d = col.GetComponentInChildren<IDamageable>();
+            if (d == null) continue;
+
+            float dist      = Vector3.Distance(point, col.transform.position);
+            float falloff   = 1f - Mathf.Clamp01(dist / effectData.explosionRadius);
+            d.TakeDamage(effectData.explosionDamage * falloff, color, false, false);
+        }
+    }
+
+    private void ApplyImpact(HealthComponent target, RaycastHit hit)
+    {
+        if (effectData == null) return;
+
+        EnemyEffectable fx = target.GetComponentInParent<EnemyEffectable>();
+        if (fx == null) return;
+
+        fx.KnockBack(-hit.normal, effectData.knockBackForce);
+        fx.Stun(effectData.impactStunDuration);
+    }
+
     // Damage computation
     /// <summary>
     /// Returns final damage considering durable damage, crit and armor penetration.

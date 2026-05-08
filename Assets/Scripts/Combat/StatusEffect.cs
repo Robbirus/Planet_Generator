@@ -47,6 +47,7 @@ public abstract class StatusEffect
 
     /// <summary>Called every tickInterval - apply damage / healing here.</summary>
     protected abstract void Tick(HealthComponent target);
+    protected abstract bool CannotDamage(HealthComponent target);
 
     /// <summary>Called once when the effect expires or is removed.</summary>
     public virtual void OnExpire(HealthComponent target) { }

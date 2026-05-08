@@ -15,12 +15,11 @@ public static class StatusEffectFactory
         return type switch
         {
             TypeEffect.FIRE         => new FlameEffect(owner, data),
-            TypeEffect.ACID         => null, // TODO: implement AcidEffect
-            TypeEffect.ARC          => null, // TODO: implement ArcEffect
-            TypeEffect.EXPLOSION    => null, // TODO: implement ExplosionEffect
-            TypeEffect.IMPACT       => null, // TODO: implement ImpactEffect
-            TypeEffect.LASER        => null, // TODO: implement LaserEffect
-            TypeEffect.CHEMICAL     => null, // TODO: implement ChemicalEffect
+            TypeEffect.ACID         => new AcidEffect(owner, data),
+            TypeEffect.ARC          => new ArcEffect(owner, data),
+            TypeEffect.IMPACT       => new ImpactEffect(owner, data),
+            TypeEffect.LASER        => new LaserEffect(owner, data),
+            TypeEffect.CHEMICAL     => new ChemicalEffect(owner, data),
             TypeEffect.NONE         => null,
             _                       => null
         };

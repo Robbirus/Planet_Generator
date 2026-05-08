@@ -49,16 +49,34 @@ public class HealthComponent : MonoBehaviour, IDamageable
     /// <summary>Fires once when HP reaches 0.</summary>
     public event Action<HealthComponent> OnDestroyed;
 
+    // Armor Reduction State
+    private ArmorType baseArmorType;
+    private float armorReductionTimer = 0f;
+
     // Cached reference
     private StatusEffectHandler handler;
 
     private void Awake()
     {
         currentHealth = maxHealth;
+        this.baseArmorType = armorType;
 
         // Auto-add and init the StatusEffectHandler
         this.handler = gameObject.AddComponent<StatusEffectHandler>();
         this.handler.Init(this);
+    }
+
+    private void Update()
+    {
+        // Tick armor reduction timer
+        if(armorReductionTimer > 0f)
+        {
+            armorReductionTimer -= Time.deltaTime;
+            if(armorReductionTimer < 0f )
+            {
+                armorType = baseArmorType; // restore
+            }
+        }
     }
 
     // IDamageable implementation
@@ -68,13 +86,25 @@ public class HealthComponent : MonoBehaviour, IDamageable
         if (shell.GetTeam() == team) return;
 
         float damage = shell.GetFinalDamage(armorType, this);
-
         TakeDamage(damage, shell.GetEffectColor(), shell.IsCrit());
 
-        // Apply status effects
-        if (shell.GetTypeEffect() != TypeEffect.NONE && shell.GetEffectData() != null)
+        // Immediate effects (Explosion, Impact) - Handled directly in Shell
+        shell.ApplySplecialEffect(this, hit);
+
+        // DoT / debuff effects - handled by StatusEffectHandler
+        if(shell.GetTypeEffect() != TypeEffect.NONE && 
+           shell.GetTypeEffect() != TypeEffect.EXPLOSION &&
+           shell.GetTypeEffect() != TypeEffect.IMPACT &&
+           shell.GetTypeEffect() != null)
         {
-            this.handler?.Apply(shell.GetTypeEffect(), shell.GetTeam(), shell.GetEffectData());
+            handler?.Apply(shell.GetTypeEffect(), shell.GetTeam(), shell.GetEffectData());
+        }
+
+        // LASER effect : only apply if weapon is laser type
+        if(shell.GetTypeEffect() == TypeEffect.LASER &&
+           shell.GetWeaponType() != WeaponType.LASER)
+        {
+            return; // Block if weapon isn't actually a laser
         }
 
         if(shell.GetTeam() == Team.Player)
@@ -118,6 +148,19 @@ public class HealthComponent : MonoBehaviour, IDamageable
         {
             gameObject.SetActive(false);
         }
+    }
+
+    /// <summary>
+    /// Reduces armor class by 'tiers' for 'duration' seconds.
+    /// Armor is clamped to UNAMORED_I minimum.
+    /// </summary>
+    public void ApplyArmorReduction(int tiers, float duration)
+    {
+        int reduced = Mathf.Max(0, (int)baseArmorType - tiers);
+        armorType   = (ArmorType)reduced;
+        armorReductionTimer = Mathf.Max(armorReductionTimer, duration);
+
+        Debug.Log($"[HealthComponent] {gameObject.name} armor reduced: {baseArmorType} -> {armorType} for {duration:0.0}s");
     }
 
     // Healing
