@@ -13,7 +13,7 @@ GameObject:
   - component: {fileID: 2279252127365924209}
   - component: {fileID: 5589116988058943361}
   - component: {fileID: 1292256741753451807}
-  m_Layer: 0
+  m_Layer: 8
   m_Name: Head
   m_TagString: Untagged
   m_Icon: {fileID: 0}
@@ -146,7 +146,7 @@ GameObject:
   - component: {fileID: 8576916806765872247}
   - component: {fileID: 1562946422950988742}
   - component: {fileID: 3346568898224459825}
-  m_Layer: 0
+  m_Layer: 8
   m_Name: EnemyHealth
   m_TagString: Untagged
   m_Icon: {fileID: 0}
@@ -224,7 +224,7 @@ GameObject:
   - component: {fileID: 4618813419362636719}
   - component: {fileID: 6413117691749062365}
   - component: {fileID: 4656632453639518476}
-  m_Layer: 0
+  m_Layer: 8
   m_Name: Reactor_FR
   m_TagString: Untagged
   m_Icon: {fileID: 0}
@@ -359,7 +359,7 @@ GameObject:
   - component: {fileID: 3717761326886085474}
   - component: {fileID: 4420961549796133607}
   - component: {fileID: 264606667293935835}
-  m_Layer: 0
+  m_Layer: 8
   m_Name: Reactor_RL
   m_TagString: Untagged
   m_Icon: {fileID: 0}
@@ -494,7 +494,7 @@ GameObject:
   - component: {fileID: 731449979748297584}
   - component: {fileID: 1630533073730994027}
   - component: {fileID: 860391852579185468}
-  m_Layer: 0
+  m_Layer: 8
   m_Name: Rifle_R
   m_TagString: Untagged
   m_Icon: {fileID: 0}
@@ -625,7 +625,7 @@ GameObject:
   serializedVersion: 6
   m_Component:
   - component: {fileID: 6127591140594037244}
-  m_Layer: 0
+  m_Layer: 8
   m_Name: Popup Container
   m_TagString: Untagged
   m_Icon: {fileID: 0}
@@ -660,7 +660,7 @@ GameObject:
   - component: {fileID: 3536443756053190181}
   - component: {fileID: 8648283718418846733}
   - component: {fileID: 2367320671254044103}
-  m_Layer: 0
+  m_Layer: 8
   m_Name: Bridge
   m_TagString: Untagged
   m_Icon: {fileID: 0}
@@ -780,6 +780,51 @@ MonoBehaviour:
   isDestructible: 1
   isMainFrame: 1
   logDamage: 0
+--- !u!1 &4695787476529829086
+GameObject:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  serializedVersion: 6
+  m_Component:
+  - component: {fileID: 7570286386153321796}
+  - component: {fileID: 1021775270166179636}
+  m_Layer: 8
+  m_Name: Enemy Effectable
+  m_TagString: Untagged
+  m_Icon: {fileID: 0}
+  m_NavMeshLayer: 0
+  m_StaticEditorFlags: 0
+  m_IsActive: 1
+--- !u!4 &7570286386153321796
+Transform:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 4695787476529829086}
+  serializedVersion: 2
+  m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
+  m_LocalPosition: {x: 0, y: 0, z: 0}
+  m_LocalScale: {x: 1, y: 1, z: 1}
+  m_ConstrainProportionsScale: 0
+  m_Children: []
+  m_Father: {fileID: 6055825740437265567}
+  m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
+--- !u!114 &1021775270166179636
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 4695787476529829086}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 74874e9e7b1ba614f9fd32587b392773, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Assembly-CSharp::EnemyEffectable
+  movement: {fileID: 1272542695014694592}
 --- !u!1 &5183564354207930775
 GameObject:
   m_ObjectHideFlags: 0
@@ -789,7 +834,7 @@ GameObject:
   serializedVersion: 6
   m_Component:
   - component: {fileID: 4099705038397358419}
-  m_Layer: 0
+  m_Layer: 8
   m_Name: Health Bar Container
   m_TagString: Untagged
   m_Icon: {fileID: 0}
@@ -824,7 +869,7 @@ GameObject:
   - component: {fileID: 9075167157050103473}
   - component: {fileID: 3261148701140517683}
   - component: {fileID: 6221567066026932346}
-  m_Layer: 0
+  m_Layer: 8
   m_Name: Reactor_RR
   m_TagString: Untagged
   m_Icon: {fileID: 0}
@@ -959,7 +1004,7 @@ GameObject:
   - component: {fileID: 4587820041310447364}
   - component: {fileID: 7229531483393217977}
   - component: {fileID: 7949165390226506431}
-  m_Layer: 0
+  m_Layer: 8
   m_Name: Reactor_FL
   m_TagString: Untagged
   m_Icon: {fileID: 0}
@@ -1090,7 +1135,8 @@ GameObject:
   serializedVersion: 6
   m_Component:
   - component: {fileID: 6055825740437265567}
-  m_Layer: 0
+  - component: {fileID: 1272542695014694592}
+  m_Layer: 8
   m_Name: EnemyTest
   m_TagString: Untagged
   m_Icon: {fileID: 0}
@@ -1113,8 +1159,28 @@ Transform:
   - {fileID: 8576916806765872247}
   - {fileID: 4099705038397358419}
   - {fileID: 6127591140594037244}
+  - {fileID: 7570286386153321796}
   m_Father: {fileID: 0}
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
+--- !u!114 &1272542695014694592
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 8429382968391040274}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 51e7088e347ced04f9133d0e9f0276e5, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Assembly-CSharp::EnemyMovement
+  pointA: {fileID: 0}
+  pointB: {fileID: 0}
+  pingPongDistance: 50000
+  baseSpeed: 500
+  currentSpeed: 0
+  isStunned: 0
+  slowMultiplier: 1
 --- !u!1 &8688159975116611850
 GameObject:
   m_ObjectHideFlags: 0
@@ -1128,7 +1194,7 @@ GameObject:
   - component: {fileID: 3857710193132300212}
   - component: {fileID: 8539780573894574059}
   - component: {fileID: 5053727820892665744}
-  m_Layer: 0
+  m_Layer: 8
   m_Name: Rifle_L
   m_TagString: Untagged
   m_Icon: {fileID: 0}
