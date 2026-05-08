@@ -9,10 +9,15 @@ using System.Collections.Generic;
 [CreateAssetMenu(fileName = "New Weapon", menuName = "Game/Weapons/Weapon")]
 public class WeaponSO : ScriptableObject
 {
+
     [Header("Identity")]
     public string weaponName;
     public List<AudioClip> fireSounds;
     public WeaponType weaponType;
+
+    [Header("Laser")]
+    [Tooltip("Prefab or component LaserBeam in the slot.")]
+    public StatusEffectSO laserEffectData;
 
     [Header("Fire Rate")]
     [Tooltip("Rounds fired per second.")]

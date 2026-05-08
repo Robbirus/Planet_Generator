@@ -39,4 +39,24 @@ public class StatusEffectSO : ScriptableObject
     [Header("Color Font")]
     [Tooltip("The color the font will appear.")]
     public Color color;
+
+    [Header("ACID - Slow")]
+    [Range(0.05f, 1f)]
+    public float slowMultiplier = 0.5f;
+
+    [Header("ARC - Stun")]
+    public float stunDuration = 2f;
+
+    [Header("EXPLOSION - Area damage")]
+    public float     explosionRadius = 10f;
+    public float     explosionDamage = 30f;
+    public LayerMask explosionLayers;
+
+    [Header("IMPACT - Knockback + Stun")]
+    public float knockBackForce = 20f;
+    public float impactStunDuration = 1f;
+
+    [Header("CHEMICAL - Armor reduction")]
+    [Min(0)]
+    public int armorReductionTiers = 2;
 }
