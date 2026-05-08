@@ -169,8 +169,13 @@ public class WeaponManager : MonoBehaviour
     private void TryShoot()
     {
         WeaponSlot slot = GetCurrentWeapon();
-
         if (slot.weapon         == null) return;
+
+        if(slot.weapon.weaponType == WeaponType.LASER)
+        {
+            return;
+        }
+
         if (slot.loadedShell    == null) return;
         if (slot.isReloading)            return;
         if (slot.fireTimer > 0f)         return;
