@@ -21,6 +21,9 @@ public class WeaponManager : MonoBehaviour
         public Transform rightSpawnPoint;
         [Tooltip("If false, weapon never consumes ammo.")]
         public bool hasMagasine;
+        [Tooltip("LaserBeam component used when this slot's weapon is a LASER.\n" +
+                 "Assign the LaserBeam child GameObject here.")]
+        public LaserBeam laserBeam;
 
         [HideInInspector] public int    currentAmmo;
         [HideInInspector] public bool   isReloading;
@@ -84,6 +87,12 @@ public class WeaponManager : MonoBehaviour
             slot.hasMagasine = slot.weapon.hasMagazine;
             slot.isReloading = false;
             slot.fireTimer   = 0;
+
+            // Push laserEffectData from the WeaponSO into the LaserBeam component
+            if (slot.weapon.weaponType == WeaponType.LASER && slot.laserBeam != null)
+            {
+                slot.laserBeam.SetEffectData(slot.weapon.laserEffectData);
+            }
         }
     }
 
@@ -143,6 +152,10 @@ public class WeaponManager : MonoBehaviour
         {
             fourthWeaponReference.action.performed -= ctx => SwitchWeapon(3);
         }
+
+        // Safety: stop any active laser when the component is disabled
+        StopAllLasers();
+
     }
 
     private void Update()
@@ -158,11 +171,45 @@ public class WeaponManager : MonoBehaviour
             }
         }
 
-        // Shoot
+        //LASER : tick every frame the trigger is held
+        WeaponSlot current = GetCurrentWeapon();
+        if (current.weapon != null && current.weapon.weaponType == WeaponType.LASER)
+        {
+            if (isShooting)
+                TryFireLaser(current);
+            else
+                current.laserBeam?.StopFire();
+
+            return; // Skip ballistic logic below
+        }
+        else
+        {
+            // Make sure no stale laser beam is active after switching away
+            current.laserBeam?.StopFire();
+        }
+
+        // Ballistic shoot
         if (isShooting)
         {
             TryShoot();
         }
+    }
+
+    private void TryFireLaser(WeaponSlot slot)
+    {
+        if (slot.laserBeam == null)
+        {
+            Debug.LogWarning("[WeaponManager] LaserBeam not assigned on weapon slot.", this);
+            return;
+        }
+
+        slot.laserBeam.Fire();
+    }
+
+    private void StopAllLasers()
+    {
+        foreach (WeaponSlot slot in weaponSlots)
+            slot.laserBeam?.StopFire();
     }
 
     // Shooting
@@ -267,15 +314,32 @@ public class WeaponManager : MonoBehaviour
     // Weapon Switching
     private void SwitchWeapon(int index)
     {
-        if(index < 0 ||index >= weaponSlots.Length) return;
+        if (index < 0 || index >= weaponSlots.Length) return;
         if (weaponSlots[index].weapon == null) return;
-        if(index == currentWeaponIndex) return;
+        if (index == currentWeaponIndex) return;
+
+        // Stop laser on the slot we're leaving
+        GetCurrentWeapon().laserBeam?.StopFire();
 
         currentWeaponIndex = index;
-        pity = 0; // Resets pity on switch
-        OnShellChanged?.Invoke(GetCurrentWeapon().loadedShell);
+        pity = 0;
 
-        Debug.Log($"[WeaponManager] Switched to weapon slot {index}: {GetCurrentWeapon().weapon.weaponName}");
+        // Sync laserEffectData in case it was changed at runtime
+        WeaponSlot next = GetCurrentWeapon();
+        if (next.weapon.weaponType == WeaponType.LASER && next.laserBeam != null)
+            next.laserBeam.SetEffectData(next.weapon.laserEffectData);
+
+        OnShellChanged?.Invoke(GetCurrentWeapon().loadedShell);
+        Debug.Log($"[WeaponManager] Switched to slot {index}: {GetCurrentWeapon().weapon.weaponName}");
+    }
+
+    /// <summary>
+    /// Public entry-point used by WeaponTabUI (dropdown).
+    /// Delegates to the private SwitchWeapon so all logic stays centralised.
+    /// </summary>
+    public void SwitchWeaponPublic(int index)
+    {
+        SwitchWeapon(index);
     }
 
     // Crit
@@ -303,6 +367,21 @@ public class WeaponManager : MonoBehaviour
         OnShellChanged?.Invoke(shell);
     }
 
+    /// <summary>Returns the WeaponSO at a given slot index, or null if empty.</summary>
+    public WeaponSO GetWeapon(int index)
+    {
+        if (index < 0 || index >= weaponSlots.Length) return null;
+        return weaponSlots[index].weapon;
+    }
+
+    /// <summary>Returns the ShellSO loaded in a given slot, or null.</summary>
+    public ShellSO GetShell(int index)
+    {
+        if (index < 0 || index >= weaponSlots.Length) return null;
+        return weaponSlots[index].loadedShell;
+    }
+    /// <summary>Total number of weapon slots (including empty ones).</summary>
+    public int GetWeaponCount(){ return weaponSlots.Length; }
     /// <summary>Returns the chance of making a critical hit.</summary>
     public int GetCritChance() { return GetCurrentWeapon().weapon != null ? GetCurrentWeapon().weapon.critChance : 0; }
     /// <summary>Returns the crit coefficient.</summary>
