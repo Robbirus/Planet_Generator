@@ -20,6 +20,7 @@ public class Planet : MonoBehaviour
     public bool colourSettingsFoldout;
 
     ShapeGenerator shapeGenerator; // use shapeGenerator object to update shape
+    ColourGenerator colourGenerator; // use this object to update colors
 
     [SerializeField, HideInInspector]
     MeshFilter[] meshFilters; // a mesh filter holds a reference to a mesh
@@ -29,7 +30,8 @@ public class Planet : MonoBehaviour
     void Initialize()
     {
         shapeGenerator = new ShapeGenerator(shapeSettings); // Create shape generator from current shape settings
-        
+        colourGenerator= new ColourGenerator(colourSettings); // Create colour generator from curret colour settings
+
         if (meshFilters == null || meshFilters.Length == 0) // check if the mesh filter needs to be initialized
         {
             meshFilters = new MeshFilter[6];
@@ -95,6 +97,7 @@ public class Planet : MonoBehaviour
                 terrainFaces[i].ConstructMesh();
             }
         }
+        colourGenerator.UpdateElevation(shapeGenerator.elevationMinMax);
     }
 
     // Generate color from colourSettings editor
