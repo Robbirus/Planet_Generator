@@ -8,6 +8,8 @@ public class Planet : MonoBehaviour
     [Range(2, 256)]
     public int resolution = 10;
     public bool autoUpdate = true;
+    public enum FaceRenderMask { All, Top, Bottom, Left, Right, Front, Back}; //option to render 1 face at a time to gain time
+    public FaceRenderMask faceRenderMask;
 
     public ShapeSettings shapeSettings; // link shape editor
     public ColourSettings colourSettings; // link color editor
@@ -49,6 +51,7 @@ public class Planet : MonoBehaviour
             }
 
             terrainFaces[i] = new TerrainFace(shapeGenerator, meshFilters[i].sharedMesh, resolution, directions[i]);
+           // bool renderFace = faceRenderMask == FaceRenderMask.All || (int)face
         }
     }
 
