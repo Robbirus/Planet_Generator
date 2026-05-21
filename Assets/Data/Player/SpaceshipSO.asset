@@ -1,0 +1,31 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 3d55d269c796d8f48ae2d573b3177c09, type: 3}
+  m_Name: SpaceshipSO
+  m_EditorClassIdentifier: Assembly-CSharp::SpaceshipSO
+  forwardSpeed: 500
+  strafSpeed: 200
+  hoverSpeed: 150
+  rotationSpeed: 45
+  heightRange: {x: 0, y: 200}
+  forwardAcceleration: 20
+  strafAcceleration: 20
+  hoverAcceleration: 20
+  rollSpeed: 90
+  rollAcceleration: 4.5
+  boostMultiplier: 5
+  boostAcceleration: 4
+  boostDuration: 10
+  boostRegenDelay: 2
+  boostRegenRate: 1
+  lookRateSpeed: 90
+  deadZoneRadius: 40

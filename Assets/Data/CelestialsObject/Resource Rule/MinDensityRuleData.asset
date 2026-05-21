@@ -10,9 +10,9 @@ MonoBehaviour:
   m_Enabled: 1
   m_EditorHideFlags: 0
   m_Script: {fileID: 11500000, guid: bacefa2a9b39df8459a46610bdb3990d, type: 3}
-  m_Name: NoMoonRuleData
+  m_Name: MinDensityRuleData
   m_EditorClassIdentifier: Assembly-CSharp::PlanetResourceRuleSO
-  condition: 0
-  threshold: 1
-  boostedResources: 
-  weightMultiplier: 3
+  condition: 2
+  threshold: 3
+  boostedResources: 0200000007000000
+  weightMultiplier: 2
