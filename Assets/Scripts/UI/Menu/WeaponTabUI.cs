@@ -108,7 +108,7 @@ public class WeaponTabUI : MonoBehaviour
         // Panel visibility per weapon type
         bool isLaser = weapon.weaponType == WeaponType.LASER;
         shellInfoGroup?.SetActive(!isLaser);
-        laserInfoGroup?.SetActive(isLaser);
+        //laserInfoGroup?.SetActive(isLaser);
 
         if (isLaser)
         {
@@ -135,12 +135,12 @@ public class WeaponTabUI : MonoBehaviour
         }
 
         SetText(shellNameText, shell.name);
-        SetText(shellDamageText, $"STD {shell.standardDamage:0}  /  DUR {shell.durableDamage:0}");
-        SetText(shellVelocityText, $"{shell.velocity} m/s");
-        SetText(shellArmorPenText, shell.armorPen.ToString());
+        SetText(shellDamageText, $"Damage STD {shell.standardDamage:0}  /  DUR {shell.durableDamage:0}");
+        SetText(shellVelocityText, $"Shell velocity {shell.velocity} m/s");
+        SetText(shellArmorPenText, $"Armor penetration {shell.armorPen}");
 
         TypeEffect fx = shell.GetTypeEffect();
-        SetText(shellEffectText, fx != TypeEffect.NONE ? fx.ToString() : "none");
+        SetText(shellEffectText, $"Effect : {(fx != TypeEffect.NONE ? fx.ToString() : "none")}");
 
         if (shellColorSwatch != null) shellColorSwatch.color = shell.color;
     }
