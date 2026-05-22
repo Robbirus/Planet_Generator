@@ -19,8 +19,8 @@ public class Planet : MonoBehaviour
     [HideInInspector]
     public bool colourSettingsFoldout;
 
-    ShapeGenerator shapeGenerator; // use shapeGenerator object to update shape
-    ColourGenerator colourGenerator; // use this object to update colors
+    ShapeGenerator shapeGenerator = new ShapeGenerator(); // use shapeGenerator object to update shape
+    ColourGenerator colourGenerator = new ColourGenerator(); // use this object to update colors
 
     [SerializeField, HideInInspector]
     MeshFilter[] meshFilters; // a mesh filter holds a reference to a mesh
@@ -29,8 +29,8 @@ public class Planet : MonoBehaviour
     // Initialize mesh filters for each terrain face
     void Initialize()
     {
-        shapeGenerator = new ShapeGenerator(shapeSettings); // Create shape generator from current shape settings
-        colourGenerator= new ColourGenerator(colourSettings); // Create colour generator from curret colour settings
+        shapeGenerator.UpdateSettings(shapeSettings); // Create shape generator from current shape settings
+        colourGenerator.UpdateSettings(colourSettings); // Create colour generator from curret colour settings
 
         if (meshFilters == null || meshFilters.Length == 0) // check if the mesh filter needs to be initialized
         {
@@ -103,9 +103,6 @@ public class Planet : MonoBehaviour
     // Generate color from colourSettings editor
     void GenerateColours()
     {
-        foreach (MeshFilter m in meshFilters)
-        {
-            m.GetComponent<MeshRenderer>().sharedMaterial.color = colourSettings.planetColour;
-        }
+        colourGenerator.UpdateColours();
     }
 }
