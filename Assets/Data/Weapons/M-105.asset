@@ -20,6 +20,8 @@ MonoBehaviour:
   - {fileID: 8300000, guid: 110d5837213fffe4c94c4f53c85b35da, type: 3}
   - {fileID: 8300000, guid: 755489b7e3685db46bac9b7b4977df42, type: 3}
   weaponType: 0
+  sprite: {fileID: 21300000, guid: 90aa775028f17fb409e838a83b3ebe46, type: 3}
+  laserEffectData: {fileID: 0}
   fireRate: 15
   hasMagazine: 0
   magazineSize: 10

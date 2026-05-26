@@ -15,6 +15,7 @@ MonoBehaviour:
   weaponName: Machine Gun
   fireSounds: []
   weaponType: 0
+  sprite: {fileID: 21300000, guid: ce65475e1bf21c040af80259c1451a64, type: 3}
   laserEffectData: {fileID: 0}
   fireRate: 13
   hasMagazine: 0

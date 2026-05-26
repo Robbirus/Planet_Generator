@@ -15,6 +15,7 @@ MonoBehaviour:
   weaponName: Laser Canon
   fireSounds: []
   weaponType: 1
+  sprite: {fileID: 21300000, guid: 69172370372e67f4ca6c6964047bdd29, type: 3}
   laserEffectData: {fileID: 11400000, guid: ee2c0782e20169c439cb43313929a7b1, type: 2}
   fireRate: 1
   hasMagazine: 0
