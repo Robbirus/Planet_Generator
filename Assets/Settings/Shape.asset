@@ -71,9 +71,9 @@ MonoBehaviour:
       rigidNoiseSettings:
         strength: 0.26
         numLayers: 6
-        baseRoughness: 1.09
-        roughness: 1.66
-        persistence: 1.56
+        baseRoughness: 1.08
+        roughness: 2.23
+        persistence: 2.36
         centre: {x: 0, y: 0, z: 0}
-        minValue: 0.19
-        weightMultiplier: 0.8
+        minValue: 0.22
+        weightMultiplier: 0.71
