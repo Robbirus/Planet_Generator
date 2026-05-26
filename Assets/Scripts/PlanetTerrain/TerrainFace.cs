@@ -31,7 +31,7 @@ public class TerrainFace
         Vector3[] vertices = new Vector3[resolution * resolution]; // resolution = total number of vertices along a single edge of a face
         int[] triangles = new int[(resolution - 1) * (resolution - 1) * 6]; // calculate the number of triangles in our mesh
         int triIndex = 0; // index for triangles array
-        Vector2[] uv = mesh.uv;
+        Vector2[] uv = (mesh.uv.Length == vertices.Length)?mesh.uv:new Vector2[vertices.Length];
 
         for (int y = 0; y < resolution; y++)
         {
@@ -41,7 +41,9 @@ public class TerrainFace
                 Vector2 percent = new Vector2(x, y) / (resolution - 1); // Defines how close we are to completing the mesh
                 Vector3 pointOnUnitCube = localUp + (percent.x - .5f) * 2 * axisA + (percent.y - .5f) * 2 * axisB; // Calculate how far along each axis (A, B, localUp) we are
                 Vector3 pointOnUnitSphere = pointOnUnitCube.normalized; //Transform cube into sphere
-                vertices[i] = shapeGenerator.CalculatePointOnPlanet(pointOnUnitSphere); // Calculate vertices using shape generator
+                float unscaledElevation = shapeGenerator.CalculateUnscaledElevation(pointOnUnitSphere);
+                vertices[i] = pointOnUnitSphere * shapeGenerator.GetScaledElevation(unscaledElevation); // Calculate vertices using shape generator
+                uv[i].y = unscaledElevation;
 
                 // Calculate the vertices for each triangle
                 if (x != resolution - 1 && y != resolution - 1)
@@ -66,7 +68,7 @@ public class TerrainFace
 
     public void UpdateUVS(ColourGenerator colourGenerator)
     {
-        Vector2[] uv = new Vector2[resolution * resolution];
+        Vector2[] uv = mesh.uv;
 
         for (int y = 0; y < resolution; y++)
         {
@@ -77,7 +79,7 @@ public class TerrainFace
                 Vector3 pointOnUnitCube = localUp + (percent.x - .5f) * 2 * axisA + (percent.y - .5f) * 2 * axisB; // Calculate how far along each axis (A, B, localUp) we are
                 Vector3 pointOnUnitSphere = pointOnUnitCube.normalized; //Transform cube into sphere
 
-                uv[i] = new Vector2(colourGenerator.BiomePercentFromPoint(pointOnUnitSphere), 0);
+                uv[i].x = colourGenerator.BiomePercentFromPoint(pointOnUnitSphere);
             }
         }
         mesh.uv = uv;
