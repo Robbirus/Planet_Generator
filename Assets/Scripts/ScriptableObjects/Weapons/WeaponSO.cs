@@ -9,11 +9,11 @@ using System.Collections.Generic;
 [CreateAssetMenu(fileName = "New Weapon", menuName = "Game/Weapons/Weapon")]
 public class WeaponSO : ScriptableObject
 {
-
     [Header("Identity")]
     public string weaponName;
     public List<AudioClip> fireSounds;
     public WeaponType weaponType;
+    public Sprite sprite;
 
     [Header("Laser")]
     [Tooltip("Prefab or component LaserBeam in the slot.")]

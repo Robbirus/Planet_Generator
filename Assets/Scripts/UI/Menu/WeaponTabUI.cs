@@ -7,13 +7,26 @@ public class WeaponTabUI : MonoBehaviour
 {
     [Header("Weapon Manager")]
     [SerializeField] private WeaponManager weaponManager;
+    [Space(10)]
 
     [Header("Dropdown")]
     [SerializeField] private TMP_Dropdown weaponDropdown;
+    [Space(10)]
 
     [Header("Switch Button")]
     [Tooltip("The button that alternates between the Weapon and Shell/Laser view.")]
     [SerializeField] private Button switchButton;
+    [Tooltip("Switch button image.")]
+    [SerializeField] private Image switchButtonImage;
+    [Tooltip("Sprite displayed in mode WEAPON.")]
+    [SerializeField] private Sprite switchSpriteWeapon;
+    [Tooltip("Sprite displayed in mode AMMO (e.g., shell/laser icon).")]
+    [SerializeField] private Sprite switchSpriteAmmo;
+    [Space(10)]
+
+    [Header("Weapon Sprite")]
+    [SerializeField] private Image weaponSpriteImage;
+    [Space(10)]
 
     [Header("Weapon info")]
     [SerializeField] private GameObject weaponInfoGroup;
@@ -23,6 +36,7 @@ public class WeaponTabUI : MonoBehaviour
     [SerializeField] private TMP_Text magazineText;
     [SerializeField] private TMP_Text reloadTimeText;
     [SerializeField] private TMP_Text critText;
+    [Space(10)]
 
     [Header("Shell info")]
     [SerializeField] private GameObject shellInfoGroup;
@@ -32,6 +46,7 @@ public class WeaponTabUI : MonoBehaviour
     [SerializeField] private TMP_Text shellArmorPenText;
     [SerializeField] private TMP_Text shellEffectText;
     [SerializeField] private Image shellColorSwatch;
+    [Space(10)]
 
     [Header("Laser info")]
     [SerializeField] private GameObject laserInfoGroup;
@@ -54,7 +69,7 @@ public class WeaponTabUI : MonoBehaviour
         if (weaponManager == null)
             weaponManager = GameManager.instance.GetSpaceshipController()?.GetWeaponManager();
 
-        if (weaponManager == null) { Debug.LogWarning("[WeaponTabUI] WeaponManager introuvable."); return; }
+        if (weaponManager == null) { Debug.LogWarning("[WeaponTabUI] WeaponManager not found.", this); return; }
 
         RefreshDropdown();
         ApplyMode(weaponManager.GetCurrentWeaponIndex());
@@ -112,6 +127,10 @@ public class WeaponTabUI : MonoBehaviour
         {
             ShowGroups(weapon: false, shell: false, laser: false);
             ClearAll();
+
+            RefreshSwitchButtonSprite();
+            SetPresentationSprite(null);
+
             return;
         }
 
@@ -130,6 +149,10 @@ public class WeaponTabUI : MonoBehaviour
             FillLaser(weapon);
         else
             FillShell(weaponManager.GetShell(weaponIndex));
+
+        // Sprites
+        RefreshSwitchButtonSprite();
+        SetPresentationSprite(weapon.sprite);
     }
 
     private void ShowGroups(bool weapon, bool shell, bool laser)
@@ -147,6 +170,27 @@ public class WeaponTabUI : MonoBehaviour
         SetText(critText, $"Crit : {w.critChance}%  ×{w.critCoef:0.##}");
         SetText(magazineText, w.hasMagazine ? $"{w.magazineSize} magazine" : "no magazine");
         SetText(reloadTimeText, w.hasMagazine ? $"Reload Time : {w.reloadTime:0.#} s" : "-");
+    }
+
+    /// <summary>Swap the sprite of the Switch button according to active mode.</summary>
+    private void RefreshSwitchButtonSprite()
+    {
+        if (switchButtonImage == null) return;
+
+        Sprite target = currentMode == DisplayMode.Weapon
+            ? switchSpriteAmmo
+            : switchSpriteWeapon;
+
+        if (target != null) switchButtonImage.sprite = target;
+    }
+
+    /// <summary>Change the Weapon Sprite by weapon type.</summary>
+    private void SetPresentationSprite(Sprite sprite)
+    {
+        if (weaponSpriteImage == null) return;
+
+        weaponSpriteImage.sprite = sprite;
+        weaponSpriteImage.enabled = sprite != null;
     }
 
     private void FillShell(ShellSO shell)
