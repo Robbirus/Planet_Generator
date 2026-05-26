@@ -28,7 +28,7 @@ public class ColourGenerator
 
         for (int i = 0; i < textureResolution; i++)
         {
-            colours[i] = settings.gradient.Evaluate(i / textureResolution - 1f);
+            colours[i] = settings.gradient.Evaluate(i / (textureResolution - 1f));
         }
         texture.SetPixels(colours);
         texture.Apply();
