@@ -31,6 +31,7 @@ public class TerrainFace
         Vector3[] vertices = new Vector3[resolution * resolution]; // resolution = total number of vertices along a single edge of a face
         int[] triangles = new int[(resolution - 1) * (resolution - 1) * 6]; // calculate the number of triangles in our mesh
         int triIndex = 0; // index for triangles array
+        Vector2[] uv = mesh.uv;
 
         for (int y = 0; y < resolution; y++)
         {
@@ -60,5 +61,25 @@ public class TerrainFace
         mesh.vertices = vertices;
         mesh.triangles = triangles;
         mesh.RecalculateNormals(); // Update the normals to reflect vertices changes
+        mesh.uv = uv;
+    }
+
+    public void UpdateUVS(ColourGenerator colourGenerator)
+    {
+        Vector2[] uv = new Vector2[resolution * resolution];
+
+        for (int y = 0; y < resolution; y++)
+        {
+            for (int x = 0; x < resolution; x++)
+            {
+                int i = x + y * resolution; // index for vertices array
+                Vector2 percent = new Vector2(x, y) / (resolution - 1); // Defines how close we are to completing the mesh
+                Vector3 pointOnUnitCube = localUp + (percent.x - .5f) * 2 * axisA + (percent.y - .5f) * 2 * axisB; // Calculate how far along each axis (A, B, localUp) we are
+                Vector3 pointOnUnitSphere = pointOnUnitCube.normalized; //Transform cube into sphere
+
+                uv[i] = new Vector2(colourGenerator.BiomePercentFromPoint(pointOnUnitSphere), 0);
+            }
+        }
+        mesh.uv = uv;
     }
 }
