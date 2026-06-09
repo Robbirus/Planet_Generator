@@ -1,0 +1,115 @@
+using System.Collections;
+using System.Collections.Generic;
+using UnityEngine;
+
+public class Planet : MonoBehaviour
+{
+
+    [Range(2, 256)]
+    public int resolution = 10;
+    public bool autoUpdate = true;
+    public enum FaceRenderMask { All, Top, Bottom, Left, Right, Front, Back}; //option to render 1 face at a time to gain time
+    public FaceRenderMask faceRenderMask;
+
+    public ShapeSettings shapeSettings; // link shape editor
+    public ColourSettings colourSettings; // link color editor
+
+    [HideInInspector]
+    public bool shapeSettingsFoldout;
+    [HideInInspector]
+    public bool colourSettingsFoldout;
+
+    ShapeGenerator shapeGenerator = new ShapeGenerator(); // use shapeGenerator object to update shape
+    ColourGenerator colourGenerator = new ColourGenerator(); // use this object to update colors
+
+    [SerializeField, HideInInspector]
+    MeshFilter[] meshFilters; // a mesh filter holds a reference to a mesh
+    TerrainFace[] terrainFaces;
+
+    // Initialize mesh filters for each terrain face
+    void Initialize()
+    {
+        shapeGenerator.UpdateSettings(shapeSettings); // Create shape generator from current shape settings
+        colourGenerator.UpdateSettings(colourSettings); // Create colour generator from curret colour settings
+
+        if (meshFilters == null || meshFilters.Length == 0) // check if the mesh filter needs to be initialized
+        {
+            meshFilters = new MeshFilter[6];
+        }
+        terrainFaces = new TerrainFace[6];
+
+        Vector3[] directions = { Vector3.up, Vector3.down, Vector3.left, Vector3.right, Vector3.forward, Vector3.back };
+
+        for (int i = 0; i < 6; i++)
+        {
+            if (meshFilters[i] == null)
+            {
+                GameObject meshObj = new GameObject("mesh");
+                meshObj.transform.parent = transform;
+
+                meshObj.AddComponent<MeshRenderer>();
+                meshFilters[i] = meshObj.AddComponent<MeshFilter>();
+                meshFilters[i].sharedMesh = new Mesh();
+            }
+            meshFilters[i].GetComponent<MeshRenderer>().sharedMaterial = colourSettings.planetMaterial;
+            
+            terrainFaces[i] = new TerrainFace(shapeGenerator, meshFilters[i].sharedMesh, resolution, directions[i]);
+            bool renderFace = faceRenderMask == FaceRenderMask.All || (int)faceRenderMask - 1 == i; // true if facerendermask is set to all or if facerendermask is set to current face
+            meshFilters[i].gameObject.SetActive(renderFace); //set active is renderFace is true
+        }
+    }
+
+    // Generate a planet including shape and color settings
+    public void GeneratePlanet()
+    {
+        Initialize();
+        GenerateMesh();
+        GenerateColours();
+    }
+
+    // Update shape (mesh) if shape settings have changed
+    public void OnShapeSettingsUpdated()
+    {
+        if (autoUpdate)
+        {
+            Initialize();
+            GenerateMesh();
+        }
+    }
+
+    // Update colors if color settings have changed
+    public void OnColourSettingsUpdated()
+    {
+        if (autoUpdate)
+        {
+            Initialize();
+            GenerateColours();
+        }
+    }
+
+    // Generate mesh for each terrain face
+    void GenerateMesh()
+    {
+        for (int i = 0; i < 6; i++) 
+        { 
+            if (meshFilters[i].gameObject.activeSelf)
+            {
+                terrainFaces[i].ConstructMesh();
+            }
+        }
+        colourGenerator.UpdateElevation(shapeGenerator.elevationMinMax);
+    }
+
+    // Generate color from colourSettings editor
+    void GenerateColours()
+    {
+        colourGenerator.UpdateColours();
+        for (int i = 0; i < 6; i++)
+        {
+            if (meshFilters[i].gameObject.activeSelf)
+            {
+                terrainFaces[i].UpdateUVS(colourGenerator);
+            }
+        }
+    }
+}
