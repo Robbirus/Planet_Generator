@@ -20,7 +20,7 @@ RenderSettings:
   m_FogDensity: 0.01
   m_LinearFogStart: 0
   m_LinearFogEnd: 300
-  m_AmbientSkyColor: {r: 0, g: 0, b: 0, a: 1}
+  m_AmbientSkyColor: {r: 0.5, g: 0.5, b: 0.7, a: 1}
   m_AmbientEquatorColor: {r: 0.114, g: 0.125, b: 0.133, a: 1}
   m_AmbientGroundColor: {r: 0.047, g: 0.043, b: 0.035, a: 1}
   m_AmbientIntensity: 1
@@ -37,7 +37,7 @@ RenderSettings:
   m_ReflectionBounces: 1
   m_ReflectionIntensity: 1
   m_CustomReflection: {fileID: 0}
-  m_Sun: {fileID: 0}
+  m_Sun: {fileID: 1556027978}
   m_UseRadianceAmbientProbe: 0
 --- !u!157 &3
 LightmapSettings:
@@ -93,7 +93,7 @@ LightmapSettings:
     m_ExportTrainingData: 0
     m_TrainingDataDestination: TrainingData
     m_LightProbeSampleCountMultiplier: 4
-  m_LightingDataAsset: {fileID: 20201, guid: 0000000000000000f000000000000000, type: 0}
+  m_LightingDataAsset: {fileID: 112000000, guid: abe530a5ee7489545a160fd264aef96b, type: 2}
   m_LightingSettings: {fileID: 0}
 --- !u!196 &4
 NavMeshSettings:
@@ -11175,7 +11175,7 @@ Transform:
   m_GameObject: {fileID: 1142259385}
   serializedVersion: 2
   m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
-  m_LocalPosition: {x: 918.22723, y: 474.09555, z: -804.6703}
+  m_LocalPosition: {x: 61724.453, y: 3989.9316, z: 24061.863}
   m_LocalScale: {x: 1, y: 1, z: 1}
   m_ConstrainProportionsScale: 0
   m_Children: []
@@ -11193,10 +11193,11 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: fc7e37685c8bc7f4fa31c15e295b5f31, type: 3}
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::SolarSystemGenerator
-  planetPrefab: {fileID: 4984548254132639815, guid: 8642ac3a7ea6a9340b8a0081a01ab70a, type: 3}
+  planetPrefab: {fileID: 2051192702333310345, guid: 8642ac3a7ea6a9340b8a0081a01ab70a, type: 3}
   moonPrefab: {fileID: 4984548254132639815, guid: dc71e47867b54d74f89bddb06c005f41, type: 3}
   cometPrefab: {fileID: 4984548254132639815, guid: 3a2652ba7807c4b4b88e1ffc3342266b, type: 3}
   sun: {fileID: 1556027975}
+  sunLight: {fileID: 1556027977}
   distantStars: {fileID: 1142259389}
   planetData: {fileID: 11400000, guid: 6f2f2e339a6b08f4fa46b1833174272a, type: 2}
   moonData: {fileID: 11400000, guid: bbd3560260b36144ca39fec099b20110, type: 2}
@@ -15971,6 +15972,8 @@ MonoBehaviour:
   resourceSO: {fileID: 0}
   resourceDistribution: []
   planetRenderer: {fileID: 0}
+  planetTerrain: {fileID: 0}
+  terrainCollider: {fileID: 0}
   rotationSpeed: 15
   ringPrefab: {fileID: 0}
   debug: 0
@@ -16109,7 +16112,7 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::SunLight
   pointIntensity: 5
-  pointRange: 500
+  pointRange: 30000
   sunColor: {r: 1, g: 0.95, b: 0.8, a: 1}
   directionalLight: {fileID: 1549326134}
   directionalIntensity: 1.5
@@ -16128,7 +16131,7 @@ Light:
   m_Type: 2
   m_Color: {r: 1, g: 0.95, b: 0.8, a: 1}
   m_Intensity: 5
-  m_Range: 500
+  m_Range: 30000
   m_SpotAngle: 30
   m_InnerSpotAngle: 21.80208
   m_CookieSize2D: {x: 0.5, y: 0.5}
@@ -22460,6 +22463,10 @@ PrefabInstance:
     - target: {fileID: 6658569123028150777, guid: d76970552d53d284bba84f194f485e57, type: 3}
       propertyPath: m_IsActive
       value: 1
+      objectReference: {fileID: 0}
+    - target: {fileID: 6685421325139822204, guid: d76970552d53d284bba84f194f485e57, type: 3}
+      propertyPath: detectionRadius
+      value: 6000
       objectReference: {fileID: 0}
     - target: {fileID: 8504995286037753096, guid: d76970552d53d284bba84f194f485e57, type: 3}
       propertyPath: m_LocalPosition.x

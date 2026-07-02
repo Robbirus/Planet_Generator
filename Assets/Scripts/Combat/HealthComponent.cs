@@ -94,8 +94,7 @@ public class HealthComponent : MonoBehaviour, IDamageable
         // DoT / debuff effects - handled by StatusEffectHandler
         if(shell.GetTypeEffect() != TypeEffect.NONE && 
            shell.GetTypeEffect() != TypeEffect.EXPLOSION &&
-           shell.GetTypeEffect() != TypeEffect.IMPACT &&
-           shell.GetTypeEffect() != null)
+           shell.GetTypeEffect() != TypeEffect.IMPACT)
         {
             handler?.Apply(shell.GetTypeEffect(), shell.GetTeam(), shell.GetEffectData());
         }

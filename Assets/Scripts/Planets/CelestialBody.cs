@@ -14,8 +14,16 @@ public class CelestialBody : MonoBehaviour
     [SerializeField] private List<ResourceDistribution> resourceDistribution = new();
 
     [Header("visual")]
+    [Tooltip("Used by ApplyColor() for simple sphere-based bodies (moons, comets...).\n" +
+             "Leave empty for terrain-generated planets : they are colored by ColourSettings instead.")]
     [SerializeField] private Renderer planetRenderer;
-    public const float VISUAL_SCALE = 100f;
+    public const float VISUAL_SCALE = 33f;
+
+    [Header("Terrain (procedural planets only)")]
+    [Tooltip("Assign the Planet component on this prefab if it uses the procedural terrain mesh.\n" +
+             "Leave empty for bodies that use a simple sphere + tint (moons, comets...).")]
+    [SerializeField] private Planet planetTerrain;
+    [SerializeField] private SphereCollider terrainCollider;
 
     [Header("Rotation")]
     [SerializeField] private float rotationSpeed = 10f;
@@ -35,8 +43,8 @@ public class CelestialBody : MonoBehaviour
     /// </summary>
     /// <returns></returns>
     public IReadOnlyCollection<ResourceDistribution> GetResourceDistributions()
-    { 
-        return resourceDistribution; 
+    {
+        return resourceDistribution;
     }
 
     /// <summary>
@@ -79,7 +87,7 @@ public class CelestialBody : MonoBehaviour
 
         // Takes the first 'numberOfResources' from the shuffled
         List<ResourceType> chosenResources = new List<ResourceType>();
-        for(int i = 0; i < shuffled.Count && chosenResources.Count < numberOfRessources; i++)
+        for (int i = 0; i < shuffled.Count && chosenResources.Count < numberOfRessources; i++)
         {
             ResourceType type = shuffled[i];
             if (!usedResources.Contains(type))
@@ -89,7 +97,7 @@ public class CelestialBody : MonoBehaviour
             }
         }
 
-        if(chosenResources.Count == 0)
+        if (chosenResources.Count == 0)
         {
             return;
         }
@@ -99,7 +107,7 @@ public class CelestialBody : MonoBehaviour
 
         // Assign weight (x1 - x9) multipliers
         List<float> weights = new();
-        foreach(ResourceType type in chosenResources)
+        foreach (ResourceType type in chosenResources)
         {
             float baseWeight = (float)SeedManager.Range(1, 9, rng);
             float multiplier = multipliers.TryGetValue(type, out float m) ? m : 1f;
@@ -114,7 +122,7 @@ public class CelestialBody : MonoBehaviour
         int drift = 100 - percentages.Sum();
         percentages[^1] += drift;
 
-        resourceDistribution = chosenResources.Select((t, i ) => new ResourceDistribution(t, percentages[i])).ToList();
+        resourceDistribution = chosenResources.Select((t, i) => new ResourceDistribution(t, percentages[i])).ToList();
 
         if (debug) { LogDistribution(); }
     }
@@ -127,18 +135,18 @@ public class CelestialBody : MonoBehaviour
     {
         Dictionary<ResourceType, float> multipliers = new Dictionary<ResourceType, float>();
 
-        if(resourceSO.rules == null) { return multipliers; }
+        if (resourceSO.rules == null) { return multipliers; }
 
-        foreach(PlanetResourceRuleSO rule in  resourceSO.rules)
+        foreach (PlanetResourceRuleSO rule in resourceSO.rules)
         {
-            if(rule == null || !rule.Evaluate(ctx)) continue;
-            
-            foreach(ResourceType boosted in rule.boostedResources)
+            if (rule == null || !rule.Evaluate(ctx)) continue;
+
+            foreach (ResourceType boosted in rule.boostedResources)
             {
                 // Only boost resources that are actually present on this planet
-                if(!chosen.Contains(boosted)) continue;
+                if (!chosen.Contains(boosted)) continue;
 
-                if(multipliers.TryGetValue(boosted, out float existing)) 
+                if (multipliers.TryGetValue(boosted, out float existing))
                 {
                     // Additive stacking following this rule (a + b - 1) to avoid exponential growth
                     multipliers[boosted] = existing + (rule.weightMultiplier - 1);
@@ -156,7 +164,7 @@ public class CelestialBody : MonoBehaviour
     /// <summary>Spawns a ring visual and marks the planet as having a ring.</summary>
     public void SpawnRing()
     {
-        if(ringPrefab == null)
+        if (ringPrefab == null)
         {
             Debug.LogWarning($"[CelestialBody] {gameObject.name} : ringPrefab not assigned.", this);
             return;
@@ -188,7 +196,7 @@ public class CelestialBody : MonoBehaviour
         return Mathf.Pow((3f * mass) / (4f * Mathf.PI * density), 1f / 3f) * VISUAL_SCALE * scale;
     }
 
-    public bool HasRing() {  return hasRing; }
+    public bool HasRing() { return hasRing; }
 
     public float GetRadius(float scale)
     {
@@ -215,10 +223,50 @@ public class CelestialBody : MonoBehaviour
         this.rotationSpeed = rotationSpeed;
     }
 
+    /// <summary>
+    /// Scales a simple sphere-based body (moon, comet...) so its visual radius
+    /// matches ComputeRadius(mass, density, scale). Unity's builtin sphere mesh
+    /// has a local radius of 0.5, hence the *2 diameter trick.
+    /// </summary>
     public void ApplyScale(float scale)
     {
         float diameter = GetRadius(scale) * 2f;
         transform.localScale = Vector3.one * diameter;
+    }
+
+    /// <summary>
+    /// Scales a procedural terrain planet (Planet.cs) so its visual radius
+    /// matches ComputeRadius(mass, density, scale), regardless of the
+    /// planetRadius configured on the ShapeSettings asset used.
+    /// Must be called AFTER GenerateTerrain().
+    /// </summary>
+    public void ApplyTerrainScale(float scale)
+    {
+        if (planetTerrain == null) { ApplyScale(scale); return; }
+
+        float targetRadius = GetRadius(scale);
+        float baseRadius = Mathf.Max(planetTerrain.GetBaseRadius(), 0.0001f);
+
+        transform.localScale = Vector3.one * (targetRadius / baseRadius);
+    }
+
+    /// <summary>
+    /// Scales a terrain planet to a DIRECT world-space radius (in Unity units),
+    /// bypassing the mass/density formula entirely.
+    /// Call this instead of ApplyTerrainScale() when CelestialObjectDataSO
+    /// has a terrainRadiusRange configured.
+    /// </summary>
+    public void ApplyTerrainScaleDirect(float worldRadius)
+    {
+        if (planetTerrain == null)
+        {
+            // Fallback : resize the sphere so its visual radius matches worldRadius
+            transform.localScale = Vector3.one * (worldRadius * 2f);
+            return;
+        }
+
+        float baseRadius = Mathf.Max(planetTerrain.GetBaseRadius(), 0.0001f);
+        transform.localScale = Vector3.one * (worldRadius / baseRadius);
     }
 
     public void SetName(string name)
@@ -247,6 +295,29 @@ public class CelestialBody : MonoBehaviour
         planetRenderer.material = new Material(planetRenderer.sharedMaterial);
         planetRenderer.material.color = finalColor;
     }
+
+    /// <summary>
+    /// Generates the procedural terrain mesh for this body (if it has a Planet
+    /// component assigned) and resizes its collider to match.
+    /// Does nothing if no Planet component is assigned (simple bodies keep
+    /// using ApplyColor() instead).
+    /// </summary>
+    public void GenerateTerrain(ShapeSettings shape, ColourSettings colour)
+    {
+        if (planetTerrain == null) return;
+        if (shape == null || colour == null)
+        {
+            Debug.LogWarning($"[CelestialBody] {gameObject.name} : shape/colour settings manquants pour le terrain.", this);
+            return;
+        }
+
+        planetTerrain.GeneratePlanetRuntime(shape, colour);
+
+        if (terrainCollider != null)
+            terrainCollider.radius = planetTerrain.GetBaseRadius();
+    }
+
+    public bool HasTerrain() => planetTerrain != null;
 
     private void Update()
     {

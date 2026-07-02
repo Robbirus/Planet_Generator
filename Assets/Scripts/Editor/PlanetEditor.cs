@@ -20,16 +20,27 @@ public class PlanetEditor : Editor
             if (check.changed)
             {
                 planet.GeneratePlanet();
+                PersistGeneratedMeshes();
             }
         }
 
         if (GUILayout.Button("Generate Planet"))
         {
             planet.GeneratePlanet();
+            PersistGeneratedMeshes();
         }
 
-        DrawSettingsEditor(planet.shapeSettings, planet.OnShapeSettingsUpdated, ref planet.shapeSettingsFoldout, ref shapeEditor);
-        DrawSettingsEditor(planet.colourSettings, planet.OnColourSettingsUpdated, ref planet.colourSettingsFoldout, ref colourEditor);
+        DrawSettingsEditor(planet.shapeSettings, () =>
+        {
+            planet.OnShapeSettingsUpdated();
+            PersistGeneratedMeshes();
+        }, ref planet.shapeSettingsFoldout, ref shapeEditor);
+
+        DrawSettingsEditor(planet.colourSettings, () =>
+        {
+            planet.OnColourSettingsUpdated();
+            PersistGeneratedMeshes();
+        }, ref planet.colourSettingsFoldout, ref colourEditor);
     }
 
     // With this we can check if the planet's settings have been changed in the editor
@@ -55,6 +66,45 @@ public class PlanetEditor : Editor
                     }
                 }
             }
+        }
+    }
+
+    /// <summary>
+    /// The meshes created by Planet.Initialize() (new Mesh()) only exist in
+    /// memory: they are never written to the file. prefab as long as they
+    /// are not explicitly recorded as sub-assets via
+    /// AssetDatabase. Without that, "Generate Planet" works visually in
+    /// session, but after saving + reloading (closing Unity, exit
+    /// from the prefab edition mode...), MeshFilter.sharedMesh becomes "None" again.
+    ///
+    /// This method only has an effect when editing a Prefab Asset
+    /// directly (and not an instance in a scene, where this problem does not occur)
+    /// does not pose since nothing needs to survive a reload of
+    /// domain while the game is running).
+    /// </summary>
+    private void PersistGeneratedMeshes()
+    {
+        string path = AssetDatabase.GetAssetPath(planet.gameObject);
+
+        // Not a prefab asset (e.g., instance in a scene) -> nothing to persist.
+        if (string.IsNullOrEmpty(path) || !path.EndsWith(".prefab"))
+            return;
+
+        bool dirty = false;
+
+        foreach (Mesh mesh in planet.GetGeneratedMeshes())
+        {
+            if (!AssetDatabase.Contains(mesh))
+            {
+                AssetDatabase.AddObjectToAsset(mesh, path);
+                dirty = true;
+            }
+        }
+
+        if (dirty)
+        {
+            AssetDatabase.ImportAsset(path);
+            AssetDatabase.SaveAssets();
         }
     }
 

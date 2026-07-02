@@ -12,11 +12,11 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 3d55d269c796d8f48ae2d573b3177c09, type: 3}
   m_Name: SpaceshipSO
   m_EditorClassIdentifier: Assembly-CSharp::SpaceshipSO
-  forwardSpeed: 500
-  strafSpeed: 200
-  hoverSpeed: 150
-  rotationSpeed: 45
-  heightRange: {x: 0, y: 200}
+  forwardSpeed: 750
+  strafSpeed: 450
+  hoverSpeed: 350
+  rotationSpeed: 60
+  heightRange: {x: 600, y: 1200}
   forwardAcceleration: 20
   strafAcceleration: 20
   hoverAcceleration: 20

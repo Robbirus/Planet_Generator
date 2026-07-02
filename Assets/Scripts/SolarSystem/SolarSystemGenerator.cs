@@ -10,6 +10,8 @@ public class SolarSystemGenerator : MonoBehaviour
     [SerializeField] private GameObject moonPrefab;
     [SerializeField] private GameObject cometPrefab;
     [SerializeField] private Transform sun;
+    [Tooltip("SunLight component on the Sun GO — receives the auto-computed point range after generation.")]
+    [SerializeField] private SunLight sunLight;
     [Space(10)]
 
     [Header("Seed")]
@@ -37,9 +39,9 @@ public class SolarSystemGenerator : MonoBehaviour
 
     [Header("Spacing")]
     [Tooltip("Additional safety margin between two planetary paths")]
-    [SerializeField] private float planetSafetyMargin   = 100f;
+    [SerializeField] private float planetSafetyMargin = 100f;
     [Tooltip("Minimum margin between two moon orbits")]
-    [SerializeField] private float moonOrbitGap         = 1.5f;
+    [SerializeField] private float moonOrbitGap = 1.5f;
     [Space(10)]
 
     [Header("Ring")]
@@ -63,14 +65,14 @@ public class SolarSystemGenerator : MonoBehaviour
 
     private void Start()
     {
-        if(sun == null)
+        if (sun == null)
         {
             Debug.LogError("[SolarSystemGenerator] 'sun' reference is not set.", this);
             enabled = false;
             return;
         }
 
-        if(stellarMapManager == null)
+        if (stellarMapManager == null)
         {
             stellarMapManager = GetComponent<StellarMapManager>();
         }
@@ -79,6 +81,40 @@ public class SolarSystemGenerator : MonoBehaviour
         GenerateStars();
         GeneratePlanets();
         GenerateComets();
+        CalibrateSunLightRange();
+    }
+
+    /// <summary>
+    /// After all planets are placed, computes the farthest orbit distance and sets
+    /// the SunLight's point range to (max distance + planet footprint) * 1.2f so the
+    /// sun's point light always reaches the outermost body with a 20% margin.
+    /// Falls back gracefully if sunLight is not assigned.
+    /// </summary>
+    private void CalibrateSunLightRange()
+    {
+        if (sunLight == null)
+        {
+            Debug.LogWarning("[SolarSystemGenerator] sunLight not assigned — point range not auto-calibrated.", this);
+            return;
+        }
+
+        if (usedPlanetOrbits.Count == 0)
+        {
+            Debug.LogWarning("[SolarSystemGenerator] No planets generated — cannot calibrate sun range.", this);
+            return;
+        }
+
+        // Farthest orbit edge = orbit distance + the planet's footprint (radius + max moon orbit)
+        float maxReach = 0f;
+        foreach (var (distance, footprint) in usedPlanetOrbits)
+            maxReach = Mathf.Max(maxReach, distance + footprint);
+
+        float calibratedRange = maxReach * 1.2f;
+        sunLight.SetPointRange(calibratedRange);
+
+        if (debug)
+            Debug.Log($"[SolarSystemGenerator] Sun point range calibrated to {calibratedRange:0} u " +
+                      $"(farthest reach {maxReach:0} u × 1.2).", this);
     }
 
     private void GenerateSeeds()
@@ -103,25 +139,25 @@ public class SolarSystemGenerator : MonoBehaviour
     /// due to insufficient space.</remarks>
     private void GeneratePlanets()
     {
-        if(planetData == null) { Debug.LogWarning("[Generator] planetData is not assigned.", this); return; }
+        if (planetData == null) { Debug.LogWarning("[Generator] planetData is not assigned.", this); return; }
 
         int count = planetaryRNG.Next((int)planetData.numberRange.x, (int)planetData.numberRange.y);
         if (debug) Debug.Log($"[Generator] Spawning {count} planets.", this);
 
-        for(int i = 0; i < count; i++)
+        for (int i = 0; i < count; i++)
         {
             TrySpawnPlanet(i);
         }
     }
 
     private void TrySpawnPlanet(int index)
-    {            
+    {
         // Set physical properties first to compute radius for spacing
-        float mass          = SeedManager.Range(planetData.massRange,    planetaryRNG);
-        float density       = SeedManager.Range(planetData.densityRange, planetaryRNG);
-        float visualRadius  = CelestialBody.ComputeRadius(mass, density, planetData.visualScale);
-        float footprint     = visualRadius + moonData.distanceRange.y; // worst case moon orbit
-        
+        float mass = SeedManager.Range(planetData.massRange, planetaryRNG);
+        float density = SeedManager.Range(planetData.densityRange, planetaryRNG);
+        float visualRadius = CelestialBody.ComputeRadius(mass, density, planetData.visualScale);
+        float footprint = visualRadius + moonData.distanceRange.y; // worst case moon orbit
+
         float distance = FindSafePlanetDistance(footprint);
         if (distance < 0f)
         {
@@ -131,10 +167,10 @@ public class SolarSystemGenerator : MonoBehaviour
         }
 
         float rotationSpeed = SeedManager.Range(planetData.rotationSpeedRange.x, planetData.rotationSpeedRange.y, planetaryRNG);
-        float orbitalSpeed  = SeedManager.Range(planetData.orbitalSpeedRange.x, planetData.orbitalSpeedRange.y, planetaryRNG) / distance;
-        float inclination   = SeedManager.Range(planetData.inclinationRange.x, planetData.inclinationRange.y, planetaryRNG);
-        float angle         = SeedManager.Range(0f, Mathf.PI * 2f, planetaryRNG);
-        float incline       = SeedManager.Range(planetData.inclinationRange.x, planetData.inclinationRange.y, planetaryRNG);
+        float orbitalSpeed = SeedManager.Range(planetData.orbitalSpeedRange.x, planetData.orbitalSpeedRange.y, planetaryRNG) / distance;
+        float inclination = SeedManager.Range(planetData.inclinationRange.x, planetData.inclinationRange.y, planetaryRNG);
+        float angle = SeedManager.Range(0f, Mathf.PI * 2f, planetaryRNG);
+        float incline = SeedManager.Range(planetData.inclinationRange.x, planetData.inclinationRange.y, planetaryRNG);
 
         Vector3 position = sun.position + new Vector3(Mathf.Cos(angle) * distance, incline, Mathf.Sin(angle) * distance);
         Vector3 rotation = new Vector3(
@@ -155,10 +191,30 @@ public class SolarSystemGenerator : MonoBehaviour
 
         CelestialBody body = planet.GetComponent<CelestialBody>();
         OrbitDrawer drawer = planet.GetComponentInChildren<OrbitDrawer>();
+        Planet plt         = planet.GetComponent<Planet>();
+
+        // Procedural terrain (new Planet.cs system) : only runs if this planetData
+        // has ShapeSettings/ColourSettings pools assigned. Bodies without a Planet
+        // component (HasTerrain() == false) silently no-op and keep using ApplyColor().
+        if (body.HasTerrain() && planetData.HasTerrainOptions)
+        {
+            ShapeSettings shape = planetData.GetRandomShapeSettings(planetaryRNG);
+            ColourSettings colour = planetData.GetRandomColourSettings(planetaryRNG);
+            body.GenerateTerrain(shape, colour);
+
+            float directRadius = planetData.GetRandomTerrainRadius(planetaryRNG);
+            if (directRadius > 0f)
+                body.ApplyTerrainScaleDirect(directRadius);
+            else
+                body.ApplyTerrainScale(planetData.visualScale);
+        }
+
+        plt.GeneratePlanet();
+        planet.GetComponent<SphereCollider>().radius = plt.shapeSettings.planetRadius;
 
         // Ring : Only if no moon
         bool hasRing = false;
-        if(moonCount == 0 && SeedManager.Range(0f, 1f, planetaryRNG) < ringChance)
+        if (moonCount == 0 && SeedManager.Range(0f, 1f, planetaryRNG) < ringChance)
         {
             body.SpawnRing();
             hasRing = true;
@@ -175,7 +231,7 @@ public class SolarSystemGenerator : MonoBehaviour
         // Binary : Only if no moon, random chance
         bool isBinary = moonCount == 0 && SeedManager.Range(0f, 1f, planetaryRNG) < planetData.binaryChance;
 
-        if(isBinary)
+        if (isBinary)
         {
             GenerateBinary(planet, distance, inclination, orbitalSpeed);
         }
@@ -187,9 +243,9 @@ public class SolarSystemGenerator : MonoBehaviour
 
     private void GenerateBinary(GameObject primary, float solarOrbitDistance, float inclination, float solarOrbitSpeed)
     {
-        float separation  = SeedManager.Range(planetData.binarySeparationRange.x, planetData.binarySeparationRange.y, planetaryRNG);
+        float separation = SeedManager.Range(planetData.binarySeparationRange.x, planetData.binarySeparationRange.y, planetaryRNG);
         float binarySpeed = SeedManager.Range(planetData.binaryOrbitSpeedRange.x, planetData.binaryOrbitSpeedRange.y, planetaryRNG);
-        float massRatioA  = SeedManager.Range(0.35f, 0.65f, planetaryRNG);
+        float massRatioA = SeedManager.Range(0.35f, 0.65f, planetaryRNG);
 
         // Barycenter orbits the Sun
         GameObject barycenter = new GameObject($"{primary.name}_Barycenter");
@@ -207,17 +263,30 @@ public class SolarSystemGenerator : MonoBehaviour
         baryOrbit.SetOrbitColor(planetOrbitColor);
 
         // Companion Planet
-        float compMass    = SeedManager.Range(planetData.massRange.x, planetData.massRange.y, planetaryRNG);
+        float compMass = SeedManager.Range(planetData.massRange.x, planetData.massRange.y, planetaryRNG);
         float compDensity = SeedManager.Range(planetData.densityRange.x, planetData.densityRange.y, planetaryRNG);
-        float compRot     = SeedManager.Range(planetData.rotationSpeedRange.x, planetData.rotationSpeedRange.y, planetaryRNG);
-        string compName   = GetUniqueName(planetData, planetaryRNG, $"{primary.name}_B");
+        float compRot = SeedManager.Range(planetData.rotationSpeedRange.x, planetData.rotationSpeedRange.y, planetaryRNG);
+        string compName = GetUniqueName(planetData, planetaryRNG, $"{primary.name}_B");
 
         GameObject companion = SpawnBody(planetPrefab, primary.transform.position, Quaternion.identity,
             compMass, compDensity, compRot, compName,
             planetData.visualScale, planetData.densityRange.y);
 
-        companion.GetComponent<CelestialBody>()
-            .RandomizeResource(planetaryRNG, new PlanetContext(0, compDensity, false));
+        CelestialBody companionBody = companion.GetComponent<CelestialBody>();
+        companionBody.RandomizeResource(planetaryRNG, new PlanetContext(0, compDensity, false));
+
+        if (companionBody.HasTerrain() && planetData.HasTerrainOptions)
+        {
+            ShapeSettings compShape = planetData.GetRandomShapeSettings(planetaryRNG);
+            ColourSettings compColour = planetData.GetRandomColourSettings(planetaryRNG);
+            companionBody.GenerateTerrain(compShape, compColour);
+
+            float compDirectRadius = planetData.GetRandomTerrainRadius(planetaryRNG);
+            if (compDirectRadius > 0f)
+                companionBody.ApplyTerrainScaleDirect(compDirectRadius);
+            else
+                companionBody.ApplyTerrainScale(planetData.visualScale);
+        }
 
         // Re-parent both under barycenter
         primary.transform.SetParent(barycenter.transform, true);
@@ -227,9 +296,9 @@ public class SolarSystemGenerator : MonoBehaviour
         DisableOrbitDrawer(companion);
 
         GameObject orbitLine = new GameObject("Orbit Line");
-        orbitLine.transform.SetParent (barycenter.transform, false);
-        
-        if(!orbitLine.TryGetComponent<LineRenderer>(out _))
+        orbitLine.transform.SetParent(barycenter.transform, false);
+
+        if (!orbitLine.TryGetComponent<LineRenderer>(out _))
         {
             orbitLine.AddComponent<LineRenderer>();
         }
@@ -241,31 +310,31 @@ public class SolarSystemGenerator : MonoBehaviour
         binary.Setup(primary.transform, companion.transform,
             separation, binarySpeed, massRatioA, inclination);
 
-        if(debug)
+        if (debug)
             Debug.Log($"[Generator] Binary: {primary.name} + {compName} sep={separation:0.0}, speed={binarySpeed:0.0}°/s");
     }
 
     private void GenerateMoons(GameObject planet, CelestialBody planetBody, int moonCount)
     {
-        if(moonData == null || moonCount == 0) return;
+        if (moonData == null || moonCount == 0) return;
 
         List<(float, float)> used = new();
         float planetRadius = planetBody.GetRadius(planetData.visualScale);
 
-        for(int i = 0; i < moonCount; i++)
+        for (int i = 0; i < moonCount; i++)
         {
-            float mass          = SeedManager.Range(moonData.massRange.x, moonData.massRange.y, lunarRNG);
-            float density       = SeedManager.Range(moonData.densityRange.x, moonData.densityRange.y, lunarRNG);
-            float visualRadius  = CelestialBody.ComputeRadius(mass, density, moonData.visualScale);
+            float mass = SeedManager.Range(moonData.massRange.x, moonData.massRange.y, lunarRNG);
+            float density = SeedManager.Range(moonData.densityRange.x, moonData.densityRange.y, lunarRNG);
+            float visualRadius = CelestialBody.ComputeRadius(mass, density, moonData.visualScale);
             float rotationSpeed = SeedManager.Range(moonData.rotationSpeedRange.x, moonData.rotationSpeedRange.y, lunarRNG);
 
             float distance = FindSafeMoonOrbit(planetRadius, visualRadius, used);
             if (distance < 0f) continue;
 
-            float angle         = SeedManager.Range(0f, Mathf.PI * 2f, lunarRNG);
-            float incline       = SeedManager.Range(-10f, 10f, lunarRNG);
-            float orbitSpeed    = SeedManager.Range(moonData.orbitalSpeedRange.x, moonData.orbitalSpeedRange.y, lunarRNG) / distance;
-            float inclination   = SeedManager.Range(-20f, 20f, lunarRNG);
+            float angle = SeedManager.Range(0f, Mathf.PI * 2f, lunarRNG);
+            float incline = SeedManager.Range(-10f, 10f, lunarRNG);
+            float orbitSpeed = SeedManager.Range(moonData.orbitalSpeedRange.x, moonData.orbitalSpeedRange.y, lunarRNG) / distance;
+            float inclination = SeedManager.Range(-20f, 20f, lunarRNG);
 
             Vector3 position = planet.transform.position + new Vector3(
                 Mathf.Cos(angle) * distance,
@@ -292,22 +361,22 @@ public class SolarSystemGenerator : MonoBehaviour
 
     private void GenerateComets()
     {
-        if(cometData == null || cometPrefab == null) return;
+        if (cometData == null || cometPrefab == null) return;
 
         int count = cometRNG.Next(cometCountRange.x, cometCountRange.y + 1);
         if (debug) Debug.Log($"[Generator] Spawning {count} comets.", this);
 
-        for(int i =  0; i < count; i++)
+        for (int i = 0; i < count; i++)
         {
             float maxOrbit = usedPlanetOrbits.Count > 0
                 ? usedPlanetOrbits[^1].distance * 1.5f : 200f;
 
             float semiMajorAxis = SeedManager.Range(maxOrbit * 0.3f, maxOrbit, cometRNG);
-            float eccentricity  = SeedManager.Range(cometData.eccentricityRange.x, cometData.eccentricityRange.y, cometRNG);
-            float period        = SeedManager.Range(cometData.periodRange.x, cometData.periodRange.y, cometRNG);
-            float inclination   = SeedManager.Range(cometData.inclinationRange.x, cometData.inclinationRange.y, cometRNG);
+            float eccentricity = SeedManager.Range(cometData.eccentricityRange.x, cometData.eccentricityRange.y, cometRNG);
+            float period = SeedManager.Range(cometData.periodRange.x, cometData.periodRange.y, cometRNG);
+            float inclination = SeedManager.Range(cometData.inclinationRange.x, cometData.inclinationRange.y, cometRNG);
             float argPerihelion = SeedManager.Range(0f, 360f, cometRNG);
-            float startAngle    = SeedManager.Range(0, Mathf.PI * 2f, cometRNG);
+            float startAngle = SeedManager.Range(0, Mathf.PI * 2f, cometRNG);
 
             float mass = SeedManager.Range(cometData.massRange.x, cometData.massRange.y, cometRNG);
             float density = SeedManager.Range(cometData.densityRange.x, cometData.densityRange.y, cometRNG);
@@ -328,8 +397,8 @@ public class SolarSystemGenerator : MonoBehaviour
             EllipticalOrbit ellipse = comet.AddComponent<EllipticalOrbit>();
             ellipse.Setup(sun, semiMajorAxis, eccentricity, period,
                 startAngle, inclination, argPerihelion);
-            
-            foreach(Transform child in comet.transform)
+
+            foreach (Transform child in comet.transform)
             {
                 cometDrawer = child.GetComponent<OrbitDrawer>();
                 if (cometDrawer != null) break;
@@ -376,10 +445,10 @@ public class SolarSystemGenerator : MonoBehaviour
     private void DisableOrbitDrawer(GameObject body)
     {
         OrbitDrawer drawer = null;
-        foreach(Transform child in body.transform)
+        foreach (Transform child in body.transform)
         {
             drawer = child.GetComponent<OrbitDrawer>();
-            if(drawer != null)
+            if (drawer != null)
             {
                 drawer.gameObject.SetActive(false);
                 break;
@@ -395,18 +464,18 @@ public class SolarSystemGenerator : MonoBehaviour
     /// <returns>A valid orbital distance if found; otherwise, -1.</returns>
     private float FindSafePlanetDistance(float newFootprint, int maxAttempts = 100)
     {
-        for(int attempt = 0; attempt < maxAttempts; attempt++)
+        for (int attempt = 0; attempt < maxAttempts; attempt++)
         {
             float candidate = SeedManager.Range(planetData.distanceRange.x, planetData.distanceRange.y, stellarRNG);
             bool valid = true;
 
-            foreach(var (existingDist, existingFootprint) in usedPlanetOrbits)
+            foreach (var (existingDist, existingFootprint) in usedPlanetOrbits)
             {
                 // Both zones must not overlap another
                 // |d1 - d2| > footprint2 + margin
                 float requiredGap = existingFootprint + newFootprint + planetSafetyMargin;
 
-                if(Mathf.Abs(candidate - existingDist) < requiredGap)
+                if (Mathf.Abs(candidate - existingDist) < requiredGap)
                 {
                     valid = false;
                     break;
@@ -431,18 +500,18 @@ public class SolarSystemGenerator : MonoBehaviour
     /// <returns>A valid orbit radius if found; otherwise, -1.</returns>
     private float FindSafeMoonOrbit(float planetRadius, float newMoonRadius, List<(float orbit, float visualRadius)> usedOrbits, int maxAttempts = 100)
     {
-        for(int attempts = 0; attempts < maxAttempts; attempts++)
+        for (int attempts = 0; attempts < maxAttempts; attempts++)
         {
             float candidate = planetRadius + SeedManager.Range(moonData.distanceRange.x, moonData.distanceRange.x, lunarRNG);
             bool valid = true;
 
-            foreach(var (existingOrbit, existingRadius) in usedOrbits)
+            foreach (var (existingOrbit, existingRadius) in usedOrbits)
             {
                 // Both orbits must not cross if the difference of radius
                 // is greater than the body size + margin
                 float requiredGap = newMoonRadius + existingRadius + moonOrbitGap;
 
-                if(Mathf.Abs(candidate - existingOrbit) < requiredGap)
+                if (Mathf.Abs(candidate - existingOrbit) < requiredGap)
                 {
                     valid = false;
                     break;
@@ -468,14 +537,14 @@ public class SolarSystemGenerator : MonoBehaviour
     /// <returns>A unique name.</returns>
     private string GetUniqueName(CelestialObjectDataSO data, System.Random rng, string fallback)
     {
-        if(data == null || data.names == null || data.names.Count == 0)
+        if (data == null || data.names == null || data.names.Count == 0)
         {
             return fallback;
         }
 
         // Collects all the available names (unused names)
         List<string> available = new List<string>();
-        foreach(string n in data.names)
+        foreach (string n in data.names)
         {
             if (!usedNames.Contains(n))
             {
@@ -484,7 +553,7 @@ public class SolarSystemGenerator : MonoBehaviour
         }
 
         // If all names are used, we allow double with a numerical added to it
-        if(available.Count == 0)
+        if (available.Count == 0)
         {
             string baseName = data.GetRandomName(rng);
             int suffix = 2;

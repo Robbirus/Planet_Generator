@@ -25,45 +25,63 @@ public class CelestialObjectDataSO : ScriptableObject
     public Vector2 massRange;
     public Vector2 densityRange;
     public float visualScale;
-    [Space(10)]
+
+    [Header("Procedural Terrain (planets only)")]
+    [Tooltip("Pool of ShapeSettings assets to pick randomly when spawning a terrain planet.")]
+    public List<ShapeSettings> shapeSettingsOptions = new();
+    [Tooltip("Pool of ColourSettings assets to pick randomly.")]
+    public List<ColourSettings> colourSettingsOptions = new();
+
+    [Header("Terrain Visual Size")]
+    public Vector2 terrainRadiusRange = new Vector2(80f, 150f);
 
     // Binary Parameters
-    [Header("Binary Planet (ignored for moons / comets)")]
-    [Tooltip("Probability (0-1) that a moon-less planet becomes a binary pair.")]
+    [Header("Binary Planet")]
     [Range(0f, 1f)]
     public float binaryChance = 0.15f;
-
-    [Tooltip("Distance between the two bodies of a binary pair.")]
     public Vector2 binarySeparationRange = new Vector2(5f, 20f);
-
-    [Tooltip("Rotation speed of the binary pair around their barycenter (deg/s).")]
     public Vector2 binaryOrbitSpeedRange = new Vector2(15f, 60f);
-    [Space(10)]
 
     // Comet parameters
-    [Header("Comet (Only used when this SO is assigned to CometData).")]
-    [Tooltip("Orbital eccentricity range. 0 = circle, close to 1 = very elongated.")]
+    [Header("Comet")]
     public Vector2 eccentricityRange = new Vector2(0.7f, 0.97f);
-
-    [Tooltip("Orbital period in seconds.")]
     public Vector2 periodRange = new Vector2(30f, 180f);
-
-    [Tooltip("Inclination range in degrees.")]
     public Vector2 inclinationRange = new Vector2(-60f, 60f);
 
-    /// <summary>
-    /// Returns a random name from the available list using the specified seed.
-    /// </summary>
-    /// <param name="seed">The seed value to initialize the random number generator.</param>
-    /// <returns>A randomly selected name, or "" if no names are available.</returns>
     public string GetRandomName(System.Random rng)
     {
-        if (names == null || names.Count == 0)
-        {
-            // Debug.LogWarning("No names available in CelestialObjectDataSO.");
-            return string.Empty;
-        }
-        int index = rng.Next(0, names.Count);
-        return names[index];
+        if (names == null || names.Count == 0) return string.Empty;
+        return names[rng.Next(0, names.Count)];
+    }
+
+    public ShapeSettings GetRandomShapeSettings(System.Random rng)
+    {
+        if (shapeSettingsOptions == null || shapeSettingsOptions.Count == 0) return null;
+        return shapeSettingsOptions[rng.Next(0, shapeSettingsOptions.Count)];
+    }
+
+    public ColourSettings GetRandomColourSettings(System.Random rng)
+    {
+        if (colourSettingsOptions == null || colourSettingsOptions.Count == 0) return null;
+        return colourSettingsOptions[rng.Next(0, colourSettingsOptions.Count)];
+    }
+
+    /// <summary>True if terrain pools are configured.</summary>
+    public bool HasTerrainOptions =>
+        shapeSettingsOptions != null && shapeSettingsOptions.Count > 0 &&
+        colourSettingsOptions != null && colourSettingsOptions.Count > 0;
+
+    /// <summary>
+    /// Returns a random terrain visual radius in world units.
+    /// Uses terrainRadiusRange if configured (non-zero), otherwise falls back
+    /// to the mass/density formula so non-terrain bodies are unaffected.
+    /// </summary>
+    public float GetRandomTerrainRadius(System.Random rng)
+    {
+        if (terrainRadiusRange.x <= 0f && terrainRadiusRange.y <= 0f)
+            return -1f; // signal : utiliser l'ancienne formule
+
+        float t = (float)rng.NextDouble();
+        return Mathf.Lerp(terrainRadiusRange.x, terrainRadiusRange.y, t);
     }
 }

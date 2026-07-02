@@ -5,7 +5,11 @@ public class SunLight : MonoBehaviour
 {
     [Header("Point Light (close visual effect)")]
     [SerializeField] private float pointIntensity = 5f;
-    [SerializeField] private float pointRange = 500f;
+    [Tooltip("Point Light range in Unity units.\n" +
+             "If SolarSystemGenerator.sunLight is assigned, this value is\n" +
+             "automatically overwritten after generation (max orbit × 1.2).\n" +
+             "Otherwise, manually set the distance to the farthest orbit + 20%.")]
+    [SerializeField] private float pointRange = 30000f;
     [SerializeField] private Color sunColor = new Color(1f, 0.95f, 0.8f);
 
     [Header("Directional Light (system lighting)")]
@@ -47,9 +51,6 @@ public class SunLight : MonoBehaviour
 
     private void LateUpdate()
     {
-        // The Directional Light points FROM the sun TO the camera
-        //   all the planets seen by the camera are illuminated
-        // from the right direction
         if (directionalLight != null && camTransform != null)
         {
             Vector3 dirToCamera = (camTransform.position - transform.position).normalized;
@@ -57,6 +58,21 @@ public class SunLight : MonoBehaviour
         }
 
         HandleFlicker();
+    }
+
+    /// <summary>
+    /// Called by SolarSystemGenerator after all planets are placed.
+    /// Overrides pointRange with the auto-computed value so the Point Light
+    /// always reaches the outermost body.
+    /// </summary>
+    public void SetPointRange(float range)
+    {
+        pointRange = range;
+
+        // pointLight might not exist yet if called before Awake (shouldn't happen
+        // since SolarSystemGenerator runs in Start, after Awake, but guard anyway)
+        if (pointLight == null) pointLight = GetComponent<Light>();
+        if (pointLight != null) pointLight.range = pointRange;
     }
 
     private void HandleFlicker()
