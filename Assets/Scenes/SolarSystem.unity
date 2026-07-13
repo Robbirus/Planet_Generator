@@ -11199,7 +11199,7 @@ MonoBehaviour:
   sun: {fileID: 1556027975}
   sunLight: {fileID: 1556027977}
   distantStars: {fileID: 1142259389}
-  planetData: {fileID: 11400000, guid: 6f2f2e339a6b08f4fa46b1833174272a, type: 2}
+  planetData: {fileID: 11400000, guid: b613caed4c18ae34eb3f639b1bfb6d1a, type: 2}
   moonData: {fileID: 11400000, guid: bbd3560260b36144ca39fec099b20110, type: 2}
   cometData: {fileID: 11400000, guid: c0969985e004a81488ecf5cacbaa218a, type: 2}
   cometCountRange: {x: 1, y: 4}
