@@ -33,7 +33,7 @@ public class CelestialObjectDataSO : ScriptableObject
     public List<ColourSettings> colourSettingsOptions = new();
 
     [Header("Terrain Visual Size")]
-    public Vector2 terrainRadiusRange = new Vector2(80f, 150f);
+    public Vector2 terrainRadiusRange = new Vector2(80f, 400f);
 
     // Binary Parameters
     [Header("Binary Planet")]
@@ -51,19 +51,19 @@ public class CelestialObjectDataSO : ScriptableObject
     public string GetRandomName(System.Random rng)
     {
         if (names == null || names.Count == 0) return string.Empty;
-        return names[rng.Next(0, names.Count)];
+        return names[(int)SeedManager.Range(0, names.Count, rng)];
     }
 
     public ShapeSettings GetRandomShapeSettings(System.Random rng)
     {
         if (shapeSettingsOptions == null || shapeSettingsOptions.Count == 0) return null;
-        return shapeSettingsOptions[rng.Next(0, shapeSettingsOptions.Count)];
+        return shapeSettingsOptions[(int)SeedManager.Range(0, shapeSettingsOptions.Count, rng)];
     }
 
     public ColourSettings GetRandomColourSettings(System.Random rng)
     {
         if (colourSettingsOptions == null || colourSettingsOptions.Count == 0) return null;
-        return colourSettingsOptions[rng.Next(0, colourSettingsOptions.Count)];
+        return colourSettingsOptions[(int)SeedManager.Range(0, colourSettingsOptions.Count, rng)];
     }
 
     /// <summary>True if terrain pools are configured.</summary>
@@ -79,9 +79,8 @@ public class CelestialObjectDataSO : ScriptableObject
     public float GetRandomTerrainRadius(System.Random rng)
     {
         if (terrainRadiusRange.x <= 0f && terrainRadiusRange.y <= 0f)
-            return -1f; // signal : utiliser l'ancienne formule
+            return -1f; // signal: use the old formula
 
-        float t = (float)rng.NextDouble();
-        return Mathf.Lerp(terrainRadiusRange.x, terrainRadiusRange.y, t);
+        return SeedManager.Range(terrainRadiusRange, rng);
     }
 }
