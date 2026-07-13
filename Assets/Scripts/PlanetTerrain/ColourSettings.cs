@@ -2,7 +2,7 @@ using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
 
-[CreateAssetMenu()]
+[CreateAssetMenu(fileName = "ColourSettings", menuName = "Game/PlanetTerrain/ColourSettings")]
 public class ColourSettings : ScriptableObject
 {
     public Material planetMaterial;
