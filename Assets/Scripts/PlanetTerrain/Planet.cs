@@ -6,7 +6,7 @@ public class Planet : MonoBehaviour
 {
 
     [Range(2, 256)]
-    public int resolution = 10;
+    public int resolution = 32;
     public bool autoUpdate = true;
     public enum FaceRenderMask { All, Top, Bottom, Left, Right, Front, Back }; //option to render 1 face at a time to gain time
     public FaceRenderMask faceRenderMask;
@@ -82,7 +82,7 @@ public class Planet : MonoBehaviour
 
     /// <summary>
     /// Variant of GeneratePlanet() to be called by game code
-    // (e.g. SolarSystemGenerator) rather than by the publisher.
+    /// (e.g. SolarSystemGenerator) rather than by the publisher.
     ///
     /// Problem avoided: Planet.Initialize() assigns directly
     /// colourSettings.planetMaterial (a SHARED ASSET) with each MeshRenderer.
