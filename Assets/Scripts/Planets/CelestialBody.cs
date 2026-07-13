@@ -17,7 +17,6 @@ public class CelestialBody : MonoBehaviour
     [Tooltip("Used by ApplyColor() for simple sphere-based bodies (moons, comets...).\n" +
              "Leave empty for terrain-generated planets : they are colored by ColourSettings instead.")]
     [SerializeField] private Renderer planetRenderer;
-    public const float VISUAL_SCALE = 33f;
 
     [Header("Terrain (procedural planets only)")]
     [Tooltip("Assign the Planet component on this prefab if it uses the procedural terrain mesh.\n" +
@@ -75,7 +74,7 @@ public class CelestialBody : MonoBehaviour
 
         // Shuffles the source list so that the selection is random,
         // then we take the first 'numberOfRessources' without duplicates
-        List<ResourceType> shuffled = resourceSO.availableResources;
+        List<ResourceType> shuffled = new List<ResourceType>(resourceSO.availableResources);
 
         for (int i = shuffled.Count - 1; i > 0; i--)
         {
@@ -193,7 +192,7 @@ public class CelestialBody : MonoBehaviour
     /// <returns>The radius of the sphere, calculated based on the provided mass and density.</returns>
     public static float ComputeRadius(float mass, float density, float scale)
     {
-        return Mathf.Pow((3f * mass) / (4f * Mathf.PI * density), 1f / 3f) * VISUAL_SCALE * scale;
+        return Mathf.Pow((3f * mass) / (4f * Mathf.PI * density), 1f / 3f) * scale;
     }
 
     public bool HasRing() { return hasRing; }
@@ -307,7 +306,7 @@ public class CelestialBody : MonoBehaviour
         if (planetTerrain == null) return;
         if (shape == null || colour == null)
         {
-            Debug.LogWarning($"[CelestialBody] {gameObject.name} : shape/colour settings manquants pour le terrain.", this);
+            Debug.LogWarning($"[CelestialBody] {gameObject.name} : shape/colour settings missing for the field.", this);
             return;
         }
 
