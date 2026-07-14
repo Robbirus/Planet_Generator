@@ -17,13 +17,16 @@ MonoBehaviour:
   - Henri
   - Emiss
   - Barb
-  numberRange: {x: 0, y: 2}
+  numberRange: {x: 0, y: 5}
   distanceRange: {x: 14000, y: 80000}
   orbitalSpeedRange: {x: 100, y: 1000}
   rotationSpeedRange: {x: 5, y: 50}
   massRange: {x: 100, y: 600}
   densityRange: {x: 0.5, y: 2}
   visualScale: 2
+  shapeSettingsOptions: []
+  colourSettingsOptions: []
+  terrainRadiusRange: {x: 80, y: 400}
   binaryChance: 0.15
   binarySeparationRange: {x: 5, y: 20}
   binaryOrbitSpeedRange: {x: 15, y: 60}
