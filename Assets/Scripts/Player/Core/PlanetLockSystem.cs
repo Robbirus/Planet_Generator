@@ -34,6 +34,7 @@ public class PlanetLockSystem : MonoBehaviour
     private float lockedPlanetRadius;
     private float orbitDistance;
     private float currentAltitudeOffset = 0f;
+    private float initialSafeOrbit = 0f;
 
     private readonly Collider[] overlapBuffer = new Collider[16];
 
@@ -153,17 +154,28 @@ public class PlanetLockSystem : MonoBehaviour
 
         lockedPlanet = planet;
 
-        float radius = 1f;
+        // --- Base surface radius (collider, no mountains) ---
+        float surfaceRadius = 1f;
         Collider col = planet.GetComponent<Collider>();
         if (col != null)
         {
             Vector3 ext = col.bounds.extents;
-            radius = Mathf.Max(ext.x, ext.y, ext.z);
+            surfaceRadius = Mathf.Max(ext.x, ext.y, ext.z);
         }
+        lockedPlanetRadius = surfaceRadius;
 
-        lockedPlanetRadius = radius;
-        orbitDistance = radius + surfaceMargin;
+        // --- Safe orbit : above the highest mountain peak ---
+        // CelestialBody.GetSafeOrbitRadius() reads ShapeGenerator.elevationMinMax.Max
+        // computed right after terrain mesh generation, so it's exact for this planet.
+        // Falls back to surfaceRadius + surfaceMargin for non-terrain bodies.
+        CelestialBody body = planet.GetComponent<CelestialBody>();
+        if (body != null)
+            orbitDistance = body.GetSafeOrbitRadius(surfaceMargin);
+        else
+            orbitDistance = surfaceRadius + surfaceMargin;
+
         currentAltitudeOffset = 0f;
+        initialSafeOrbit = orbitDistance;   // remember safe orbit for AdjustAltitude()
 
         // Initial direction from the current position
         orbitDir = (transform.position - planet.position).normalized;
@@ -189,7 +201,10 @@ public class PlanetLockSystem : MonoBehaviour
     /// </summary>
     private void CheckAutoUnlock()
     {
-        if (Vector3.Distance(transform.position, lockedPlanet.position) > detectionRadius * 2.5f)
+        // Compare distance from ship to planet SURFACE (not center).
+        float distToCenter = Vector3.Distance(transform.position, lockedPlanet.position);
+        float distToSurface = Mathf.Max(0f, distToCenter - lockedPlanetRadius);
+        if (distToSurface > detectionRadius * 2.5f)
             Unlock();
     }
 
@@ -224,17 +239,29 @@ public class PlanetLockSystem : MonoBehaviour
 
     public void AdjustAltitude(float delta, Vector2 heightRange)
     {
+
         currentAltitudeOffset = Mathf.Clamp(
             currentAltitudeOffset + delta,
             heightRange.x,
             heightRange.y
         );
 
-        orbitDistance = lockedPlanetRadius + surfaceMargin + currentAltitudeOffset;
+        // orbitDistance is measured from planet CENTER.
+        // Base floor = lockedPlanetRadius (planet surface, excluding mountains).
+        // The player can descend BELOW the initial safe orbit (into valleys) but
+        // never below the physical surface sphere.
+        orbitDistance = Mathf.Max(
+            lockedPlanetRadius,
+            GetSafeOrbit() + currentAltitudeOffset
+        );
+    }
+
+    private float GetSafeOrbit()
+    {
+        return initialSafeOrbit > 0f ? initialSafeOrbit : orbitDistance;
     }
 
     // ── Gizmos (debug) ────────────────────────────────────────────────────────────────
-
     private void OnDrawGizmosSelected()
     {
         Gizmos.color = Color.yellow;
