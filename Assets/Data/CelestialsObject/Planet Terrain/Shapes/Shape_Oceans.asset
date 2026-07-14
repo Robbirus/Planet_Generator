@@ -12,7 +12,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: c310227aeb27d8d47b0185ec0e93aaf1, type: 3}
   m_Name: Shape_Oceans
   m_EditorClassIdentifier: Assembly-CSharp::ShapeSettings
-  planetRadius: 1
+  planetRadius: 3
   noiseLayers:
   - enabled: 1
     useFirstLayerAsMask: 0
