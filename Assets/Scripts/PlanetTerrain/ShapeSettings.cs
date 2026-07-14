@@ -5,7 +5,7 @@ using UnityEngine;
 [CreateAssetMenu(fileName = "ShapeSettings", menuName = "Game/PlanetTerrain/ShapeSettings")]
 public class ShapeSettings : ScriptableObject
 {
-    public float planetRadius = 1;
+    public float planetRadius = 3;
     public NoiseLayer[] noiseLayers;
 
     [System.Serializable]
