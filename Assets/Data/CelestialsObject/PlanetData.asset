@@ -38,13 +38,16 @@ MonoBehaviour:
   - Saint Naz
   - Hellmire
   - Puy-en-Velay
+  - Domino
+  - Andor
+  - Andros
   numberRange: {x: 0, y: 32}
   distanceRange: {x: 14000, y: 80000}
   orbitalSpeedRange: {x: 100, y: 1000}
   rotationSpeedRange: {x: 2, y: 64}
   massRange: {x: 2000, y: 8000}
   densityRange: {x: 0.5, y: 2}
-  visualScale: 1.25
+  visualScale: 1
   shapeSettingsOptions:
   - {fileID: 11400000, guid: 3c3f445e9d9a1f64cbf855d7a5aa4367, type: 2}
   - {fileID: 11400000, guid: 15a4a90668b37594fad55da75114ec0d, type: 2}
@@ -58,7 +61,7 @@ MonoBehaviour:
   - {fileID: 11400000, guid: e9315e6c7dcb8be4fba6ca908682765f, type: 2}
   - {fileID: 11400000, guid: 70c67fbd6cf94d142a3ad33b1b7061bb, type: 2}
   - {fileID: 11400000, guid: 1e59359b4bf6e074488250ee27947801, type: 2}
-  terrainRadiusRange: {x: 500, y: 2000}
+  terrainRadiusRange: {x: 1500, y: 4000}
   binaryChance: 0.3
   binarySeparationRange: {x: 3000, y: 6000}
   binaryOrbitSpeedRange: {x: 10, y: 45}
