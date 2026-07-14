@@ -205,6 +205,17 @@ public class SolarSystemGenerator : MonoBehaviour
                 body.ApplyTerrainScaleDirect(directRadius);
             else
                 body.ApplyTerrainScale(planetData.visualScale);
+
+            SphereCollider sCol = planet.GetComponent<SphereCollider>();
+            if (sCol.radius != shape.planetRadius)
+            {
+                Debug.LogError($"[SolarSystemGenerator] sCol : {sCol.radius} is different than planetRadius : {shape.planetRadius}.\n" +
+                    $"Applying correction...", this);
+
+                sCol.radius = shape.planetRadius;
+            }
+
+            planet.GetComponent<SphereCollider>().radius = shape.planetRadius;
         }
 
         // Ring : Only if no moon
