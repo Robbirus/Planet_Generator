@@ -11175,7 +11175,7 @@ Transform:
   m_GameObject: {fileID: 1142259385}
   serializedVersion: 2
   m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
-  m_LocalPosition: {x: 61724.453, y: 3989.9316, z: 24061.863}
+  m_LocalPosition: {x: 33873.5, y: 7441.53, z: -1194.9861}
   m_LocalScale: {x: 1, y: 1, z: 1}
   m_ConstrainProportionsScale: 0
   m_Children: []
@@ -11206,7 +11206,7 @@ MonoBehaviour:
   planetOrbitColor: {r: 0, g: 0, b: 1, a: 1}
   moonOrbitColor: {r: 0, g: 1, b: 1, a: 1}
   cometOrbitColor: {r: 1, g: 0.6, b: 0, a: 1}
-  planetSafetyMargin: 50
+  planetSafetyMargin: 2500
   moonOrbitGap: 45
   ringChance: 0.45
   stellarMapManager: {fileID: 1142259392}
@@ -22465,8 +22465,12 @@ PrefabInstance:
       value: 1
       objectReference: {fileID: 0}
     - target: {fileID: 6685421325139822204, guid: d76970552d53d284bba84f194f485e57, type: 3}
+      propertyPath: surfaceMargin
+      value: 1500
+      objectReference: {fileID: 0}
+    - target: {fileID: 6685421325139822204, guid: d76970552d53d284bba84f194f485e57, type: 3}
       propertyPath: detectionRadius
-      value: 6000
+      value: 8000
       objectReference: {fileID: 0}
     - target: {fileID: 8504995286037753096, guid: d76970552d53d284bba84f194f485e57, type: 3}
       propertyPath: m_LocalPosition.x
