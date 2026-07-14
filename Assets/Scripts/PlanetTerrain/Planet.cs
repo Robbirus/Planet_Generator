@@ -6,7 +6,7 @@ public class Planet : MonoBehaviour
 {
 
     [Range(2, 256)]
-    public int resolution = 32;
+    public int resolution = 64;
     public bool autoUpdate = true;
     public enum FaceRenderMask { All, Top, Bottom, Left, Right, Front, Back }; //option to render 1 face at a time to gain time
     public FaceRenderMask faceRenderMask;
@@ -114,6 +114,41 @@ public class Planet : MonoBehaviour
     public float GetBaseRadius()
     {
         return shapeSettings != null ? shapeSettings.planetRadius : 0.5f;
+    }
+
+    /// <summary>
+    /// Returns the world-space radius of the highest mountain peak on this planet.
+    /// Uses the elevationMinMax recorded by ShapeGenerator during mesh construction.
+    /// Formula : shapeSettings.planetRadius x (1 + elevationMax) x localScale
+    ///
+    /// Use this to compute a safe orbit altitude that clears all terrain.
+    /// Returns the base world radius if no terrain has been generated yet.
+    /// </summary>
+    public float GetMaxElevationWorldRadius()
+    {
+        float baseRadius = GetBaseRadius();
+        float elevationMax = shapeGenerator?.elevationMinMax?.Max ?? 0f;
+        float localScale = transform.localScale.x;
+        return baseRadius * (1f + elevationMax) * localScale;
+    }
+
+    /// <summary>
+    /// Removes all "mesh" child GameObjects created by a previous Initialize() call.
+    /// Must be called before re-generating a planet on the same instance, otherwise
+    /// old faces pile up (6 children per generation). Called automatically by
+    /// GeneratePlanetRuntime().
+    /// </summary>
+    public void CleanupMeshChildren()
+    {
+        // Iterate backward to safely destroy while iterating
+        for (int i = transform.childCount - 1; i >= 0; i--)
+        {
+            Transform child = transform.GetChild(i);
+            if (child.name == "mesh")
+                Destroy(child.gameObject);
+        }
+        // Reset the filter array so Initialize() creates fresh ones
+        meshFilters = null;
     }
 
     /// <summary>
