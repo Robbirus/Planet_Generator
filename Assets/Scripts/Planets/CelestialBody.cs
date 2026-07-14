@@ -318,6 +318,30 @@ public class CelestialBody : MonoBehaviour
 
     public bool HasTerrain() => planetTerrain != null;
 
+    /// <summary>
+    /// World-space radius of the planet base surface (no mountains).
+    /// = SphereCollider.radius × localScale (set during GenerateTerrain).
+    /// </summary>
+    public float GetTerrainSurfaceRadius()
+    {
+        if (terrainCollider == null) return transform.localScale.x;
+        return terrainCollider.radius * transform.localScale.x;
+    }
+
+    /// <summary>
+    /// World-space radius of the highest mountain peak + safety margin.
+    /// Use in PlanetLockSystem so the ship starts above all terrain.
+    /// Falls back to surface + margin when no terrain component is present.
+    /// </summary>
+    public float GetSafeOrbitRadius(float margin = 50f)
+    {
+        if (planetTerrain == null)
+            return GetTerrainSurfaceRadius() + margin;
+
+        float mountainTop = planetTerrain.GetMaxElevationWorldRadius();
+        return mountainTop + margin;
+    }
+
     private void Update()
     {
         // Rotation on itself
