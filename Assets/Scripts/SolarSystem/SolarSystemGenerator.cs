@@ -50,6 +50,12 @@ public class SolarSystemGenerator : MonoBehaviour
     [SerializeField] private float ringChance = 0.4f;
     [Space(10)]
 
+    [Header("Sun Scale")]
+    [Tooltip("Sun world radius = max terrain planet radius x this value.\n" +
+             "Applied automatically after planet generation.")]
+    [SerializeField] private float sunRadiusMultiplier = 8f;
+    [Space(10)]
+
     [Header("References")]
     [SerializeField] private StellarMapManager stellarMapManager;
     [Space(10)]
@@ -77,11 +83,42 @@ public class SolarSystemGenerator : MonoBehaviour
             stellarMapManager = GetComponent<StellarMapManager>();
         }
 
+        ValidateShapePool();
         GenerateSeeds();
         GenerateStars();
         GeneratePlanets();
         GenerateComets();
         CalibrateSunLightRange();
+        CalibrateSunScale();
+    }
+
+    /// <summary>
+    /// Checks that all ShapeSettings in the pool share the same planetRadius.
+    /// A mix causes the first (or any) planet to get the wrong
+    /// collider radius and safe-orbit calculation.
+    /// Logs a clear error for each offending asset so the user can fix it.
+    /// </summary>
+    private void ValidateShapePool()
+    {
+        if (planetData == null || planetData.shapeSettingsOptions == null) return;
+
+        // Find the most common planetRadius in the pool to use as the reference
+        float reference = -1f;
+        foreach (ShapeSettings s in planetData.shapeSettingsOptions)
+        {
+            if (s == null) continue;
+            if (reference < 0f) { reference = s.planetRadius; continue; }
+
+            if (!Mathf.Approximately(s.planetRadius, reference))
+            {
+                Debug.LogError(
+                    $"[SolarSystemGenerator] ShapeSettings '{s.name}' has planetRadius = {s.planetRadius} " +
+                    $"but the pool reference is {reference}. " +
+                    $"All shapes must share the same planetRadius (set them all to {reference} in the Inspector). " +
+                    $"This causes incorrect collider size and safe-orbit distance on planets that pick this shape.",
+                    s);
+            }
+        }
     }
 
     /// <summary>
@@ -115,6 +152,34 @@ public class SolarSystemGenerator : MonoBehaviour
         if (debug)
             Debug.Log($"[SolarSystemGenerator] Sun point range calibrated to {calibratedRange:0} u " +
                       $"(farthest reach {maxReach:0} u × 1.2).", this);
+    }
+
+    /// <summary>
+    /// Scales the Sun GO so it is visually dominant over the planets.
+    /// Sun world radius = terrainRadiusRange.y x sunRadiusMultiplier.
+    /// The Unity built-in sphere mesh has local radius 0.5,
+    /// so localScale = targetRadius x 2.
+    /// Called after GeneratePlanets() so planetData is valid.
+    /// </summary>
+    private void CalibrateSunScale()
+    {
+        if (sun == null) return;
+        if (planetData == null) return;
+
+        // Use the largest possible planet radius as reference
+        float maxPlanetRadius = planetData.terrainRadiusRange.y > 0f
+            ? planetData.terrainRadiusRange.y
+            : planetData.distanceRange.y * 0.05f; // fallback for non-terrain planets
+
+        float targetSunRadius = maxPlanetRadius * sunRadiusMultiplier;
+
+        // localScale x 0.5 (sphere local radius) = world radius
+        float newScale = targetSunRadius * 2f;
+        sun.localScale = Vector3.one * newScale;
+
+        if (debug)
+            Debug.Log($"[SolarSystemGenerator] Sun scaled to radius {targetSunRadius:0} u " +
+                      $"(max planet {maxPlanetRadius:0} u x {sunRadiusMultiplier}x).", this);
     }
 
     private void GenerateSeeds()
@@ -152,11 +217,18 @@ public class SolarSystemGenerator : MonoBehaviour
 
     private void TrySpawnPlanet(int index)
     {
-        // Set physical properties first to compute radius for spacing
         float mass = SeedManager.Range(planetData.massRange, planetaryRNG);
         float density = SeedManager.Range(planetData.densityRange, planetaryRNG);
+
+        // Draw the actual terrain radius FIRST, needed for accurate orbit spacing.
+        // Using the mass/density formula here would give ~160u on a 4000u planet,
+        // causing planets to overlap. directRadius is the real visual size.
+        float directRadius = planetData.GetRandomTerrainRadius(planetaryRNG);
         float visualRadius = CelestialBody.ComputeRadius(mass, density, planetData.visualScale);
-        float footprint = visualRadius + moonData.distanceRange.y; // worst case moon orbit
+        float effectiveRadius = directRadius > 0f ? directRadius : visualRadius;
+
+        // Footprint = planet radius + worst-case moon orbit so no moon clips a neighbour
+        float footprint = effectiveRadius + moonData.distanceRange.y;
 
         float distance = FindSafePlanetDistance(footprint);
         if (distance < 0f)
@@ -200,21 +272,17 @@ public class SolarSystemGenerator : MonoBehaviour
             ColourSettings colour = planetData.GetRandomColourSettings(planetaryRNG);
             body.GenerateTerrain(shape, colour);
 
-            float directRadius = planetData.GetRandomTerrainRadius(planetaryRNG);
+            // directRadius already drawn at the top of TrySpawnPlanet()
+
             if (directRadius > 0f)
                 body.ApplyTerrainScaleDirect(directRadius);
             else
                 body.ApplyTerrainScale(planetData.visualScale);
 
-            SphereCollider sCol = planet.GetComponent<SphereCollider>();
-            if (sCol.radius != shape.planetRadius)
-            {
-                Debug.LogError($"[SolarSystemGenerator] sCol : {sCol.radius} is different than planetRadius : {shape.planetRadius}.\n" +
-                    $"Applying correction...", this);
-
-                sCol.radius = shape.planetRadius;
-            }
-
+            // Always sync the root SphereCollider to the shape's planetRadius.
+            // GenerateTerrain() already sets CelestialBody.terrainCollider.radius,
+            // but that may point to a different component instance than GetComponent<>()
+            // if the prefab hierarchy has changed. Single source of truth here.
             planet.GetComponent<SphereCollider>().radius = shape.planetRadius;
         }
 
@@ -325,7 +393,13 @@ public class SolarSystemGenerator : MonoBehaviour
         if (moonData == null || moonCount == 0) return;
 
         List<(float, float)> used = new();
-        float planetRadius = planetBody.GetRadius(planetData.visualScale);
+        // For terrain planets the formula radius (mass/density) is ~160u while
+        // the actual visual surface is 1200-4000u, moons would orbit inside the planet.
+        // GetTerrainSurfaceRadius() returns SphereCollider.radius x localScale (world space).
+        float planetRadius = planetBody.HasTerrain()
+            ? planetBody.GetTerrainSurfaceRadius()
+            : planetBody.GetRadius(planetData.visualScale);
+
 
         for (int i = 0; i < moonCount; i++)
         {
