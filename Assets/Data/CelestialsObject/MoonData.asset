@@ -24,12 +24,15 @@ MonoBehaviour:
   - Kuper
   - Sigma
   numberRange: {x: 0, y: 8}
-  distanceRange: {x: 800, y: 1800}
+  distanceRange: {x: 500, y: 3000}
   orbitalSpeedRange: {x: 100, y: 1000}
   rotationSpeedRange: {x: 0.1, y: 2.5}
   massRange: {x: 18, y: 28}
   densityRange: {x: 0.5, y: 2}
   visualScale: 1.5
+  shapeSettingsOptions: []
+  colourSettingsOptions: []
+  terrainRadiusRange: {x: 80, y: 400}
   binaryChance: 0.15
   binarySeparationRange: {x: 5, y: 20}
   binaryOrbitSpeedRange: {x: 15, y: 60}
