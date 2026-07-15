@@ -15,7 +15,8 @@ public class CelestialObjectDataSO : ScriptableObject
     public Vector2 numberRange;
 
     [Header("Orbit")]
-    public Vector2 distanceRange;
+    [Tooltip("Distance from sun.")]
+    public Vector2 distanceRange = new Vector2(80000f, 400000f);
     public Vector2 orbitalSpeedRange;
 
     [Header("Rotation")]
