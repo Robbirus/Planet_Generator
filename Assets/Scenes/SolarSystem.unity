@@ -11206,9 +11206,10 @@ MonoBehaviour:
   planetOrbitColor: {r: 0, g: 0, b: 1, a: 1}
   moonOrbitColor: {r: 0, g: 1, b: 1, a: 1}
   cometOrbitColor: {r: 1, g: 0.6, b: 0, a: 1}
-  planetSafetyMargin: 2500
+  planetSafetyMargin: 5000
   moonOrbitGap: 45
   ringChance: 0.45
+  sunRadiusMultiplier: 8
   stellarMapManager: {fileID: 1142259392}
   debug: 0
 --- !u!114 &1142259389
