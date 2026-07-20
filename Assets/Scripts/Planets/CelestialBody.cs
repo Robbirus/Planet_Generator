@@ -311,13 +311,13 @@ public class CelestialBody : MonoBehaviour
             yield break;
         }
 
-        // 1. Initialise les réglages et instancie le matériel unique de la planète
+        // 1. Initializes the settings and instantiates the planet’s unique hardware
         planetTerrain.GeneratePlanetRuntime(shape, colour);
 
-        // 2. MODIFICATION : On attend la génération asynchrone des meshes (face par face)
+        // 2. We wait for the asynchronous generation of the meshes (face by face)
         yield return StartCoroutine(planetTerrain.GeneratePlanetAsync());
 
-        // 3. Une fois le maillage généré, on ajuste le collider
+        // 3. Once the mesh is generated, we adjust the collider
         if (terrainCollider != null)
             terrainCollider.radius = planetTerrain.GetBaseRadius();
     }
@@ -325,12 +325,12 @@ public class CelestialBody : MonoBehaviour
     public void SetupTerrainSettings(ShapeSettings shape, ColourSettings colour)
     {
         if (planetTerrain == null || shape == null || colour == null) return;
-        planetTerrain.GeneratePlanetRuntime(shape, colour); // stocke seulement (fix ci-dessus)
+        planetTerrain.GeneratePlanetRuntime(shape, colour);
         if (terrainCollider != null)
             terrainCollider.radius = planetTerrain.GetBaseRadius();
     }
 
-    /// <summary>Génère les meshes face par face. Appeler après SetupTerrainSettings().</summary>
+    /// <summary>Generates the meshes face by face. Call after SetupTerrainSettings().</summary>
     public IEnumerator GenerateTerrainMeshAsync(System.Action<int, int> onFaceProgress = null)
     {
         if (planetTerrain == null) yield break;
