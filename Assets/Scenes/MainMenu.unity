@@ -674,7 +674,7 @@ GameObject:
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
   m_StaticEditorFlags: 0
-  m_IsActive: 1
+  m_IsActive: 0
 --- !u!114 &181343440
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -682,7 +682,7 @@ MonoBehaviour:
   m_PrefabInstance: {fileID: 0}
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 181343439}
-  m_Enabled: 1
+  m_Enabled: 0
   m_EditorHideFlags: 0
   m_Script: {fileID: 11500000, guid: 47717dfa2520aa044bdca050fc3ce688, type: 3}
   m_Name: 
@@ -690,6 +690,8 @@ MonoBehaviour:
   loadingScreen: {fileID: 2129553659}
   loadingSlider: {fileID: 668378366}
   progressTextValue: {fileID: 1576683008}
+  assetLoadingShare: 0.6
+  visualProgressSpeed: 0.5
 --- !u!4 &181343441
 Transform:
   m_ObjectHideFlags: 0
@@ -5151,7 +5153,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 016d9f50b1651694cb524581f6433b33, type: 3}
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::LoadingController
-  levelLoader: {fileID: 181343440}
+  levelLoader: {fileID: 2125576892}
 --- !u!4 &1309176448
 Transform:
   m_ObjectHideFlags: 0
@@ -6900,6 +6902,7 @@ GameObject:
   - component: {fileID: 1598294470}
   - component: {fileID: 1598294472}
   - component: {fileID: 1598294471}
+  - component: {fileID: 1598294473}
   m_Layer: 5
   m_Name: Loading Text
   m_TagString: Untagged
@@ -7026,6 +7029,22 @@ CanvasRenderer:
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 1598294469}
   m_CullTransparentMesh: 1
+--- !u!114 &1598294473
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1598294469}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 15fddb4affec1ae4fa9430606e889360, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Assembly-CSharp::LoadingTextFade
+  loadingText: {fileID: 1598294471}
+  fadeSpeed: 0.5
+  minAlpha: 0.2
+  maxAlpha: 1
 --- !u!1 &1608858356
 GameObject:
   m_ObjectHideFlags: 0
@@ -9532,6 +9551,56 @@ CanvasRenderer:
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 2114100293}
   m_CullTransparentMesh: 1
+--- !u!1 &2125576890
+GameObject:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  serializedVersion: 6
+  m_Component:
+  - component: {fileID: 2125576891}
+  - component: {fileID: 2125576892}
+  m_Layer: 0
+  m_Name: Loading Manager
+  m_TagString: Untagged
+  m_Icon: {fileID: 0}
+  m_NavMeshLayer: 0
+  m_StaticEditorFlags: 0
+  m_IsActive: 1
+--- !u!4 &2125576891
+Transform:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 2125576890}
+  serializedVersion: 2
+  m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
+  m_LocalPosition: {x: 0, y: 0, z: 0}
+  m_LocalScale: {x: 1, y: 1, z: 1}
+  m_ConstrainProportionsScale: 0
+  m_Children:
+  - {fileID: 2129553663}
+  m_Father: {fileID: 0}
+  m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
+--- !u!114 &2125576892
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 2125576890}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 47717dfa2520aa044bdca050fc3ce688, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Assembly-CSharp::LevelLoader
+  loadingScreen: {fileID: 2129553659}
+  loadingSlider: {fileID: 668378366}
+  progressTextValue: {fileID: 1576683008}
+  assetLoadingShare: 0.5
+  visualProgressSpeed: 0.5
 --- !u!1 &2129553659
 GameObject:
   m_ObjectHideFlags: 0
@@ -9621,14 +9690,14 @@ RectTransform:
   m_PrefabInstance: {fileID: 0}
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 2129553659}
-  m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
+  m_LocalRotation: {x: -0, y: -0, z: -0, w: 1}
   m_LocalPosition: {x: 0, y: 0, z: 0}
   m_LocalScale: {x: 0, y: 0, z: 0}
   m_ConstrainProportionsScale: 0
   m_Children:
   - {fileID: 307995779}
   - {fileID: 668378365}
-  m_Father: {fileID: 0}
+  m_Father: {fileID: 2125576891}
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
   m_AnchorMin: {x: 0, y: 0}
   m_AnchorMax: {x: 0, y: 0}
@@ -9646,6 +9715,6 @@ SceneRoots:
   - {fileID: 1461665750}
   - {fileID: 71585268}
   - {fileID: 1309176448}
+  - {fileID: 2125576891}
   - {fileID: 181343441}
-  - {fileID: 2129553663}
   - {fileID: 1531697915}

@@ -90,6 +90,8 @@ public class SpaceshipMovement : MonoBehaviour
         boostTimeRemaining = boostDuration;
         screenCenter = new Vector2(Screen.width * 0.5f, Screen.height * 0.5f);
         virtualMousePos = screenCenter;
+
+        SetState(ShipState.Frozen);
     }
 
     private void OnEnable()

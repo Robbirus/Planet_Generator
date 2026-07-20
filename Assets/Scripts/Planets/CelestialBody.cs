@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Collections;
 using System.Collections.Generic;
 using System.Linq;
 using UnityEngine;
@@ -301,21 +302,40 @@ public class CelestialBody : MonoBehaviour
     /// Does nothing if no Planet component is assigned (simple bodies keep
     /// using ApplyColor() instead).
     /// </summary>
-    public void GenerateTerrain(ShapeSettings shape, ColourSettings colour)
+    public IEnumerator GenerateTerrainAsync(ShapeSettings shape, ColourSettings colour)
     {
-        if (planetTerrain == null) return;
+        if (planetTerrain == null) yield break;
         if (shape == null || colour == null)
         {
             Debug.LogWarning($"[CelestialBody] {gameObject.name} : shape/colour settings missing for the field.", this);
-            return;
+            yield break;
         }
 
+        // 1. Initialise les réglages et instancie le matériel unique de la planète
         planetTerrain.GeneratePlanetRuntime(shape, colour);
 
+        // 2. MODIFICATION : On attend la génération asynchrone des meshes (face par face)
+        yield return StartCoroutine(planetTerrain.GeneratePlanetAsync());
+
+        // 3. Une fois le maillage généré, on ajuste le collider
         if (terrainCollider != null)
             terrainCollider.radius = planetTerrain.GetBaseRadius();
     }
 
+    public void SetupTerrainSettings(ShapeSettings shape, ColourSettings colour)
+    {
+        if (planetTerrain == null || shape == null || colour == null) return;
+        planetTerrain.GeneratePlanetRuntime(shape, colour); // stocke seulement (fix ci-dessus)
+        if (terrainCollider != null)
+            terrainCollider.radius = planetTerrain.GetBaseRadius();
+    }
+
+    /// <summary>Génère les meshes face par face. Appeler après SetupTerrainSettings().</summary>
+    public IEnumerator GenerateTerrainMeshAsync(System.Action<int, int> onFaceProgress = null)
+    {
+        if (planetTerrain == null) yield break;
+        yield return StartCoroutine(planetTerrain.GeneratePlanetAsync(onFaceProgress));
+    }
     public bool HasTerrain() => planetTerrain != null;
 
     /// <summary>

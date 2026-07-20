@@ -53,6 +53,10 @@ public class OrbitDrawer : MonoBehaviour
     private void Awake()
     {
         line = GetComponent<LineRenderer>();
+        if (body == null)
+        {
+            body = GetComponentInParent<CelestialBody>();
+        }
         ConfigureRenderer();
     }
 
@@ -131,9 +135,16 @@ public class OrbitDrawer : MonoBehaviour
 
     private void BuildCirclePoints()
     {
-        Vector3 center = centerTransform != null
-            ? centerTransform.position
-            : (body != null ? body.GetCenter().position : Vector3.zero);
+        Vector3 center = Vector3.zero;
+
+        if (centerTransform != null)
+        {
+            center = centerTransform.position;
+        }
+        else if (body != null && body.GetCenter() != null)
+        {
+            center = body.GetCenter().position;
+        }
 
         Quaternion titl = Quaternion.Euler(inclination, 0f, 0f);
 
@@ -148,7 +159,7 @@ public class OrbitDrawer : MonoBehaviour
     private void Update()
     {
         // Rebuild each frame so the orbit follows a moving center (e.g. moon around planet)
-        if (!line.enabled) return;
+        if (!line.enabled || (centerTransform == null && body == null)) return;
         BuildOrbitPoint();
     }
 

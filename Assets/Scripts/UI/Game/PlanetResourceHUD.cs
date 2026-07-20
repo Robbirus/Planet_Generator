@@ -36,9 +36,26 @@ public class PlanetResourceHUD : MonoBehaviour
 
     private void Awake()
     {
-        hasLockSystem = Validate(planetLockSystem != null, nameof(planetLockSystem));
-        hasPanel = Validate(resourceHUD != null, nameof(resourceHUD));
-        hasNameText = Validate(planetNameText  != null, nameof(planetNameText));
+        hasLockSystem   = Validate(planetLockSystem != null, nameof(planetLockSystem));
+        hasPanel        = Validate(resourceHUD != null, nameof(resourceHUD));
+        hasNameText     = Validate(planetNameText  != null, nameof(planetNameText));
+
+        gameObject.SetActive(false);
+
+        if(GameManager.instance != null)
+        {
+            GameManager.instance.OnStateChanged += OnGameStateChanged;
+        }
+    }
+    private void OnDestroy()
+    {
+        if (GameManager.instance != null)
+            GameManager.instance.OnStateChanged -= OnGameStateChanged;
+    }
+
+    private void OnGameStateChanged(GameState newState)
+    {
+        gameObject.SetActive(newState == GameState.Playing);
     }
 
     private void Update()
@@ -101,7 +118,6 @@ public class PlanetResourceHUD : MonoBehaviour
 
     }
 
-
     private void SetRow(TMP_Text label, string resourceName, float percentage)
     {
         if(label == null) return;
@@ -123,12 +139,12 @@ public class PlanetResourceHUD : MonoBehaviour
         }
     }
 
-    // Utility
-
+    #region Utility
     private bool Validate(bool assigned, string fieldName)
     {
         if (assigned) return true;
         Debug.LogWarning($"[PlanetResourceHUD] '{fieldName}' is not assigned in the Inspector.", this);
         return false;
     }
+    #endregion
 }

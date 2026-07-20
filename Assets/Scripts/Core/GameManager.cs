@@ -66,10 +66,10 @@ public class GameManager : MonoBehaviour
     {
         switch(currentState)
         {
-            case GameState.Menu: ApplyMenu(); break;
+            case GameState.Menu:    ApplyMenu(); break;
             case GameState.Playing: ApplyPlaying(); break;
-            case GameState.Paused: ApplyPaused(); break;
-            case GameState.Map: ApplyMap(); break;
+            case GameState.Paused:  ApplyPaused(); break;
+            case GameState.Map:     ApplyMap(); break;
             default: 
                 throw new ArgumentOutOfRangeException(nameof(currentState), currentState, null);
         }

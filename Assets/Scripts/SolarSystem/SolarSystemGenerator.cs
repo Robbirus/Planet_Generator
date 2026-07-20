@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Collections;
 using System.Collections.Generic;
 using Unity.VisualScripting;
 using UnityEngine;
@@ -69,13 +70,22 @@ public class SolarSystemGenerator : MonoBehaviour
     // Names already used - each name is unique
     private readonly HashSet<string> usedNames = new();
 
-    private void Start()
+    public static float GenerationProgress { get; private set; }
+    public static bool IsGenerationComplete { get; private set; }
+
+    private void Awake()
+    {
+        GenerationProgress = 0f;
+        IsGenerationComplete = false;
+    }
+
+    private IEnumerator Start()
     {
         if (sun == null)
         {
             Debug.LogError("[SolarSystemGenerator] 'sun' reference is not set.", this);
             enabled = false;
-            return;
+            yield break;
         }
 
         if (stellarMapManager == null)
@@ -83,13 +93,52 @@ public class SolarSystemGenerator : MonoBehaviour
             stellarMapManager = GetComponent<StellarMapManager>();
         }
 
+        GenerationProgress = 0f;
+        IsGenerationComplete = false;
+
         ValidateShapePool();
         GenerateSeeds();
         GenerateStars();
-        GeneratePlanets();
+
+        yield return StartCoroutine(GeneratePlanetAsync());
+
         GenerateComets();
         CalibrateSunLightRange();
         CalibrateSunScale();
+
+        if (GameManager.instance != null)
+        {
+            SpaceshipController playerShip = GameManager.instance.GetSpaceshipController();
+            
+            if (playerShip != null)
+            {
+                // Case A: The ship is already known, we release it immediately
+                playerShip.GetMovement().SetState(ShipState.FreeFlight);
+            }
+            else
+            {
+                // Case B: The ship isn’t here yet, we’re waiting for it to register
+                GameManager.instance.OnPlayerRegistered += OnPlayerLateRegistration;
+            }
+        }
+        GenerationProgress = 1f;
+        IsGenerationComplete = true;
+
+        if (debug) Debug.Log("[SolarSystemGenerator] Generation Done.", this);
+    }
+
+    private void OnPlayerLateRegistration(SpaceshipController playerShip)
+    {
+        if (playerShip != null)
+        {
+            playerShip.GetMovement().SetState(ShipState.FreeFlight);
+        }
+
+        // We unsubscribe immediately to avoid memory leaks.
+        if (GameManager.instance != null)
+        {
+            GameManager.instance.OnPlayerRegistered -= OnPlayerLateRegistration;
+        }
     }
 
     /// <summary>
@@ -202,27 +251,28 @@ public class SolarSystemGenerator : MonoBehaviour
     /// </summary>
     /// <remarks>Ensures planets are spaced to avoid overlap and logs a warning if placement is not possible
     /// due to insufficient space.</remarks>
-    private void GeneratePlanets()
+    public IEnumerator GeneratePlanetAsync(System.Action<int, int> onFaceProgress = null)
     {
-        if (planetData == null) { Debug.LogWarning("[Generator] planetData is not assigned.", this); return; }
+        if (planetData == null) { Debug.LogWarning("[Generator] planetData is not assigned.", this); yield break; }
 
         int count = planetaryRNG.Next((int)planetData.numberRange.x, (int)planetData.numberRange.y);
         if (debug) Debug.Log($"[Generator] Spawning {count} planets.", this);
 
         for (int i = 0; i < count; i++)
         {
-            TrySpawnPlanet(i);
+            yield return StartCoroutine(TrySpawnPlanetAsync(i));
+            GenerationProgress = (float)(i + 1) / count * 0.9f;
+
+            yield return null;
         }
     }
 
-    private void TrySpawnPlanet(int index)
+    private IEnumerator TrySpawnPlanetAsync(int index) // Changé en IEnumerator
     {
         float mass = SeedManager.Range(planetData.massRange, planetaryRNG);
         float density = SeedManager.Range(planetData.densityRange, planetaryRNG);
 
         // Draw the actual terrain radius FIRST, needed for accurate orbit spacing.
-        // Using the mass/density formula here would give ~160u on a 4000u planet,
-        // causing planets to overlap. directRadius is the real visual size.
         float directRadius = planetData.GetRandomTerrainRadius(planetaryRNG);
         float visualRadius = CelestialBody.ComputeRadius(mass, density, planetData.visualScale);
         float effectiveRadius = directRadius > 0f ? directRadius : visualRadius;
@@ -235,7 +285,7 @@ public class SolarSystemGenerator : MonoBehaviour
         {
             if (debug)
                 Debug.LogWarning($"[Generator] Cannot place planet {index} : Not enough space");
-            return;
+            yield break; // Remplacé return par yield break
         }
 
         float rotationSpeed = SeedManager.Range(planetData.rotationSpeedRange.x, planetData.rotationSpeedRange.y, planetaryRNG);
@@ -263,26 +313,20 @@ public class SolarSystemGenerator : MonoBehaviour
         CelestialBody body = planet.GetComponent<CelestialBody>();
         OrbitDrawer drawer = planet.GetComponentInChildren<OrbitDrawer>();
 
-        // Procedural terrain (new Planet.cs system) : only runs if this planetData
-        // has ShapeSettings/ColourSettings pools assigned. Bodies without a Planet
-        // component (HasTerrain() == false) silently no-op and keep using ApplyColor().
+        // Procedural terrain (new Planet.cs system)
         if (body.HasTerrain() && planetData.HasTerrainOptions)
         {
             ShapeSettings shape = planetData.GetRandomShapeSettings(planetaryRNG);
             ColourSettings colour = planetData.GetRandomColourSettings(planetaryRNG);
-            body.GenerateTerrain(shape, colour);
 
-            // directRadius already drawn at the top of TrySpawnPlanet()
+            // Call the asynchronous version to avoid blocking the thread
+            yield return StartCoroutine(body.GenerateTerrainAsync(shape, colour));
 
             if (directRadius > 0f)
                 body.ApplyTerrainScaleDirect(directRadius);
             else
                 body.ApplyTerrainScale(planetData.visualScale);
 
-            // Always sync the root SphereCollider to the shape's planetRadius.
-            // GenerateTerrain() already sets CelestialBody.terrainCollider.radius,
-            // but that may point to a different component instance than GetComponent<>()
-            // if the prefab hierarchy has changed. Single source of truth here.
             planet.GetComponent<SphereCollider>().radius = shape.planetRadius;
         }
 
@@ -307,7 +351,8 @@ public class SolarSystemGenerator : MonoBehaviour
 
         if (isBinary)
         {
-            GenerateBinary(planet, distance, inclination, orbitalSpeed);
+            // Waiting for the binary planet’s generation
+            yield return StartCoroutine(GenerateBinaryAsync(planet, distance, inclination, orbitalSpeed));
         }
         else
         {
@@ -315,18 +360,15 @@ public class SolarSystemGenerator : MonoBehaviour
         }
     }
 
-    private void GenerateBinary(GameObject primary, float solarOrbitDistance, float inclination, float solarOrbitSpeed)
+    private IEnumerator GenerateBinaryAsync(GameObject primary, float solarOrbitDistance, float inclination, float solarOrbitSpeed)
     {
-        float separation    = SeedManager.Range(planetData.binarySeparationRange, planetaryRNG);
-        float binarySpeed   = SeedManager.Range(planetData.binaryOrbitSpeedRange, planetaryRNG);
-        float massRatioA    = SeedManager.Range(0.35f, 0.65f, planetaryRNG);
+        float separation = SeedManager.Range(planetData.binarySeparationRange, planetaryRNG);
+        float binarySpeed = SeedManager.Range(planetData.binaryOrbitSpeedRange, planetaryRNG);
+        float massRatioA = SeedManager.Range(0.35f, 0.65f, planetaryRNG);
 
         // Barycenter orbits the Sun
         GameObject barycenter = new GameObject($"{primary.name}_Barycenter");
         barycenter.transform.position = primary.transform.position;
-
-        //CelestialBody baryBody = barycenter.GetComponent<CelestialBody>();
-        //baryBody.SetCenter(sun);
 
         OrbitBody baryOrbit = barycenter.AddComponent<OrbitBody>();
         baryOrbit.SetCenter(sun);
@@ -337,10 +379,10 @@ public class SolarSystemGenerator : MonoBehaviour
         baryOrbit.SetOrbitColor(planetOrbitColor);
 
         // Companion Planet
-        float compMass      = SeedManager.Range(planetData.massRange, planetaryRNG);
-        float compDensity   = SeedManager.Range(planetData.densityRange, planetaryRNG);
-        float compRot       = SeedManager.Range(planetData.rotationSpeedRange, planetaryRNG);
-        string compName     = GetUniqueName(planetData, planetaryRNG, $"{primary.name}_B");
+        float compMass = SeedManager.Range(planetData.massRange, planetaryRNG);
+        float compDensity = SeedManager.Range(planetData.densityRange, planetaryRNG);
+        float compRot = SeedManager.Range(planetData.rotationSpeedRange, planetaryRNG);
+        string compName = GetUniqueName(planetData, planetaryRNG, $"{primary.name}_B");
 
         GameObject companion = SpawnBody(planetPrefab, primary.transform.position, Quaternion.identity,
             compMass, compDensity, compRot, compName,
@@ -353,7 +395,9 @@ public class SolarSystemGenerator : MonoBehaviour
         {
             ShapeSettings compShape = planetData.GetRandomShapeSettings(planetaryRNG);
             ColourSettings compColour = planetData.GetRandomColourSettings(planetaryRNG);
-            companionBody.GenerateTerrain(compShape, compColour);
+
+            // Call the asynchronous version for the companion planet
+            yield return StartCoroutine(companionBody.GenerateTerrainAsync(compShape, compColour));
 
             float compDirectRadius = planetData.GetRandomTerrainRadius(planetaryRNG);
             if (compDirectRadius > 0f)
@@ -387,7 +431,7 @@ public class SolarSystemGenerator : MonoBehaviour
         if (debug)
             Debug.Log($"[Generator] Binary: {primary.name} + {compName} sep={separation:0.0}, speed={binarySpeed:0.0}°/s");
     }
-
+    
     private void GenerateMoons(GameObject planet, CelestialBody planetBody, int moonCount)
     {
         if (moonData == null || moonCount == 0) return;

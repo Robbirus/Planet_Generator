@@ -11175,7 +11175,7 @@ Transform:
   m_GameObject: {fileID: 1142259385}
   serializedVersion: 2
   m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
-  m_LocalPosition: {x: 33873.5, y: 7441.53, z: -1194.9861}
+  m_LocalPosition: {x: 944.6642, y: 469.72482, z: -1191.4602}
   m_LocalScale: {x: 1, y: 1, z: 1}
   m_ConstrainProportionsScale: 0
   m_Children: []
@@ -13411,6 +13411,8 @@ MonoBehaviour:
   loadingScreen: {fileID: 1388317125}
   loadingSlider: {fileID: 1910490002}
   progressTextValue: {fileID: 741485650}
+  assetLoadingShare: 0.8
+  visualProgressSpeed: 0.5
 --- !u!4 &1287941125
 Transform:
   m_ObjectHideFlags: 0

@@ -276,7 +276,7 @@ public class PlanetLockSystem : MonoBehaviour
         }
     }
 
-    // Getters
+    #region Getters
 
     public Transform GetSelectablePlanet()
     {
@@ -304,9 +304,9 @@ public class PlanetLockSystem : MonoBehaviour
     {
         return state;
     }
+    #endregion
 
-
-    // Utilities
+    #region Utilities
     private bool Validate(bool isAsigned, string fieldName)
     {
         if (isAsigned) return true;
@@ -315,4 +315,5 @@ public class PlanetLockSystem : MonoBehaviour
         return false;
 
     }
+    #endregion
 }
