@@ -11175,7 +11175,7 @@ Transform:
   m_GameObject: {fileID: 1142259385}
   serializedVersion: 2
   m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
-  m_LocalPosition: {x: 944.6642, y: 469.72482, z: -1191.4602}
+  m_LocalPosition: {x: 0.2163692, y: 1.321168, z: -1.0989538}
   m_LocalScale: {x: 1, y: 1, z: 1}
   m_ConstrainProportionsScale: 0
   m_Children: []
@@ -22459,6 +22459,10 @@ PrefabInstance:
       propertyPath: currentPlanetText
       value: 
       objectReference: {fileID: 157096993}
+    - target: {fileID: 4956115313674279465, guid: d76970552d53d284bba84f194f485e57, type: 3}
+      propertyPath: far clip plane
+      value: 1000000
+      objectReference: {fileID: 0}
     - target: {fileID: 6658569123028150777, guid: d76970552d53d284bba84f194f485e57, type: 3}
       propertyPath: m_Name
       value: SES
