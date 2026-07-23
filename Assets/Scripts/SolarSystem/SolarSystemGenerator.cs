@@ -102,9 +102,14 @@ public class SolarSystemGenerator : MonoBehaviour
 
         yield return StartCoroutine(GeneratePlanetAsync());
 
-        GenerateComets();
+        yield return StartCoroutine(GenerateCometsAsync());
+
         CalibrateSunLightRange();
         CalibrateSunScale();
+
+        yield return new WaitForEndOfFrame();
+
+        stellarMapManager?.RefreshAllLabels();
 
         if (GameManager.instance != null)
         {
@@ -356,7 +361,7 @@ public class SolarSystemGenerator : MonoBehaviour
         }
         else
         {
-            GenerateMoons(planet, body, moonCount);
+            yield return StartCoroutine(GenerateMoonsAsync(planet, body, moonCount));
         }
     }
 
@@ -432,14 +437,14 @@ public class SolarSystemGenerator : MonoBehaviour
             Debug.Log($"[Generator] Binary: {primary.name} + {compName} sep={separation:0.0}, speed={binarySpeed:0.0}°/s");
     }
     
-    private void GenerateMoons(GameObject planet, CelestialBody planetBody, int moonCount)
+    private IEnumerator GenerateMoonsAsync(GameObject planet, CelestialBody planetBody, int moonCount)
     {
-        if (moonData == null || moonCount == 0) return;
+        if (moonData == null || moonCount == 0) yield break;
 
         List<(float, float)> used = new();
-        // For terrain planets the formula radius (mass/density) is ~160u while
-        // the actual visual surface is 1200-4000u, moons would orbit inside the planet.
-        // GetTerrainSurfaceRadius() returns SphereCollider.radius x localScale (world space).
+
+        yield return new WaitForEndOfFrame();
+
         float planetRadius = planetBody.HasTerrain()
             ? planetBody.GetTerrainSurfaceRadius()
             : planetBody.GetRadius(planetData.visualScale);
@@ -479,13 +484,16 @@ public class SolarSystemGenerator : MonoBehaviour
             AddOrbitBody(moon, planet.transform, distance, orbitSpeed, inclination);
             drawer?.Setup(distance, inclination, moonOrbitColor, stellarMapManager, planet.transform);
 
+            // If the moon also has procedural ground, uncomment the following line:
+            // if (body.HasTerrain()) yield return StartCoroutine(body.GenerateTerrainAsync(...));
+
             used.Add((distance, visualRadius));
         }
     }
 
-    private void GenerateComets()
+    private IEnumerator GenerateCometsAsync()
     {
-        if (cometData == null || cometPrefab == null) return;
+        if (cometData == null || cometPrefab == null) yield break;
 
         int count = cometRNG.Next(cometCountRange.x, cometCountRange.y + 1);
         if (debug) Debug.Log($"[Generator] Spawning {count} comets.", this);
@@ -535,6 +543,8 @@ public class SolarSystemGenerator : MonoBehaviour
             {
                 Debug.Log($"[Generator] Comet '{name}' a={semiMajorAxis:0.0}, e={eccentricity:0.00}, T={period:0.0}s");
             }
+
+            yield return null;
         }
     }
 

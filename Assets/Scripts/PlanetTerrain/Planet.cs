@@ -45,20 +45,13 @@ public class Planet : MonoBehaviour
             if (meshFilters[i] == null)
             {
                 GameObject meshObj = new GameObject("mesh");
-                meshObj.transform.parent = transform;
+                meshObj.transform.SetParent(transform, false);
 
                 meshObj.AddComponent<MeshRenderer>();
                 meshFilters[i] = meshObj.AddComponent<MeshFilter>();
                 meshFilters[i].sharedMesh = new Mesh { name = $"PlanetFace_{i}" };
             }
 
-            // ── FIX : le composant MeshFilter peut survivre (référence sérialisée
-            // valide) alors que son Mesh, lui, ne l'est pas : un "new Mesh()" créé
-            // en mémoire n'est jamais persisté avec le prefab/la scène. Après un
-            // rechargement (fermeture Unity, entrée/sortie du mode édition de
-            // prefab...), sharedMesh redevient None et ConstructMesh() plante avec
-            // une NullReferenceException. On le recrée si besoin, indépendamment
-            // de l'état du composant lui-même.
             if (meshFilters[i].sharedMesh == null)
             {
                 meshFilters[i].sharedMesh = new Mesh { name = $"PlanetFace_{i}" };

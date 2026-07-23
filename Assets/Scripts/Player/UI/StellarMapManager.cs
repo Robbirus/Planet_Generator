@@ -96,6 +96,15 @@ public class StellarMapManager : MonoBehaviour
         }
     }
 
+    public void RefreshAllLabels()
+    {
+        StellarLabel[] allLabels = GameObject.FindObjectsByType<StellarLabel>(FindObjectsSortMode.None);
+        foreach (StellarLabel label in allLabels)
+        {
+            label.Setup(labelPrefab, mapCamera.GetComponent<Camera>(), this);
+        }
+    }
+
     private void OnEnable()
     {
         if (openMapAction == null) return;

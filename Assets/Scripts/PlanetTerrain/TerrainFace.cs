@@ -63,6 +63,7 @@ public class TerrainFace
         mesh.vertices = vertices;
         mesh.triangles = triangles;
         mesh.RecalculateNormals(); // Update the normals to reflect vertices changes
+        mesh.RecalculateBounds(); // Update the bounding box of the mesh to reflect vertices changes
         mesh.uv = uv;
     }
 
