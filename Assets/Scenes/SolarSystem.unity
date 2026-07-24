@@ -11000,12 +11000,12 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::StellarCamera
   cam: {fileID: 1141730608}
-  height: 30000
+  height: 50000
   panSensitivity: 0.5
   panSmoothing: 8
-  minOrthoSize: 15000
-  maxOrthoSize: 75000
-  zoomSpeed: 1000
+  minOrthoSize: 5000
+  maxOrthoSize: 600000
+  zoomSpeed: 5000
   zoomSmoothing: 8
   targetPosition: {x: 0, y: 0, z: 0}
 --- !u!1 &1142140468
@@ -11175,7 +11175,7 @@ Transform:
   m_GameObject: {fileID: 1142259385}
   serializedVersion: 2
   m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
-  m_LocalPosition: {x: 0.2163692, y: 1.321168, z: -1.0989538}
+  m_LocalPosition: {x: 16756.082, y: -10893.417, z: -83055.14}
   m_LocalScale: {x: 1, y: 1, z: 1}
   m_ConstrainProportionsScale: 0
   m_Children: []
@@ -11207,7 +11207,7 @@ MonoBehaviour:
   moonOrbitColor: {r: 0, g: 1, b: 1, a: 1}
   cometOrbitColor: {r: 1, g: 0.6, b: 0, a: 1}
   planetSafetyMargin: 5000
-  moonOrbitGap: 45
+  moonOrbitGap: 450
   ringChance: 0.45
   sunRadiusMultiplier: 8
   stellarMapManager: {fileID: 1142259392}

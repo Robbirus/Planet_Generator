@@ -11,15 +11,15 @@ public class StellarLabel : MonoBehaviour
     [SerializeField] private float solarScale = 0.1f;
     [SerializeField] private float fontSize = 30f;
 
-    private TextMeshProUGUI     labelInstance;
-    private Camera              mapCamera;
-    private StellarMapManager   stellarMapManager;
-    private Canvas              worldCanvas;
-    private bool                isMapOpen = false;
+    private TextMeshProUGUI labelInstance;
+    private Camera mapCamera;
+    private StellarMapManager stellarMapManager;
+    private Canvas worldCanvas;
+    private bool isMapOpen = false;
 
     public void Setup(TextMeshProUGUI prefab, Camera cam, StellarMapManager stellarMapManager)
     {
-        if(prefab == null)
+        if (prefab == null)
         {
             Debug.LogError("[StellarLabel] prefab is null.", this);
             return;
@@ -37,17 +37,22 @@ public class StellarLabel : MonoBehaviour
             Destroy(worldCanvas.gameObject);
         }
 
-        this.mapCamera          = cam;
-        this.stellarMapManager  = stellarMapManager;
+        this.mapCamera = cam;
+        this.stellarMapManager = stellarMapManager;
 
         // Create the canvas
         GameObject canvasGO = new GameObject("Label Canvas");
         canvasGO.transform.SetParent(transform, false);
         canvasGO.transform.localPosition = Vector3.zero;
 
-        worldCanvas             = canvasGO.AddComponent<Canvas>();
-        worldCanvas.renderMode  = RenderMode.WorldSpace;
+        worldCanvas = canvasGO.AddComponent<Canvas>();
+        worldCanvas.renderMode = RenderMode.WorldSpace;
         worldCanvas.worldCamera = cam;
+
+        // Force this canvas above orbit lines (sortingOrder 0) so a moon's orbit
+        // passing "in front of" a label never visually hides the text.
+        worldCanvas.overrideSorting = true;
+        worldCanvas.sortingOrder = 10;
 
         // Canvas size in world unit
         RectTransform rectTransform = canvasGO.GetComponent<RectTransform>();
@@ -55,9 +60,9 @@ public class StellarLabel : MonoBehaviour
         rectTransform.localScale = Vector3.one * solarScale;
 
         // Instantiate the label in the container
-        labelInstance           = Instantiate(prefab, canvasGO.transform);
-        labelInstance.text      = gameObject.name;
-        labelInstance.fontSize  = fontSize;
+        labelInstance = Instantiate(prefab, canvasGO.transform);
+        labelInstance.text = gameObject.name;
+        labelInstance.fontSize = fontSize;
         labelInstance.GetComponent<RectTransform>().anchoredPosition = new Vector2(0f, verticalOffset);
         labelInstance.gameObject.SetActive(false);
 
@@ -95,7 +100,7 @@ public class StellarLabel : MonoBehaviour
 
         if (this.labelInstance == null) return;
 
-        if(!this.isMapOpen)
+        if (!this.isMapOpen)
         {
             labelInstance.gameObject.SetActive(false);
             return;
@@ -109,12 +114,12 @@ public class StellarLabel : MonoBehaviour
 
     private void OnDestroy()
     {
-        if(this.stellarMapManager != null)
+        if (this.stellarMapManager != null)
         {
             this.stellarMapManager.OnMapChanged -= OnMapChanged;
         }
 
-        if(labelInstance != null)
+        if (labelInstance != null)
         {
             Destroy(labelInstance.gameObject);
         }

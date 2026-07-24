@@ -26,7 +26,7 @@ MonoBehaviour:
   - Omega
   - Zell
   numberRange: {x: 0, y: 8}
-  distanceRange: {x: 500, y: 3000}
+  distanceRange: {x: 900, y: 9000}
   orbitalSpeedRange: {x: 100, y: 1000}
   rotationSpeedRange: {x: 0.1, y: 2.5}
   massRange: {x: 18, y: 28}
@@ -34,7 +34,7 @@ MonoBehaviour:
   visualScale: 1.5
   shapeSettingsOptions: []
   colourSettingsOptions: []
-  terrainRadiusRange: {x: 150, y: 500}
+  terrainRadiusRange: {x: 200, y: 700}
   binaryChance: 0.15
   binarySeparationRange: {x: 5, y: 20}
   binaryOrbitSpeedRange: {x: 15, y: 60}

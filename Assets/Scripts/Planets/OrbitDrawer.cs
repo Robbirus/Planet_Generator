@@ -44,7 +44,7 @@ public class OrbitDrawer : MonoBehaviour
 
     private void OnDestroy()
     {
-        if(stellarMapManager != null)
+        if (stellarMapManager != null)
         {
             stellarMapManager.OnMapChanged -= OnMapChanged;
         }
@@ -77,9 +77,14 @@ public class OrbitDrawer : MonoBehaviour
 
         line.positionCount = segments;
 
+        // Explicit sorting order lower than StellarLabel's canvas (see StellarLabel.Setup)
+        // so orbit lines never visually cover the labels, since both are transparent
+        // (alpha-blended) and don't depth-test against each other.
+        line.sortingOrder = 0;
+
         // Material : use simple unlit/additive material
         // Assign a proper material in the Inspector for best result
-        if(line.sharedMaterial == null)
+        if (line.sharedMaterial == null)
         {
             line.sharedMaterial = new Material(Shader.Find("Sprites/Default"));
         }
@@ -99,8 +104,8 @@ public class OrbitDrawer : MonoBehaviour
     /// </summary>
     private void BuildOrbitPoint()
     {
-        if (isEllipse)  BuildEllipsePoints();
-        else            BuildCirclePoints();
+        if (isEllipse) BuildEllipsePoints();
+        else BuildCirclePoints();
     }
 
     private void BuildEllipsePoints()
@@ -115,7 +120,7 @@ public class OrbitDrawer : MonoBehaviour
 
         Quaternion tilt = Quaternion.Euler(inclination, 0f, 0f);
 
-        for(int i = 0; i < segments; i++)
+        for (int i = 0; i < segments; i++)
         {
             // E = eccentric anomaly
             float E = (i / (float)segments) * Mathf.PI * 2f;
@@ -165,7 +170,7 @@ public class OrbitDrawer : MonoBehaviour
 
     private void AdaptWidth()
     {
-        if(adaptiveCamera == null)
+        if (adaptiveCamera == null)
         {
             adaptiveCamera = Camera.main;
         }
@@ -189,7 +194,7 @@ public class OrbitDrawer : MonoBehaviour
         this.stellarMapManager = stellarMapManager;
         this.centerTransform = center;
 
-        if(line == null) line = GetComponent<LineRenderer>();
+        if (line == null) line = GetComponent<LineRenderer>();
 
         line.startColor = color;
         line.endColor = color;
@@ -209,7 +214,7 @@ public class OrbitDrawer : MonoBehaviour
 
     public void SetupEllipse(float semiMajorAxis, float eccentricity,
                             float inclination, float argPerihelion,
-                            Transform ellipseFocus, Color color, 
+                            Transform ellipseFocus, Color color,
                             StellarMapManager stellarMapManager)
     {
         this.inclination = inclination;
@@ -220,12 +225,12 @@ public class OrbitDrawer : MonoBehaviour
         this.eEccentricity = eccentricity;
         this.wArgPerihelion = argPerihelion;
 
-        if(line == null) {  line = GetComponent<LineRenderer>(); }
+        if (line == null) { line = GetComponent<LineRenderer>(); }
 
         line.startColor = color;
         line.endColor = color;
 
-        if(stellarMapManager != null)
+        if (stellarMapManager != null)
         {
             stellarMapManager.OnMapChanged += OnMapChanged;
             line.enabled = false;
@@ -245,7 +250,7 @@ public class OrbitDrawer : MonoBehaviour
     private void OnMapChanged(bool isMapOpen)
     {
         line.enabled = isMapOpen;
-        if(debug)
+        if (debug)
             Debug.Log($"map open : {isMapOpen}");
     }
 
