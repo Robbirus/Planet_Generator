@@ -66,22 +66,22 @@ public class StellarMapManager : MonoBehaviour
 
     private void LazyLoading()
     {
-        if(controller == null)
+        if (controller == null)
         {
             controller = GameManager.instance.GetSpaceshipController();
         }
 
-        if(movement == null)
+        if (movement == null)
         {
             movement = controller.GetMovement();
         }
 
-        if(weaponManager == null)
+        if (weaponManager == null)
         {
             weaponManager = controller.GetWeaponManager();
         }
 
-        if(playerCam == null)
+        if (playerCam == null)
         {
             playerCam = controller.GetPlayerCamera();
         }
@@ -150,14 +150,14 @@ public class StellarMapManager : MonoBehaviour
         }
 
         // Toggle UI
-        if(hudContainer != null) hudContainer.SetActive(false);
-        if(mapPanel != null) mapPanel.SetActive(true);
+        if (hudContainer != null) hudContainer.SetActive(false);
+        if (mapPanel != null) mapPanel.SetActive(true);
 
         // Free the cursor for panning
         Cursor.lockState = CursorLockMode.Confined;
         Cursor.visible = true;
 
-        foreach(OrbitDrawer drawer in FindObjectsByType<OrbitDrawer>(FindObjectsSortMode.None))
+        foreach (OrbitDrawer drawer in FindObjectsByType<OrbitDrawer>(FindObjectsSortMode.None))
         {
             drawer.SetAdaptiveCamera(mapCamera.GetCamera());
         }
@@ -192,7 +192,7 @@ public class StellarMapManager : MonoBehaviour
         Cursor.lockState = CursorLockMode.Confined;
         Cursor.visible = false;
 
-        if(debug)
+        if (debug)
             Debug.Log("[StellarMap] Map closed.", this);
     }
 }

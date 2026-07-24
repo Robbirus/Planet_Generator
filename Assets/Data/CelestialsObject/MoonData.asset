@@ -23,6 +23,8 @@ MonoBehaviour:
   - Castor
   - Kuper
   - Sigma
+  - Omega
+  - Zell
   numberRange: {x: 0, y: 8}
   distanceRange: {x: 500, y: 3000}
   orbitalSpeedRange: {x: 100, y: 1000}
@@ -32,7 +34,7 @@ MonoBehaviour:
   visualScale: 1.5
   shapeSettingsOptions: []
   colourSettingsOptions: []
-  terrainRadiusRange: {x: 80, y: 400}
+  terrainRadiusRange: {x: 150, y: 500}
   binaryChance: 0.15
   binarySeparationRange: {x: 5, y: 20}
   binaryOrbitSpeedRange: {x: 15, y: 60}

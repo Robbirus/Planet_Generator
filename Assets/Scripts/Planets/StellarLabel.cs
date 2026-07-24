@@ -25,6 +25,18 @@ public class StellarLabel : MonoBehaviour
             return;
         }
 
+        // Idempotency guard: if Setup() is called again on an already-initialized label
+        // (e.g. RefreshAllLabels() called twice), unsubscribe the old event handler and
+        // destroy the previous canvas instead of leaking a duplicate.
+        if (this.stellarMapManager != null)
+        {
+            this.stellarMapManager.OnMapChanged -= OnMapChanged;
+        }
+        if (worldCanvas != null)
+        {
+            Destroy(worldCanvas.gameObject);
+        }
+
         this.mapCamera          = cam;
         this.stellarMapManager  = stellarMapManager;
 

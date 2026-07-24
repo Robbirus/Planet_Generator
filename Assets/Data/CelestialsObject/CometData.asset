@@ -17,6 +17,8 @@ MonoBehaviour:
   - Henri
   - Emiss
   - Barb
+  - Rossi
+  - Vitima
   numberRange: {x: 0, y: 5}
   distanceRange: {x: 14000, y: 80000}
   orbitalSpeedRange: {x: 100, y: 1000}
@@ -26,7 +28,7 @@ MonoBehaviour:
   visualScale: 2
   shapeSettingsOptions: []
   colourSettingsOptions: []
-  terrainRadiusRange: {x: 80, y: 400}
+  terrainRadiusRange: {x: 30, y: 120}
   binaryChance: 0.15
   binarySeparationRange: {x: 5, y: 20}
   binaryOrbitSpeedRange: {x: 15, y: 60}

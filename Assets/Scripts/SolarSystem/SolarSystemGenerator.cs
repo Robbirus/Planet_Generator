@@ -454,10 +454,17 @@ public class SolarSystemGenerator : MonoBehaviour
         {
             float mass = SeedManager.Range(moonData.massRange.x, moonData.massRange.y, lunarRNG);
             float density = SeedManager.Range(moonData.densityRange.x, moonData.densityRange.y, lunarRNG);
+
+            // Prefer a direct world-space radius (moonData.terrainRadiusRange) so moons
+            // are sized proportionally to planets. Falls back to the mass/density formula
+            // only if terrainRadiusRange is left at (0,0).
+            float directRadius = moonData.GetRandomTerrainRadius(lunarRNG);
             float visualRadius = CelestialBody.ComputeRadius(mass, density, moonData.visualScale);
+            float effectiveRadius = directRadius > 0f ? directRadius : visualRadius;
+
             float rotationSpeed = SeedManager.Range(moonData.rotationSpeedRange.x, moonData.rotationSpeedRange.y, lunarRNG);
 
-            float distance = FindSafeMoonOrbit(planetRadius, visualRadius, used);
+            float distance = FindSafeMoonOrbit(planetRadius, effectiveRadius, used);
             if (distance < 0f) continue;
 
             float angle = SeedManager.Range(0f, Mathf.PI * 2f, lunarRNG);
@@ -473,7 +480,7 @@ public class SolarSystemGenerator : MonoBehaviour
             string name = GetUniqueName(moonData, lunarRNG, $"Moon_{i}");
             GameObject moon = SpawnBody(moonPrefab, position, Quaternion.identity,
                 mass, density, rotationSpeed, name,
-                moonData.visualScale, moonData.densityRange.y);
+                moonData.visualScale, moonData.densityRange.y, directRadius);
 
             CelestialBody body = moon.GetComponent<CelestialBody>();
             OrbitDrawer drawer = moon.GetComponentInChildren<OrbitDrawer>();
@@ -487,7 +494,7 @@ public class SolarSystemGenerator : MonoBehaviour
             // If the moon also has procedural ground, uncomment the following line:
             // if (body.HasTerrain()) yield return StartCoroutine(body.GenerateTerrainAsync(...));
 
-            used.Add((distance, visualRadius));
+            used.Add((distance, effectiveRadius));
         }
     }
 
@@ -516,8 +523,12 @@ public class SolarSystemGenerator : MonoBehaviour
 
             string name = GetUniqueName(cometData, cometRNG, $"Comet_{i}");
 
+            // Same direct-radius approach as planets/moons, so comets stay small
+            // but visually consistent (not literally invisible next to a planet).
+            float directRadius = cometData.GetRandomTerrainRadius(cometRNG);
+
             GameObject comet = SpawnBody(cometPrefab, sun.position, Quaternion.identity,
-                mass, density, rotationSpeed, name, cometData.visualScale, cometData.densityRange.y);
+                mass, density, rotationSpeed, name, cometData.visualScale, cometData.densityRange.y, directRadius);
             comet.name = name;
 
             CelestialBody body = comet.GetComponent<CelestialBody>();
@@ -550,7 +561,8 @@ public class SolarSystemGenerator : MonoBehaviour
 
     private GameObject SpawnBody(GameObject prefab, Vector3 position, Quaternion rotation,
                                 float mass, float density, float rotationSpeed,
-                                string bodyName, float scale, float maxDensity)
+                                string bodyName, float scale, float maxDensity,
+                                float directRadius = -1f)
     {
         GameObject go = Instantiate(prefab, position, rotation);
         CelestialBody b = go.GetComponent<CelestialBody>();
@@ -558,7 +570,16 @@ public class SolarSystemGenerator : MonoBehaviour
         b.SetDensity(density);
         b.SetRotationSpeed(rotationSpeed);
         b.SetName(bodyName);
-        b.ApplyScale(scale);
+
+        // Same logic as planets: if a direct world-space radius is configured
+        // (terrainRadiusRange on the CelestialObjectDataSO), use it so moons/comets
+        // are sized consistently with planets instead of the mass/density formula,
+        // which produces sizes that are visually meaningless next to a planet/sun.
+        if (directRadius > 0f)
+            b.ApplyTerrainScaleDirect(directRadius);
+        else
+            b.ApplyScale(scale);
+
         b.ApplyColor(maxDensity);
 
         return go;
